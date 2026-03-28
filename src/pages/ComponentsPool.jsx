@@ -16,7 +16,8 @@ import { canManageUnits } from '@/lib/constants';
 import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function ComponentsPool() {
-  const { user } = useOutletContext();
+  const context = useOutletContext() || {};
+  const { user } = context;
   const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [filters, setFilters] = useState({ search: '', project: 'all', type: 'all', status: 'all' });
