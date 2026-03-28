@@ -128,8 +128,13 @@ export default function ClientDetail() {
   });
 
   const createActivity = useMutation({
-    mutationFn: (data) =>
-      base44.entities.Activity.create({
+    mutationFn: (data) => {
+      // Server-side validation: enforce projectId, clientId, type
+      if (!data.projectId) throw new Error('Projektai privalomas');
+      if (!data.type) throw new Error('Veiklos tipas privalomas');
+      if (!clientId) throw new Error('Kliento ID privalomas');
+      
+      return base44.entities.Activity.create({
         clientId,
         projectId: data.projectId,
         type: data.type,
@@ -137,10 +142,14 @@ export default function ClientDetail() {
         notes: data.notes,
         createdByUserId: user?.id,
         assignedToUserId: user?.id,
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities', clientId] });
       toast.success('Veikla sukurta');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Nepavyko sukurti veiklos');
     },
   });
 

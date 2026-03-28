@@ -15,6 +15,7 @@ export default function ActivityForm({ projectInterests, projects = [], onSubmit
     notes: '',
   });
   const [open, setOpen] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // Auto-select project if only one interest
   useEffect(() => {
@@ -24,7 +25,16 @@ export default function ActivityForm({ projectInterests, projects = [], onSubmit
   }, [projectInterests, form.projectId]);
 
   const handleSubmit = () => {
-    if (!form.projectId || !form.type) return;
+    const newErrors = {};
+    if (!form.projectId) newErrors.projectId = 'Pasirinkite projektą veiklai';
+    if (!form.type) newErrors.type = 'Pasirinkite veiklos tipą';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({});
     onSubmit(form);
     setForm({ projectId: form.projectId, type: 'call', scheduledAt: new Date().toISOString().slice(0, 16), notes: '' });
     setOpen(false);
@@ -56,16 +66,19 @@ export default function ActivityForm({ projectInterests, projects = [], onSubmit
       ) : (
         <>
           {availableProjects.length > 1 ? (
-            <Select value={form.projectId} onValueChange={v => setForm({ ...form, projectId: v })}>
-              <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Pasirinkite projektą..." />
-              </SelectTrigger>
-              <SelectContent>
-                {availableProjects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div>
+              <Select value={form.projectId} onValueChange={v => { setForm({ ...form, projectId: v }); setErrors(prev => ({ ...prev, projectId: '' })); }}>
+                <SelectTrigger className={`text-sm ${errors.projectId ? 'border-destructive' : ''}`}>
+                  <SelectValue placeholder="Pasirinkite projektą..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableProjects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.projectId && <p className="text-xs text-destructive mt-1">{errors.projectId}</p>}
+            </div>
           ) : form.projectId && selectedProject ? (
             <div className="p-2 rounded bg-card border text-sm">
               <p className="text-muted-foreground text-xs mb-1">Projektas</p>
@@ -73,16 +86,19 @@ export default function ActivityForm({ projectInterests, projects = [], onSubmit
             </div>
           ) : null}
 
-          <Select value={form.type} onValueChange={v => setForm({ ...form, type: v })}>
-            <SelectTrigger className="text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div>
+            <Select value={form.type} onValueChange={v => { setForm({ ...form, type: v }); setErrors(prev => ({ ...prev, type: '' })); }}>
+              <SelectTrigger className={`text-sm ${errors.type ? 'border-destructive' : ''}`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.type && <p className="text-xs text-destructive mt-1">{errors.type}</p>}
+          </div>
 
           <Input
             type="datetime-local"
