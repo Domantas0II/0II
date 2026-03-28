@@ -22,12 +22,40 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Rezervacija nerasta' }, { status: 400 });
     }
 
+    // Validate reservation can be extended
+    if (!['active', 'overdue'].includes(reservation.status)) {
+      return Response.json({ 
+        error: `Rezervaciją kurios statusas ${reservation.status} negalima pratęsti`,
+        code: 'INVALID_STATUS'
+      }, { status: 400 });
+    }
+
     // Update reservation
     const newStatus = new Date(newExpiresAt) > new Date() ? 'active' : 'overdue';
     await base44.entities.Reservation.update(reservationId, {
       expiresAt: newExpiresAt,
       status: newStatus
     });
+
+    // === AUDIT LOG ===
+    try {
+      const client = await base44.entities.Client.filter({ id: reservation.clientId }).then(r => r?.[0]);
+      await base44.entities.AuditLog.create({
+        action: 'RESERVATION_EXTENDED',
+        performedByUserId: user.id,
+        performedByName: user.full_name,
+        targetUserId: reservation.clientId,
+        targetUserEmail: client?.email,
+        details: JSON.stringify({
+          reservationId,
+          oldExpiresAt: reservation.expiresAt,
+          newExpiresAt,
+          newStatus
+        })
+      });
+    } catch {
+      // Audit log failure should not block extend
+    }
 
     return Response.json({ success: true });
   } catch (error) {

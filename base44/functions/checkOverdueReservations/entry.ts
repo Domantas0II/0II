@@ -2,13 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
+    // This is a system cron function - no user role check needed
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    
-    if (!user || user.role !== 'ADMINISTRATOR') {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const now = new Date();
 
     // Get all active reservations
