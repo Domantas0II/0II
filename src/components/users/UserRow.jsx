@@ -11,13 +11,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import RoleBadge from './RoleBadge';
 import UserStatusBadge from './UserStatusBadge';
-import { CAN_MANAGE_USERS } from '@/lib/constants';
-
-const CAN_VIEW = ['ADMIN', 'SALES_MANAGER'];
+import { canManageUsers } from '@/lib/constants';
 
 export default function UserRow({ user, invite, projectCount, currentUser, onDisable, onEnable, onResend, onRevoke }) {
-  const canManage = CAN_MANAGE_USERS.includes(currentUser?.role);
-  const canView = CAN_VIEW.includes(currentUser?.role);
+  const canManage = canManageUsers(currentUser?.role);
+  const canView = canManage; // tie patys roliai turi ir peržiūros teises
   const isInvite = !!invite && !user;
   const displayName = isInvite ? (invite.email) : (user.full_name || 'Be vardo');
   const email = isInvite ? invite.email : user.email;
