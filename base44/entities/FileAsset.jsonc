@@ -79,6 +79,14 @@
       "type": "string",
       "description": "Unit ID (optional)"
     },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID (optional, reikalingas customer_safe failams)"
+    },
+    "partnerId": {
+      "type": "string",
+      "description": "Partnerio ID (optional, reikalingas partner_safe failams)"
+    },
     "reservationId": {
       "type": "string",
       "description": "Rezervacijos ID (optional)"
@@ -94,10 +102,6 @@
     "dealId": {
       "type": "string",
       "description": "Deal ID (optional)"
-    },
-    "clientId": {
-      "type": "string",
-      "description": "Kliento ID (optional)"
     },
     "category": {
       "type": "string",

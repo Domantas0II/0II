@@ -30,7 +30,8 @@ Deno.serve(async (req) => {
       agreementId,
       paymentId,
       dealId,
-      clientId
+      clientId,
+      partnerId
     } = await req.json();
 
     // Validate required fields
@@ -41,24 +42,48 @@ Deno.serve(async (req) => {
     }
 
     // Validate owner context - at least one must be present
-    const hasContext = projectId || unitId || reservationId || agreementId || paymentId || dealId || clientId;
+    const hasContext = projectId || unitId || reservationId || agreementId || paymentId || dealId || clientId || partnerId;
     if (!hasContext) {
       return Response.json({
-        error: 'At least one context required: projectId, unitId, reservationId, agreementId, paymentId, dealId, clientId'
+        error: 'At least one context required'
       }, { status: 400 });
     }
 
-    // Validate visibility compatibility
-    if (visibility !== 'internal' && visibility !== 'public') {
-      // external_safe types require explicit token scope in FileAccessGrant
-      // Allow creation, but will be controlled by grants
-    }
-
-    // Validate visibility matches context
-    if (visibility === 'public' && (reservationId || agreementId || paymentId || dealId || clientId)) {
-      return Response.json({
-        error: 'Public visibility not compatible with private context (reservation, agreement, payment, deal, client)'
-      }, { status: 400 });
+    // STRICT: Validate visibility and context compatibility
+    if (visibility === 'customer_safe') {
+      // customer_safe MUST have customer context
+      const hasCustomerContext = clientId || (reservationId || agreementId || paymentId || dealId);
+      if (!hasCustomerContext) {
+        return Response.json({
+          error: 'customer_safe visibility requires clientId or customer-linked context (reservation, agreement, payment, deal)'
+        }, { status: 400 });
+      }
+      // customer_safe CANNOT have partnerId
+      if (partnerId) {
+        return Response.json({
+          error: 'customer_safe cannot have partner context'
+        }, { status: 400 });
+      }
+    } else if (visibility === 'partner_safe') {
+      // partner_safe MUST have partnerId
+      if (!partnerId) {
+        return Response.json({
+          error: 'partner_safe visibility requires partnerId'
+        }, { status: 400 });
+      }
+      // partner_safe CANNOT have customer context
+      if (clientId || reservationId || agreementId || paymentId || dealId) {
+        return Response.json({
+          error: 'partner_safe cannot have customer context'
+        }, { status: 400 });
+      }
+    } else if (visibility === 'public') {
+      // public cannot inherit private scope
+      if (clientId || partnerId || reservationId || agreementId || paymentId || dealId) {
+        return Response.json({
+          error: 'public visibility not compatible with private context'
+        }, { status: 400 });
+      }
     }
 
     // Create FileAsset
@@ -86,6 +111,7 @@ Deno.serve(async (req) => {
       paymentId: paymentId || null,
       dealId: dealId || null,
       clientId: clientId || null,
+      partnerId: partnerId || null,
       uploadedByUserId: user.id,
       uploadedByName: user.full_name
     });
@@ -104,11 +130,12 @@ Deno.serve(async (req) => {
         context: {
           projectId: projectId || null,
           unitId: unitId || null,
+          clientId: clientId || null,
+          partnerId: partnerId || null,
           reservationId: reservationId || null,
           agreementId: agreementId || null,
           paymentId: paymentId || null,
-          dealId: dealId || null,
-          clientId: clientId || null
+          dealId: dealId || null
         }
       })
     });

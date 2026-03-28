@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { fileAssetId, title, description, tagsJson, visibility, status, isPrimary, displayOrder } = await req.json();
+    const { fileAssetId, title, description, tagsJson, visibility, status, isPrimary, displayOrder, partnerId } = await req.json();
 
     if (!fileAssetId) {
       return Response.json({ error: 'fileAssetId required' }, { status: 400 });
@@ -35,6 +35,21 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Validate visibility changes
+    if (visibility !== undefined && visibility !== asset.visibility) {
+      // Same visibility compatibility rules as createFileAsset
+      if (visibility === 'partner_safe' && !partnerId && !asset.partnerId) {
+        return Response.json({
+          error: 'partner_safe requires partnerId'
+        }, { status: 400 });
+      }
+      if (visibility === 'customer_safe' && !asset.clientId) {
+        return Response.json({
+          error: 'customer_safe requires customer context'
+        }, { status: 400 });
+      }
+    }
+
     // Update allowed fields
     const updateData = {};
     if (title !== undefined) updateData.title = title;
@@ -44,6 +59,7 @@ Deno.serve(async (req) => {
     if (status !== undefined) updateData.status = status;
     if (isPrimary !== undefined) updateData.isPrimary = isPrimary;
     if (displayOrder !== undefined) updateData.displayOrder = displayOrder;
+    if (partnerId !== undefined) updateData.partnerId = partnerId;
 
     const updated = await base44.entities.FileAsset.update(fileAssetId, updateData);
 

@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       status: 'replaced'
     });
 
-    // Create new version
+    // Create new version (inherit all context from old)
     const newAsset = await base44.entities.FileAsset.create({
       fileName: newFileName,
       originalFileName: newFileName,
@@ -60,11 +60,12 @@ Deno.serve(async (req) => {
       displayOrder: oldAsset.displayOrder,
       projectId: oldAsset.projectId || null,
       unitId: oldAsset.unitId || null,
+      clientId: oldAsset.clientId || null,
+      partnerId: oldAsset.partnerId || null,
       reservationId: oldAsset.reservationId || null,
       agreementId: oldAsset.agreementId || null,
       paymentId: oldAsset.paymentId || null,
       dealId: oldAsset.dealId || null,
-      clientId: oldAsset.clientId || null,
       uploadedByUserId: user.id,
       uploadedByName: user.full_name
     });

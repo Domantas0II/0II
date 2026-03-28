@@ -36,38 +36,42 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Token expired' }, { status: 401 });
     }
 
-    // Determine allowed visibility based on token type
-    let allowedVisibility = [];
-    let contextFilter = {};
-
-    if (tokenRecord.accessType === 'customer_portal') {
-      allowedVisibility = ['customer_safe'];
-      contextFilter.clientId = tokenRecord.clientId;
-    } else if (tokenRecord.accessType === 'partner_portal') {
-      allowedVisibility = ['partner_safe'];
-      contextFilter.partnerId = tokenRecord.partnerId;
-    } else {
-      return Response.json({ error: 'Invalid access type' }, { status: 403 });
-    }
-
-    // CRITICAL: Filter out internal / archived / replaced files
+    // STRICT: Isolate customer vs partner scope
     const filter = {
-      visibility: { $in: allowedVisibility },
       status: { $in: ['active'] }
     };
 
-    // Apply context scope
-    if (tokenRecord.clientId) {
-      filter.clientId = tokenRecord.clientId;
-    }
-    if (tokenRecord.reservationId) {
-      filter.reservationId = tokenRecord.reservationId;
-    }
-    if (tokenRecord.agreementId) {
-      filter.agreementId = tokenRecord.agreementId;
-    }
-    if (tokenRecord.projectId) {
-      filter.projectId = tokenRecord.projectId;
+    if (tokenRecord.accessType === 'customer_portal') {
+      // CUSTOMER: tik customer_safe, tik customer scope
+      filter.visibility = { $in: ['customer_safe'] };
+      
+      // Apply customer context scope
+      if (tokenRecord.clientId) {
+        filter.clientId = tokenRecord.clientId;
+      }
+      if (tokenRecord.reservationId) {
+        filter.reservationId = tokenRecord.reservationId;
+      }
+      if (tokenRecord.agreementId) {
+        filter.agreementId = tokenRecord.agreementId;
+      }
+      if (tokenRecord.projectId) {
+        filter.projectId = tokenRecord.projectId;
+      }
+      
+      // CRITICAL: NIEKADA jokio partnerId filtro
+      // customer negali gauti partner failus
+      
+    } else if (tokenRecord.accessType === 'partner_portal') {
+      // PARTNER: tik partner_safe, tik partner scope
+      filter.visibility = { $in: ['partner_safe'] };
+      filter.partnerId = tokenRecord.partnerId;
+      
+      // CRITICAL: NIEKADA jokio clientId/reservation/agreement/payment/deal filtro
+      // partner negali gauti customer failus
+      
+    } else {
+      return Response.json({ error: 'Invalid access type' }, { status: 403 });
     }
 
     // Fetch safe files

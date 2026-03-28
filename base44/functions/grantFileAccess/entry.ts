@@ -27,6 +27,27 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid accessType' }, { status: 400 });
     }
 
+    // Fetch file to validate scope
+    const files = await base44.entities.FileAsset.filter({ id: fileAssetId });
+    if (!files || files.length === 0) {
+      return Response.json({ error: 'File not found' }, { status: 404 });
+    }
+
+    const file = files[0];
+
+    // Validate file visibility matches accessType
+    if (accessType === 'customer_token' && file.visibility !== 'customer_safe') {
+      return Response.json({
+        error: 'customer_token can only be granted to customer_safe files'
+      }, { status: 400 });
+    }
+
+    if (accessType === 'partner_token' && file.visibility !== 'partner_safe') {
+      return Response.json({
+        error: 'partner_token can only be granted to partner_safe files'
+      }, { status: 400 });
+    }
+
     // Validate token/user depending on type
     if (accessType === 'customer_token' || accessType === 'partner_token') {
       if (!externalAccessTokenId) {
