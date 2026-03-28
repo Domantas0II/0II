@@ -31,6 +31,15 @@
       "default": "available",
       "description": "Vidinis statusas"
     },
+    "reservationLockToken": {
+      "type": "string",
+      "description": "Technical: Reservation lock token (concurrency control)"
+    },
+    "reservationLockAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Technical: Lock timestamp for staleness detection"
+    },
     "areaM2": {
       "type": "number",
       "description": "Plotas m\u00b2"

@@ -1,5 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// Helper: generate unique lock token
+function generateLockToken() {
+  return `lock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Helper: check if lock is stale (older than 2 minutes)
+function isLockStale(lockAt) {
+  if (!lockAt) return false;
+  const lockTime = new Date(lockAt);
+  const now = new Date();
+  const ageMs = now - lockTime;
+  return ageMs > 2 * 60 * 1000; // 2 minutes
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -21,56 +35,51 @@ Deno.serve(async (req) => {
 
     // === STAGE 1: FULL VALIDATION ===
     
-    // Validate required fields
     if (!projectId || !bundleId || !clientId || !clientProjectInterestId) {
       return Response.json({ error: 'Privalomi duomenys trūksta' }, { status: 400 });
     }
 
-    // Validate project exists
     const project = await base44.entities.Project.filter({ id: projectId }).then(r => r?.[0]);
     if (!project) {
       return Response.json({ error: 'Projektas nerastas' }, { status: 400 });
     }
 
-    // Validate client exists
     const client = await base44.entities.Client.filter({ id: clientId }).then(r => r?.[0]);
     if (!client) {
       return Response.json({ error: 'Klientas nerastas' }, { status: 400 });
     }
 
-    // Validate clientProjectInterest exists and belongs to project
     const interest = await base44.entities.ClientProjectInterest.filter({ id: clientProjectInterestId }).then(r => r?.[0]);
-    if (!interest) {
-      return Response.json({ error: 'Kliento susidomėjimas nerastas' }, { status: 400 });
-    }
-    if (interest.projectId !== projectId) {
-      return Response.json({ error: 'Kliento susidomėjimas nepriklauso projektui' }, { status: 400 });
-    }
-    if (interest.clientId !== clientId) {
-      return Response.json({ error: 'Kliento susidomėjimas nepriklauso šiam klientui' }, { status: 400 });
+    if (!interest || interest.projectId !== projectId || interest.clientId !== clientId) {
+      return Response.json({ error: 'Kliento susidomėjimas nepriklauso šiam projektui/klientui' }, { status: 400 });
     }
 
-    // Validate bundle exists and matches project
-    const bundle = await base44.entities.ReservationBundle.filter({ id: bundleId }).then(r => r?.[0]);
-    if (!bundle) {
-      return Response.json({ error: 'Pluoštas nerastas' }, { status: 400 });
-    }
-    if (bundle.projectId !== projectId) {
-      return Response.json({ error: 'Pluoštas nepriklauso projektui' }, { status: 400 });
-    }
-
-    // === STAGE 2: FRESH UNIT + COMPONENTS FETCH (Race condition check) ===
+    // === STAGE 2: FRESH FETCH + BUNDLE STALENESS CHECK ===
     
-    // Get fresh unit from DB
-    const unit = await base44.entities.SaleUnit.filter({ id: bundle.unitId }).then(r => r?.[0]);
-    if (!unit) {
-      return Response.json({ error: 'Objektas nerastas' }, { status: 400 });
-    }
-    if (unit.projectId !== projectId) {
-      return Response.json({ error: 'Objektas nepriklauso projektui' }, { status: 400 });
+    const bundle = await base44.entities.ReservationBundle.filter({ id: bundleId }).then(r => r?.[0]);
+    if (!bundle || bundle.projectId !== projectId) {
+      return Response.json({ 
+        error: 'Rezervacijos bundle nebegalioja arba nepriklauso projektui',
+        code: 'BUNDLE_INVALID'
+      }, { status: 400 });
     }
 
-    // Critical: Check unit status MUST be available (race condition protection)
+    let unit = await base44.entities.SaleUnit.filter({ id: bundle.unitId }).then(r => r?.[0]);
+    if (!unit || unit.projectId !== projectId) {
+      return Response.json({ error: 'Objektas nerastas arba nepriklauso projektui' }, { status: 400 });
+    }
+
+    // === STAGE 3: PRE-LOCK VALIDATION ===
+    
+    // Check for stale locks (staleness safety)
+    if (unit.reservationLockToken && !isLockStale(unit.reservationLockAt)) {
+      return Response.json({ 
+        error: 'Objektas ką tik buvo rezervuotas kito vartotojo',
+        code: 'UNIT_LOCKED'
+      }, { status: 409 });
+    }
+
+    // Check unit is available
     if (unit.internalStatus !== 'available') {
       return Response.json({ 
         error: `Objektas jau ${unit.internalStatus}. Gali būti, kad kitas agentas jį rezervavo.`,
@@ -78,14 +87,13 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // Get fresh components
+    // Validate components exist and are available
     const components = bundle.componentIds?.length > 0
       ? await base44.entities.UnitComponent.filter({ id: { $in: bundle.componentIds } })
       : [];
 
-    // Validate all components
     if (components.length !== (bundle.componentIds?.length || 0)) {
-      return Response.json({ error: 'Viena iš dedamųjų nerasta' }, { status: 400 });
+      return Response.json({ error: 'Viena iš dedamųjų nerasta arba buvo ištrinta' }, { status: 400 });
     }
 
     for (const comp of components) {
@@ -94,13 +102,13 @@ Deno.serve(async (req) => {
       }
       if (comp.status !== 'available') {
         return Response.json({ 
-          error: `Dedamoji ${comp.label} jau ${comp.status}`,
+          error: `Viena iš dedamųjų jau ${comp.status}`,
           code: 'COMPONENT_UNAVAILABLE'
         }, { status: 409 });
       }
     }
 
-    // Check for conflicting active/overdue reservations
+    // Check no active/overdue reservations exist for this unit/components
     const conflicts = await base44.entities.Reservation.filter({
       projectId,
       status: { $in: ['active', 'overdue'] }
@@ -122,8 +130,56 @@ Deno.serve(async (req) => {
       }
     }
 
-    // === STAGE 3: CREATE RESERVATION + UPDATE STATUSES WITH ROLLBACK ===
+    // === STAGE 4: CLAIM LOCK ===
+    
+    const lockToken = generateLockToken();
+    const lockAt = new Date().toISOString();
 
+    try {
+      await base44.entities.SaleUnit.update(bundle.unitId, {
+        reservationLockToken: lockToken,
+        reservationLockAt: lockAt
+      });
+    } catch (err) {
+      return Response.json({ 
+        error: 'Nepavyko užrakinti objekto rezervacijai',
+        code: 'LOCK_FAILED'
+      }, { status: 500 });
+    }
+
+    // === STAGE 5: POST-LOCK RE-VALIDATION ===
+    
+    unit = await base44.entities.SaleUnit.filter({ id: bundle.unitId }).then(r => r?.[0]);
+    
+    // Verify we hold the lock
+    if (unit.reservationLockToken !== lockToken) {
+      return Response.json({ 
+        error: 'Objektas ką tik buvo rezervuotas kito vartotojo',
+        code: 'LOCK_STOLEN'
+      }, { status: 409 });
+    }
+
+    // Re-check components after lock claim
+    const componentsAfterLock = bundle.componentIds?.length > 0
+      ? await base44.entities.UnitComponent.filter({ id: { $in: bundle.componentIds } })
+      : [];
+
+    for (const comp of componentsAfterLock) {
+      if (comp.status !== 'available') {
+        // Release lock before failing
+        await base44.entities.SaleUnit.update(bundle.unitId, {
+          reservationLockToken: null,
+          reservationLockAt: null
+        });
+        return Response.json({ 
+          error: 'Viena iš dedamųjų jau nebeprieinama',
+          code: 'COMPONENT_UNAVAILABLE_POST_LOCK'
+        }, { status: 409 });
+      }
+    }
+
+    // === STAGE 6: CREATE RESERVATION + UPDATE STATUSES ===
+    
     let createdReservationId = null;
     try {
       // Create reservation
@@ -140,12 +196,14 @@ Deno.serve(async (req) => {
       });
       createdReservationId = reservation.id;
 
-      // Update unit status
+      // Update unit status and release lock
       await base44.entities.SaleUnit.update(bundle.unitId, {
-        internalStatus: 'reserved'
+        internalStatus: 'reserved',
+        reservationLockToken: null,
+        reservationLockAt: null
       });
 
-      // Update component statuses (with error handling)
+      // Update component statuses
       const failedComponents = [];
       if (bundle.componentIds?.length > 0) {
         for (const compId of bundle.componentIds) {
@@ -159,18 +217,15 @@ Deno.serve(async (req) => {
         }
       }
 
-      // If any component update failed, rollback
+      // If component update failed, rollback
       if (failedComponents.length > 0) {
-        // Rollback: mark as released
         await base44.entities.Reservation.update(createdReservationId, {
           status: 'released',
           releasedAt: new Date().toISOString()
         });
-        // Rollback unit
         await base44.entities.SaleUnit.update(bundle.unitId, {
           internalStatus: 'available'
         });
-        // Rollback updated components
         for (const compId of bundle.componentIds) {
           if (!failedComponents.includes(compId)) {
             await base44.entities.UnitComponent.update(compId, {
@@ -179,12 +234,37 @@ Deno.serve(async (req) => {
           }
         }
         return Response.json({ 
-          error: 'Nepavyko užrakinti visų rezervacijos dalių',
+          error: 'Nepavyko saugiai užbaigti rezervacijos',
           code: 'PARTIAL_FAILURE'
         }, { status: 500 });
       }
 
-      // === STAGE 4: AUDIT LOG ===
+      // === STAGE 7: FINAL VALIDATION ===
+      
+      // Verify only one active reservation exists for this unit
+      const finalCheck = await base44.entities.Reservation.filter({
+        projectId,
+        status: 'active'
+      });
+
+      const unitReservations = finalCheck.filter(r => {
+        const b = bundle;
+        return b.unitId === bundle.unitId;
+      });
+
+      if (unitReservations.length > 1) {
+        // ANOMALY: Multiple active reservations detected
+        await base44.entities.Reservation.update(createdReservationId, {
+          status: 'released',
+          releasedAt: new Date().toISOString()
+        });
+        return Response.json({ 
+          error: 'Nepavyko saugiai užbaigti rezervacijos - anomalija',
+          code: 'ANOMALY_DETECTED'
+        }, { status: 500 });
+      }
+
+      // === STAGE 8: AUDIT LOG ===
       try {
         await base44.entities.AuditLog.create({
           action: 'RESERVATION_CREATED',
@@ -196,7 +276,8 @@ Deno.serve(async (req) => {
             reservationId: createdReservationId,
             unitId: bundle.unitId,
             componentCount: bundle.componentIds?.length || 0,
-            expiresAt
+            expiresAt,
+            lockToken: lockToken
           })
         });
       } catch {
@@ -209,7 +290,7 @@ Deno.serve(async (req) => {
       });
 
     } catch (error) {
-      // Rollback if something failed
+      // Rollback on creation failure
       if (createdReservationId) {
         try {
           await base44.entities.Reservation.update(createdReservationId, {
@@ -220,6 +301,34 @@ Deno.serve(async (req) => {
           // Best effort cleanup
         }
       }
+
+      // Release lock
+      try {
+        await base44.entities.SaleUnit.update(bundle.unitId, {
+          reservationLockToken: null,
+          reservationLockAt: null
+        });
+      } catch {
+        // Log lock release failure but don't block error return
+      }
+
+      // Log concurrency audit
+      try {
+        await base44.entities.AuditLog.create({
+          action: 'RESERVATION_FAILED',
+          performedByUserId: user.id,
+          performedByName: user.full_name,
+          targetUserId: clientId,
+          details: JSON.stringify({
+            error: error.message,
+            bundleId,
+            unitId: bundle.unitId
+          })
+        });
+      } catch {
+        // Audit failure non-critical
+      }
+
       throw error;
     }
 
