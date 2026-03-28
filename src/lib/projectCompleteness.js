@@ -64,7 +64,8 @@ export function calcCompleteness(project, inventory, components, technical, fina
   const percent = Math.round((filledBlocks / totalBlocks) * 100);
 
   // Kritiniai blokeriai — be jų negalima internal_ready
-  const criticalBlockers = blockers.filter(b => ['base', 'inventory', 'financial'].includes(b));
+  // VISOS 5 sekcijos yra kritinės: base, inventory, components, financial, process
+  const criticalBlockers = blockers.filter(b => ['base', 'inventory', 'components', 'financial', 'process'].includes(b));
   const readyForOperations = criticalBlockers.length === 0;
 
   return { percent, blockers, criticalBlockers, readyForOperations };

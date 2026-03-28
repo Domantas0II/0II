@@ -13,6 +13,7 @@ import ComponentRow from '@/components/units/ComponentRow';
 import CreateComponentForm from '@/components/units/CreateComponentForm';
 import { COMPONENT_TYPE_LABELS, COMPONENT_STATUS_LABELS } from '@/lib/unitConstants';
 import { canManageUnits } from '@/lib/constants';
+import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function ComponentsPool() {
   const { user } = useOutletContext();
@@ -20,19 +21,36 @@ export default function ComponentsPool() {
   const [showCreate, setShowCreate] = useState(false);
   const [filters, setFilters] = useState({ search: '', project: 'all', type: 'all', status: 'all' });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+  // Fetch accessible project IDs
+  const { data: accessibleIds = null } = useQuery({
+    queryKey: ['accessibleProjectIds', user?.id],
+    queryFn: () => getAccessibleProjectIds(user, base44),
+    enabled: !!user?.id,
   });
 
-  // Fetchinti tik pool komponentus — be unitId
-  // Base44 filter negali filtruoti pagal null, todėl fetchinti visus ir filtruoti kliente
-  // bet apriboti query pagal projektą jei pasirinktas filtras
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects', accessibleIds],
+    queryFn: async () => {
+      const all = await base44.entities.Project.list('-created_date');
+      return filterByAccessibleProjects(all, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
+  });
+
+  // Fetchinti tik accessible komponentus
   const { data: allComponents = [], isLoading } = useQuery({
-    queryKey: ['components-pool', filters.project],
-    queryFn: () => filters.project !== 'all'
-      ? base44.entities.UnitComponent.filter({ projectId: filters.project })
-      : base44.entities.UnitComponent.list('-created_date'),
+    queryKey: ['components-pool', filters.project, accessibleIds],
+    queryFn: async () => {
+      let components;
+      if (filters.project !== 'all') {
+        components = await base44.entities.UnitComponent.filter({ projectId: filters.project });
+      } else {
+        components = await base44.entities.UnitComponent.list('-created_date');
+      }
+      // Filter by access + pool only
+      return filterByAccessibleProjects(components, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
   });
 
   // Pool = tik nepriskirti (unitId = null arba undefined)

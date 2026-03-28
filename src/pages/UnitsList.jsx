@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import UnitCard from '@/components/units/UnitCard';
 import UnitFilters from '@/components/units/UnitFilters';
 import CreateUnitForm from '@/components/units/CreateUnitForm';
-import { canManageUnits } from '@/lib/constants';
+import { canManageUnits, normalizeRole } from '@/lib/constants';
+import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function UnitsList() {
   const { user } = useOutletContext();
@@ -17,15 +18,32 @@ export default function UnitsList() {
   const [filters, setFilters] = useState({ search: '', project: 'all', type: 'all', status: 'all' });
   const [showCreate, setShowCreate] = useState(false);
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+  // Fetch accessible project IDs
+  const { data: accessibleIds = null } = useQuery({
+    queryKey: ['accessibleProjectIds', user?.id],
+    queryFn: () => getAccessibleProjectIds(user, base44),
+    enabled: !!user?.id,
   });
 
-  const { data: units = [], isLoading } = useQuery({
-    queryKey: ['units'],
-    queryFn: () => base44.entities.SaleUnit.list('-created_date'),
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects', accessibleIds],
+    queryFn: async () => {
+      const all = await base44.entities.Project.list('-created_date');
+      return filterByAccessibleProjects(all, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
   });
+
+  const { data: allUnits = [], isLoading } = useQuery({
+    queryKey: ['units', accessibleIds],
+    queryFn: async () => {
+      const all = await base44.entities.SaleUnit.list('-created_date');
+      return filterByAccessibleProjects(all, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
+  });
+
+  const units = allUnits;
 
   // Load technical defaults for all projects (for create form)
   const { data: allTechnical = [] } = useQuery({
@@ -63,7 +81,7 @@ export default function UnitsList() {
     return true;
   });
 
-  const canManage = canManageUnits(user?.role);
+  const canManage = canManageUnits(normalizeRole(user?.role));
 
   return (
     <div className="space-y-6">

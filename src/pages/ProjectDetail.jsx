@@ -36,8 +36,13 @@ export default function ProjectDetail() {
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
-    queryFn: () => base44.entities.Project.filter({ id }).then(r => r?.[0]),
-    enabled: !!id,
+    queryFn: async () => {
+      // Security: check access first
+      const canAccess = await import('@/lib/queryAccess').then(m => m.canAccessProject(user, id, base44));
+      if (!canAccess) throw new Error('Access denied');
+      return base44.entities.Project.filter({ id }).then(r => r?.[0]);
+    },
+    enabled: !!id && !!user?.id,
   });
 
   const { data: inventory } = useQuery({

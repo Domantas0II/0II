@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { canCreateProjects } from '@/lib/constants';
+import { canCreateProjects, normalizeRole } from '@/lib/constants';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, FolderOpen, Building2 } from 'lucide-react';
@@ -11,14 +11,29 @@ import {
   PROJECT_TYPE_LABELS, PROJECT_STAGE_LABELS,
   LIFECYCLE_LABELS, LIFECYCLE_COLORS
 } from '@/lib/projectConstants';
+import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function ProjectsList() {
   const { user } = useOutletContext();
 
-  const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+  // Fetch accessible project IDs
+  const { data: accessibleIds = null } = useQuery({
+    queryKey: ['accessibleProjectIds', user?.id],
+    queryFn: () => getAccessibleProjectIds(user, base44),
+    enabled: !!user?.id,
   });
+
+  // Fetch projects, then filter by access
+  const { data: allProjects = [], isLoading } = useQuery({
+    queryKey: ['projects', accessibleIds],
+    queryFn: async () => {
+      const all = await base44.entities.Project.list('-created_date');
+      return filterByAccessibleProjects(all, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
+  });
+
+  const projects = allProjects;
 
   const canCreate = canCreateProjects(user?.role);
 

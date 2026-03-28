@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useOutletContext, useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -61,11 +61,11 @@ export default function UnitDetail() {
   });
   const unit = units.find(u => u.id === id);
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+  const { data: project } = useQuery({
+    queryKey: ['project', unit?.projectId],
+    queryFn: () => base44.entities.Project.filter({ id: unit.projectId }).then(r => r?.[0]),
+    enabled: !!unit?.projectId,
   });
-  const project = projects.find(p => p.id === unit?.projectId);
 
   const { data: components = [] } = useQuery({
     queryKey: ['components', id],

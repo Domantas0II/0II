@@ -114,6 +114,12 @@ export const AuthProvider = ({ children }) => {
       setUser(normalizedUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
+
+      // Handle pending invitations (async, non-blocking)
+      if (currentUser.email) {
+        base44.functions.invoke('handleInviteAccept', {})
+          .catch(err => console.error('Invite accept error:', err));
+      }
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);

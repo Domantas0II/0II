@@ -27,13 +27,28 @@ export default function AssignComponentModal({ open, onClose, unit }) {
   });
 
   const updateComponent = useMutation({
-    mutationFn: ({ compId, data }) => base44.entities.UnitComponent.update(compId, data),
+    mutationFn: async ({ compId, data }) => {
+      // Validate before updating
+      const validation = await base44.functions.invoke('validateComponentAssignment', {
+        componentId: compId,
+        unitId: unit.id,
+      });
+      
+      if (!validation.data?.valid) {
+        throw new Error(validation.data?.error || 'Validation failed');
+      }
+
+      return base44.entities.UnitComponent.update(compId, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['components-pool'] });
       queryClient.invalidateQueries({ queryKey: ['components', unit.id] });
       setSelectedComponents([]);
       toast.success('Dedamosios priskirtos');
       onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Priskyrimas nepavyko');
     },
   });
 

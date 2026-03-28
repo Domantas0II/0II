@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Users, FolderOpen, Building2, Package, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { canManageUsers, canManageProjects } from '@/lib/constants';
+import { canManageUsers, canManageProjects, normalizeRole } from '@/lib/constants';
 import { base44 } from '@/api/base44Client';
 
 const menuItems = [
@@ -11,29 +11,31 @@ const menuItems = [
     label: 'Vartotojai',
     icon: Users,
     href: '/',
-    requiredRole: (role) => canManageUsers(role),
+    requiredRole: (role) => canManageUsers(normalizeRole(role)),
   },
   {
     label: 'Projektai',
     icon: FolderOpen,
     href: '/projects',
-    requiredRole: (role) => canManageProjects(role),
+    requiredRole: (role) => canManageProjects(normalizeRole(role)),
   },
   {
     label: 'Objektai',
     icon: Building2,
     href: '/units',
+    requiredRole: (role) => canManageProjects(normalizeRole(role)),
   },
   {
     label: 'Komponentų baseinas',
     icon: Package,
     href: '/components',
+    requiredRole: (role) => canManageProjects(normalizeRole(role)),
   },
   {
     label: 'Nustatymai',
     icon: Settings,
     href: '/branding',
-    requiredRole: (role) => role === 'ADMINISTRATOR',
+    requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',
   },
 ];
 
