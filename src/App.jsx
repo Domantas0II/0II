@@ -23,6 +23,9 @@ import Pipeline from '@/pages/Pipeline';
 import ReservationsList from '@/pages/ReservationsList';
 import CreateReservation from '@/pages/CreateReservation';
 import ReservationDetail from '@/pages/ReservationDetail';
+import AgreementsList from '@/pages/AgreementsList';
+import PaymentsList from '@/pages/PaymentsList';
+import DealsList from '@/pages/DealsList';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -81,6 +84,9 @@ const AuthenticatedApp = () => {
         <Route path="/reservations" element={<ReservationsList />} />
         <Route path="/reservation-create" element={<CreateReservation />} />
         <Route path="/reservation/:id" element={<ReservationDetail />} />
+        <Route path="/agreements" element={<AgreementsList />} />
+        <Route path="/payments" element={<PaymentsList />} />
+        <Route path="/deals" element={<DealsList />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
