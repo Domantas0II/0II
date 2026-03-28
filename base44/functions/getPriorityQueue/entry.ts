@@ -39,27 +39,63 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, queue: [] });
       }
 
-      // Build queue from tasks
+      // FIX #1: Build queue with real scores only - no fake fallback
+      // Limit score generation to top 50 tasks (performance safeguard)
       const queue = [];
-      for (const task of tasks) {
+      const tasksToScore = tasks.slice(0, 50);
+
+      for (const task of tasksToScore) {
         const scores = await base44.entities.LeadScore.filter({
           clientId: task.clientId,
           scoreType: 'client_priority'
         });
 
-        const topScore = scores?.[0];
-        queue.push({
-          type: 'task',
-          taskId: task.id,
-          clientId: task.clientId,
-          title: task.title,
-          priority: task.priority,
-          dueAt: task.dueAt,
-          status: task.status,
-          scoreValue: topScore?.scoreValue || 50,
-          band: topScore?.band || 'medium',
-          recommendedAction: topScore?.recommendedAction || 'send_followup'
-        });
+        let topScore = scores?.[0];
+
+        // FIX #1: Generate missing score on-demand
+        if (!topScore) {
+          // Try to generate score for this client in this task's project
+          if (task.projectId) {
+            try {
+              const generateRes = await base44.functions.invoke('generateLeadScores', {
+                projectId: task.projectId,
+                clientId: task.clientId
+              });
+
+              if (generateRes.data?.scores && generateRes.data.scores.length > 0) {
+                topScore = generateRes.data.scores.find(s => s.scoreType === 'client_priority');
+              }
+            } catch (e) {
+              // Score generation failed - skip this task from scored queue
+              // (it will not be shown without real score)
+              continue;
+            }
+          } else {
+            // No projectId - cannot score, skip
+            continue;
+          }
+        }
+
+        // FIX #2: Only include if real score exists
+        if (topScore) {
+          queue.push({
+            type: 'task',
+            taskId: task.id,
+            clientId: task.clientId,
+            projectId: task.projectId,
+            title: task.title,
+            priority: task.priority,
+            dueAt: task.dueAt,
+            status: task.status,
+            scoreValue: topScore.scoreValue,
+            band: topScore.band,
+            recommendationText: topScore.recommendationText,
+            recommendedAction: topScore.recommendedAction,
+            reasonsJson: topScore.reasonsJson,
+            generatedAt: topScore.generatedAt,
+            expiresAt: topScore.expiresAt
+          });
+        }
       }
 
       queue.sort((a, b) => b.scoreValue - a.scoreValue);
