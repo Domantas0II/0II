@@ -20,7 +20,6 @@ Deno.serve(async (req) => {
       projectId,
       clientId,
       relatedInterestId,
-      daysUntilDue = 1,
       priority = 'medium',
       assignedToUserId
     } = await req.json();
@@ -46,9 +45,16 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // Create follow-up task
+    // Fetch SLAConfig to determine follow-up interval
+    const slaConfigs = await base44.entities.SLAConfig.filter({
+      projectId
+    });
+    const slaConfig = slaConfigs?.[0];
+    const followUpHours = slaConfig?.followUpIntervalHours || 24; // Default 24 hours if no config
+
+    // Create follow-up task: dueAt = now + SLAConfig.followUpIntervalHours
     const dueAt = new Date();
-    dueAt.setDate(dueAt.getDate() + daysUntilDue);
+    dueAt.setHours(dueAt.getHours() + followUpHours);
 
     const task = await base44.entities.Task.create({
       projectId,

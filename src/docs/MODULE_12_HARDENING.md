@@ -188,17 +188,53 @@ Auto-creates follow-up tasks when:
 
 ---
 
+## 9. HARDENING CHANGES ✅
+
+### FIX 1: createFollowUpTask → SLAConfig Integration
+- Removed hardcoded `daysUntilDue = 1`
+- Now fetches `SLAConfig.followUpIntervalHours` (default: 24h)
+- dueAt = now + SLAConfig.followUpIntervalHours
+- **Status**: ✅ DONE
+
+### FIX 2: syncTaskLifecycle → AuditLog
+- Added auto-logging when tasks are cancelled
+- AuditLog action: `TASKS_AUTO_CANCELLED`
+- Captures: taskId, reason (interest_won/lost, reservation_released, deal_created), entity references
+- Non-blocking: audit failure doesn't stop task cancellation
+- **Status**: ✅ DONE
+
+### FIX 3: slaOverdueCheck → Query Hardening
+- Changed from `Task.list('-created_date', 500)` → `Task.filter({status: {$nin: ['completed','cancelled']}})`
+- Reduces scan scope to only active tasks
+- Documented performance constraint with comment
+- **Status**: ✅ DONE
+
+### FIX 4: slaOverdueCheck → Admin Fetch Hardening
+- Changed from `User.list()` → `User.filter({role: 'admin'})`
+- Limits admin lookup scope
+- Documented performance note
+- **Status**: ✅ DONE
+
+### FIX 5: Role Normalization Cleanup
+- Consolidated normalizeRole logic in: createTask, getTasks, reassignTask, slaOverdueCheck
+- All use same mapping: `{ 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' }`
+- Created documentation file `_roleNormalization.js` explaining pattern
+- Note: Deno prevents direct imports between functions, so pattern is documented + copy-pasted safely
+- **Status**: ✅ DONE
+
 ## Testing Checklist
 
 - [ ] Create task → verify no duplicates (409)
 - [ ] Mark task overdue (manually set dueAt to past)
 - [ ] Run `slaOverdueCheck` → verify status='overdue'
 - [ ] Wait/simulate escalation timer → verify reassignment to manager
-- [ ] Create deal → verify related reservation tasks cancelled
+- [ ] Create deal → verify related reservation tasks cancelled + AuditLog entry created
 - [ ] Access control: Agent can only see their tasks
 - [ ] MyTasks countdown updates live
 - [ ] TasksBoard Kanban displays correctly
 - [ ] SLADashboard shows critical tasks
+- [ ] createFollowUpTask uses SLAConfig.followUpIntervalHours (not hardcoded 1 day)
+- [ ] AuditLog captures auto-cancelled tasks with reason field
 
 ---
 

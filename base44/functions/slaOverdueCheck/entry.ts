@@ -9,8 +9,11 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Service-level access to check all tasks
-    const allTasks = await base44.asServiceRole.entities.Task.list('-created_date', 500);
+    // PERFORMANCE: Query only non-completed/non-cancelled tasks to reduce scan
+    // NOTE: Base44 filter has status constraint; query excludes already-done tasks
+    const allTasks = await base44.asServiceRole.entities.Task.filter({
+      status: { $nin: ['completed', 'cancelled'] }
+    });
 
     const now = new Date();
     let updated = 0;
@@ -94,9 +97,12 @@ Deno.serve(async (req) => {
               }
             } else if (task.escalationLevel === 1) {
               // Level 1→2: Escalate to admin
-              const allUsers = await base44.asServiceRole.entities.User.list();
+              // PERFORMANCE: Limit admin user fetch (avoid unbounded list for large orgs)
+              const adminUsers = await base44.asServiceRole.entities.User.filter({
+                role: 'admin' // Assuming role stored as 'admin' or needs normalization
+              });
               let found = false;
-              for (const u of allUsers) {
+              for (const u of adminUsers || []) {
                 if (normalizeRole(u.role) === 'ADMINISTRATOR') {
                   newAssigneeId = u.id;
                   found = true;

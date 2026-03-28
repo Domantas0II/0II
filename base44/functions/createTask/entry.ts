@@ -36,9 +36,12 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Verify project exists and user has access
-    const roleMap = { 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' };
-    const role = roleMap[user.role] || user.role;
+    // Normalize role (consistent with other task functions)
+    const normalizeRole = (r) => {
+      const map = { 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' };
+      return map[r] || r;
+    };
+    const role = normalizeRole(user.role);
 
     if (role !== 'ADMINISTRATOR' && role !== 'SALES_MANAGER') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -67,7 +70,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Assignee not found' }, { status: 404 });
     }
 
-    const assigneeRole = roleMap[assignees[0].role] || assignees[0].role;
+    const assigneeRole = normalizeRole(assignees[0].role);
     if (assigneeRole !== 'ADMINISTRATOR') {
       const assigneeAccess = await base44.entities.UserProjectAssignment.filter({
         userId: assignedToUserId,

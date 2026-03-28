@@ -61,12 +61,40 @@ Deno.serve(async (req) => {
     const tasks = await base44.asServiceRole.entities.Task.filter(taskQuery);
     let cancelled = 0;
 
+    // Determine cancellation reason from entity type
+    const reasonMap = {
+      'ClientProjectInterest': data?.status === 'won' ? 'interest_won' : (data?.status === 'lost' ? 'interest_lost' : 'interest_rejected'),
+      'Reservation': 'reservation_' + (data?.status === 'released' ? 'released' : 'converted'),
+      'Deal': 'deal_created'
+    };
+    const reason = reasonMap[entityName] || 'unknown';
+
     for (const task of tasks) {
       if (task.status !== 'completed' && task.status !== 'cancelled') {
         await base44.asServiceRole.entities.Task.update(task.id, {
           status: 'cancelled'
         });
         cancelled++;
+
+        // Log to AuditLog
+        try {
+          await base44.asServiceRole.entities.AuditLog.create({
+            action: 'TASKS_AUTO_CANCELLED',
+            performedByUserId: 'system',
+            performedByName: 'Task Lifecycle Sync',
+            details: JSON.stringify({
+              taskId: task.id,
+              reason,
+              entityName,
+              entityId,
+              taskTitle: task.title,
+              taskStatus: task.status
+            })
+          });
+        } catch (auditErr) {
+          console.error('Failed to log task cancellation to AuditLog:', auditErr);
+          // Don't fail the entire operation if audit logging fails
+        }
       }
     }
 
@@ -74,7 +102,8 @@ Deno.serve(async (req) => {
       success: true,
       cancelled,
       entity: entityName,
-      entityId
+      entityId,
+      reason
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
