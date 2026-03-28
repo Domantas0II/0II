@@ -55,9 +55,13 @@ Deno.serve(async (req) => {
 
     try {
       if (importType === 'units') {
-        committedCount = await commitUnits(validRows, base44);
+        const result = await commitUnits(validRows, base44);
+        committedCount = result.count;
+        commitErrors = result.errors;
       } else if (importType === 'components') {
-        committedCount = await commitComponents(validRows, base44);
+        const result = await commitComponents(validRows, base44);
+        committedCount = result.count;
+        commitErrors = result.errors;
       } else if (importType === 'bulk_price') {
         const result = await commitBulkPrice(validRows, base44);
         committedCount = result.count;
@@ -125,28 +129,36 @@ Deno.serve(async (req) => {
 
 async function commitUnits(validRows, base44) {
   let count = 0;
+  const errors = [];
   for (const row of validRows) {
     try {
       await base44.entities.SaleUnit.create(row);
       count++;
     } catch (err) {
-      console.error(`Failed to create unit ${row.label}:`, err.message);
+      errors.push({
+        rowNumber: row.label,
+        error: `Database error: ${err.message}`
+      });
     }
   }
-  return count;
+  return { count, errors };
 }
 
 async function commitComponents(validRows, base44) {
   let count = 0;
+  const errors = [];
   for (const row of validRows) {
     try {
       await base44.entities.UnitComponent.create(row);
       count++;
     } catch (err) {
-      console.error(`Failed to create component ${row.label}:`, err.message);
+      errors.push({
+        rowNumber: row.label,
+        error: `Database error: ${err.message}`
+      });
     }
   }
-  return count;
+  return { count, errors };
 }
 
 async function commitBulkPrice(validRows, base44) {
