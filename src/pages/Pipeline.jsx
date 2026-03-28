@@ -12,7 +12,7 @@ import { PIPELINE_STAGES } from '@/lib/pipelineConstants';
 import PipelineColumn from '@/components/pipeline/PipelineColumn';
 
 export default function Pipeline() {
-  const { user } = useOutletContext();
+  const { user } = useOutletContext() || {};
   const queryClient = useQueryClient();
 
   const canAccess = canViewPipeline(normalizeRole(user?.role));
