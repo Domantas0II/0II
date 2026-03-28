@@ -26,6 +26,9 @@ import ReservationDetail from '@/pages/ReservationDetail';
 import AgreementsList from '@/pages/AgreementsList';
 import PaymentsList from '@/pages/PaymentsList';
 import DealsList from '@/pages/DealsList';
+import DashboardHome from '@/pages/DashboardHome';
+import TeamPerformance from '@/pages/TeamPerformance';
+import ProjectAnalytics from '@/pages/ProjectAnalytics';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,7 +71,8 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<AdminLayout />}>
-        <Route path="/" element={<UsersList />} />
+        <Route path="/" element={<DashboardHome />} />
+        <Route path="/dashboard" element={<DashboardHome />} />
         <Route path="/users/:id" element={<UserDetail />} />
         <Route path="/invite" element={<InviteUser />} />
         <Route path="/branding" element={<BrandingSettings />} />
@@ -87,6 +91,8 @@ const AuthenticatedApp = () => {
         <Route path="/agreements" element={<AgreementsList />} />
         <Route path="/payments" element={<PaymentsList />} />
         <Route path="/deals" element={<DealsList />} />
+        <Route path="/team-performance" element={<TeamPerformance />} />
+        <Route path="/project-analytics/:id" element={<ProjectAnalytics />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
