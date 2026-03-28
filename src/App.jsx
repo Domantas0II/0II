@@ -34,6 +34,7 @@ import ImportUpload from '@/pages/ImportUpload';
 import ImportMapping from '@/pages/ImportMapping';
 import ImportPreview from '@/pages/ImportPreview';
 import ImportHistory from '@/pages/ImportHistory';
+import MyTasks from '@/pages/MyTasks';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -103,6 +104,7 @@ const AuthenticatedApp = () => {
         <Route path="/import/mapping" element={<ImportMapping />} />
         <Route path="/import/preview" element={<ImportPreview />} />
         <Route path="/import/history" element={<ImportHistory />} />
+        <Route path="/tasks" element={<MyTasks />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

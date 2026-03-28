@@ -1,0 +1,100 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID (optional)"
+    },
+    "relatedInterestId": {
+      "type": "string",
+      "description": "ClientProjectInterest ID (optional)"
+    },
+    "relatedReservationId": {
+      "type": "string",
+      "description": "Reservation ID (optional)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "follow_up",
+        "call",
+        "meeting",
+        "document",
+        "reservation_expiry",
+        "custom"
+      ],
+      "description": "U\u017eduoties tipas"
+    },
+    "title": {
+      "type": "string",
+      "description": "Pavadinimas"
+    },
+    "description": {
+      "type": "string",
+      "description": "Apra\u0161as"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "overdue"
+      ],
+      "default": "pending",
+      "description": "Statusas"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Prioritetas"
+    },
+    "dueAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Terminas"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Baigta kada"
+    },
+    "assignedToUserId": {
+      "type": "string",
+      "description": "Priskirtam vartotojui"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0117"
+    },
+    "escalationLevel": {
+      "type": "number",
+      "default": 0,
+      "description": "Eskalacijos lygis"
+    },
+    "lastEscalatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio eskalacijos laikas"
+    }
+  },
+  "required": [
+    "projectId",
+    "type",
+    "title",
+    "dueAt",
+    "assignedToUserId"
+  ]
+}

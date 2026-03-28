@@ -1,0 +1,38 @@
+{
+  "name": "SLAConfig",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "inquiryResponseMinutes": {
+      "type": "number",
+      "default": 120,
+      "description": "U\u017eklausos atsakymo laikas (minut\u0117mis)"
+    },
+    "followUpIntervalHours": {
+      "type": "number",
+      "default": 24,
+      "description": "Follow-up intervalas (valandomis)"
+    },
+    "reservationExpiryWarningHours": {
+      "type": "number",
+      "default": 48,
+      "description": "Persp\u0117jimas iki rezervacijos pabaigos (valandomis)"
+    },
+    "escalationAfterMinutes": {
+      "type": "number",
+      "default": 60,
+      "description": "Eskalacija po (minut\u0117s)"
+    },
+    "escalationMaxLevel": {
+      "type": "number",
+      "default": 2,
+      "description": "Maksimalus eskalacijos lygis"
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}
