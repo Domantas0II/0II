@@ -1,0 +1,97 @@
+{
+  "name": "LeadScore",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID (optional)"
+    },
+    "inquiryId": {
+      "type": "string",
+      "description": "Projekto inquiry ID (optional)"
+    },
+    "interestId": {
+      "type": "string",
+      "description": "ClientProjectInterest ID (optional)"
+    },
+    "scoreType": {
+      "type": "string",
+      "enum": [
+        "inquiry_priority",
+        "client_priority",
+        "reservation_probability",
+        "deal_probability",
+        "followup_urgency",
+        "unit_match"
+      ],
+      "description": "Scoring tipo pasirinkimas"
+    },
+    "scoreValue": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Skaitinis score 0-100"
+    },
+    "band": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "Prioriteto juosta"
+    },
+    "reasonsJson": {
+      "type": "string",
+      "description": "JSON: [{ factor, weight, explanation }]"
+    },
+    "recommendationText": {
+      "type": "string",
+      "description": "\u017dmogi\u0161kojo skaitymo rekomendacija"
+    },
+    "recommendedAction": {
+      "type": "string",
+      "enum": [
+        "call_now",
+        "send_followup",
+        "schedule_visit",
+        "propose_units",
+        "escalate_to_manager",
+        "wait",
+        "close_out"
+      ],
+      "description": "Rekomenduojamas veiksmas"
+    },
+    "sourceDataSnapshotJson": {
+      "type": "string",
+      "description": "JSON: snapshot b\u016bkl\u0117s, kai score buvo sugeneruota"
+    },
+    "modelVersion": {
+      "type": "string",
+      "description": "Scoring engine versija (pvz v1.0)"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada sugeneruota"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada baigiasi score validumas (optional)"
+    }
+  },
+  "required": [
+    "projectId",
+    "scoreType",
+    "scoreValue",
+    "band",
+    "reasonsJson",
+    "generatedAt"
+  ]
+}

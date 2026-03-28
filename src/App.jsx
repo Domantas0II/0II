@@ -37,6 +37,8 @@ import ImportHistory from '@/pages/ImportHistory';
 import MyTasks from '@/pages/MyTasks';
 import TasksBoard from '@/pages/TasksBoard';
 import SLADashboard from '@/pages/SLADashboard';
+import PriorityQueue from '@/pages/PriorityQueue';
+import ManagerInsights from '@/pages/ManagerInsights';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -109,6 +111,8 @@ const AuthenticatedApp = () => {
         <Route path="/tasks" element={<MyTasks />} />
         <Route path="/tasks-board" element={<TasksBoard />} />
         <Route path="/sla-dashboard" element={<SLADashboard />} />
+        <Route path="/priority-queue" element={<PriorityQueue />} />
+        <Route path="/manager-insights" element={<ManagerInsights />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

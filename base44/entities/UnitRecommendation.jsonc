@@ -1,0 +1,45 @@
+{
+  "name": "UnitRecommendation",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "interestId": {
+      "type": "string",
+      "description": "ClientProjectInterest ID (optional)"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "SaleUnit ID"
+    },
+    "matchScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Atitikimo ta\u0161kai 0-100"
+    },
+    "matchReasonsJson": {
+      "type": "string",
+      "description": "JSON: [{ factor, weight, explanation }] - kod\u0117l \u0161itas unit"
+    },
+    "recommendedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada rekomenduota"
+    }
+  },
+  "required": [
+    "projectId",
+    "clientId",
+    "unitId",
+    "matchScore",
+    "matchReasonsJson",
+    "recommendedAt"
+  ]
+}
