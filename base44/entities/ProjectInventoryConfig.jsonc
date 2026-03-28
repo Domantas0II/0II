@@ -1,0 +1,36 @@
+{
+  "name": "ProjectInventoryConfig",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "unitTypesEnabled": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "apartment",
+          "house",
+          "townhouse"
+        ]
+      },
+      "description": "Aktyv\u016bs objekt\u0173 tipai"
+    },
+    "structureModel": {
+      "type": "string",
+      "enum": [
+        "none",
+        "buildings",
+        "sections",
+        "phases",
+        "mixed"
+      ],
+      "description": "Strukt\u016bros modelis"
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "ProjectFinancialSettings",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "developerCompanyName": {
+      "type": "string",
+      "description": "Vystytojo \u012fmon\u0117s pavadinimas"
+    },
+    "developerCompanyCode": {
+      "type": "string",
+      "description": "\u012emon\u0117s kodas"
+    },
+    "developerVatCode": {
+      "type": "string",
+      "description": "PVM kodas"
+    },
+    "developerEmail": {
+      "type": "string",
+      "description": "El. pa\u0161tas"
+    },
+    "developerPhone": {
+      "type": "string",
+      "description": "Telefonas"
+    },
+    "developerBankAccount": {
+      "type": "string",
+      "description": "Banko s\u0105skaita"
+    },
+    "advanceRequired": {
+      "type": "boolean",
+      "description": "Reikalingas avansas"
+    },
+    "advanceType": {
+      "type": "string",
+      "enum": [
+        "percent",
+        "fixed_amount"
+      ],
+      "description": "Avanso tipas"
+    },
+    "advanceValue": {
+      "type": "number",
+      "description": "Avanso dydis"
+    },
+    "commissionPercentDefault": {
+      "type": "number",
+      "description": "Numatytasis komisinis %"
+    },
+    "commissionVatMode": {
+      "type": "string",
+      "enum": [
+        "with_vat",
+        "without_vat"
+      ],
+      "description": "Komisinio PVM re\u017eimas"
+    }
+  },
+  "required": [
+    "projectId",
+    "developerCompanyName",
+    "developerCompanyCode",
+    "developerVatCode",
+    "developerEmail",
+    "developerPhone",
+    "developerBankAccount"
+  ]
+}

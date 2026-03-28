@@ -1,0 +1,25 @@
+{
+  "name": "ProjectCompleteness",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "setupProgressPercent": {
+      "type": "number",
+      "description": "Setup u\u017ebaigtumo procentas"
+    },
+    "readyForOperations": {
+      "type": "boolean",
+      "description": "Paruo\u0161tas operacijoms"
+    },
+    "criticalBlockersJson": {
+      "type": "string",
+      "description": "Kritini\u0173 blok\u0173 JSON"
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}

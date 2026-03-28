@@ -1,0 +1,88 @@
+{
+  "name": "ProjectTechnicalDefaults",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "buildingType": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "brick",
+          "block",
+          "monolithic",
+          "wood",
+          "other"
+        ]
+      },
+      "description": "Pastato konstrukcija"
+    },
+    "heatingType": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "central",
+          "gas",
+          "electric",
+          "air_source",
+          "geothermal",
+          "other"
+        ]
+      },
+      "description": "\u0160ildymo tipas"
+    },
+    "installationStatus": {
+      "type": "string",
+      "enum": [
+        "fully_finished",
+        "partial_finish",
+        "not_finished"
+      ],
+      "description": "\u012erengimo lygis"
+    },
+    "energyClass": {
+      "type": "string",
+      "enum": [
+        "A_plus_plus",
+        "A_plus",
+        "A",
+        "B",
+        "C",
+        "D",
+        "other"
+      ],
+      "description": "Energetin\u0117 klas\u0117"
+    },
+    "constructionYear": {
+      "type": "number",
+      "description": "Statybos metai"
+    },
+    "hasBalconyDefault": {
+      "type": "boolean",
+      "description": "Numatytai yra balkonas"
+    },
+    "hasTerraceDefault": {
+      "type": "boolean",
+      "description": "Numatytai yra terasa"
+    },
+    "useRoomsCount": {
+      "type": "boolean",
+      "description": "Naudoti kambari\u0173 skai\u010di\u0173"
+    },
+    "useBathroomsCount": {
+      "type": "boolean",
+      "description": "Naudoti vonios kambari\u0173 skai\u010di\u0173"
+    },
+    "useWindowDirections": {
+      "type": "boolean",
+      "description": "Naudoti lang\u0173 kryptis"
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}

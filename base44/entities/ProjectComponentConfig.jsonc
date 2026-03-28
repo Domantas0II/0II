@@ -1,0 +1,72 @@
+{
+  "name": "ProjectComponentConfig",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "componentsEnabled": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "land",
+          "parking",
+          "storage"
+        ]
+      },
+      "description": "Aktyvios dedamosios"
+    },
+    "landTypes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "private",
+          "usage_defined",
+          "shared_part"
+        ]
+      },
+      "description": "\u017dem\u0117s tipai"
+    },
+    "parkingPlacement": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "surface",
+          "underground"
+        ]
+      },
+      "description": "Parkavimo vieta"
+    },
+    "parkingTypes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "standard",
+          "ev",
+          "accessible"
+        ]
+      },
+      "description": "Parkavimo tipai"
+    },
+    "landIncludedInPriceDefault": {
+      "type": "boolean",
+      "description": "\u017dem\u0117 \u012fskai\u010diuota \u012f kain\u0105"
+    },
+    "parkingIncludedInPriceDefault": {
+      "type": "boolean",
+      "description": "Parkavimas \u012fskai\u010diuotas \u012f kain\u0105"
+    },
+    "storageIncludedInPriceDefault": {
+      "type": "boolean",
+      "description": "Sand\u0117lis \u012fskai\u010diuotas \u012f kain\u0105"
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}

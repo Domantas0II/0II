@@ -1,0 +1,33 @@
+{
+  "name": "ProjectProcessConfig",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "inboundEnabled": {
+      "type": "boolean",
+      "description": "\u012eeinan\u010di\u0173 u\u017eklaus\u0173 valdymas"
+    },
+    "inquiryPoolEnabled": {
+      "type": "boolean",
+      "description": "U\u017eklaus\u0173 baseinas"
+    },
+    "allowConsultationWithoutUnit": {
+      "type": "boolean",
+      "description": "Leisti konsultacij\u0105 be objekto"
+    },
+    "allowReservationWithoutVisit": {
+      "type": "boolean",
+      "description": "Leisti rezervacij\u0105 be apsilankymo"
+    },
+    "reservationExpiryDays": {
+      "type": "number",
+      "description": "Rezervacijos galiojimo dien\u0173 sk."
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}

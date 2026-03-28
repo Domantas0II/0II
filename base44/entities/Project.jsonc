@@ -1,0 +1,90 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "Projekto pavadinimas"
+    },
+    "projectCode": {
+      "type": "string",
+      "description": "Unikalus projekto kodas"
+    },
+    "projectType": {
+      "type": "string",
+      "enum": [
+        "apartment_project",
+        "house_project",
+        "townhouse_project",
+        "mixed_residential"
+      ],
+      "description": "Projekto tipas"
+    },
+    "projectStage": {
+      "type": "string",
+      "enum": [
+        "design",
+        "permit",
+        "partial_finish",
+        "full_finish"
+      ],
+      "description": "Statybos stadija"
+    },
+    "projectLifecycleState": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "internal_ready",
+        "public_ready",
+        "published",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Projekto gyvavimo b\u016bsena"
+    },
+    "city": {
+      "type": "string",
+      "description": "Miestas"
+    },
+    "district": {
+      "type": "string",
+      "description": "Rajonas"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresas"
+    },
+    "developerName": {
+      "type": "string",
+      "description": "Vystytojo pavadinimas"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar projektas aktyvus"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0117jo vartotojo ID"
+    },
+    "createdByName": {
+      "type": "string",
+      "description": "Suk\u016br\u0117jo vardas"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio atnaujinimo data"
+    }
+  },
+  "required": [
+    "projectName",
+    "projectCode",
+    "projectType",
+    "projectStage",
+    "city",
+    "district",
+    "address",
+    "developerName"
+  ]
+}

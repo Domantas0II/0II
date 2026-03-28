@@ -36,8 +36,9 @@ export default function AdminSidebar({ collapsed, onToggle, branding }) {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 space-y-1">
         {navItems.map(item => {
-          const isActive = location.pathname === item.path || 
-            (item.path !== '/' && location.pathname.startsWith(item.path));
+          const isActive = item.exact
+            ? location.pathname === item.path
+            : location.pathname === item.path || location.pathname.startsWith(item.path + '/');
           return (
             <Link
               key={item.path}
