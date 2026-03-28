@@ -305,7 +305,9 @@ export default function ClientDetail() {
           })()}
 
           <ActivityForm
-            onSubmit={(data) => createActivity.mutate({ ...data, projectId: unit?.projectId || projects[0]?.id })}
+            projectInterests={projectInterests}
+            projects={projects}
+            onSubmit={(data) => createActivity.mutate(data)}
             saving={createActivity.isPending}
           />
 

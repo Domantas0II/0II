@@ -1,5 +1,3 @@
-import { SALES_MANAGER_ROLES, SALES_AGENT_ROLES } from '@/lib/constants';
-
 export function canViewPipeline(role) {
   return role === 'ADMINISTRATOR' || role === 'SALES_MANAGER' || role === 'SALES_AGENT';
 }
