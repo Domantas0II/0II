@@ -19,19 +19,14 @@ export async function getAccessibleProjectIds(user, base44) {
     return null; // null = ALL projects
   }
 
-  // Gauti user's assignment'us
+  // Gauti user's assignment'us (tik realūs assignment'ai, be allProjects)
   try {
     const assignments = await base44.entities.UserProjectAssignment.filter({
       userId: user?.id,
       removedAt: null, // tik aktyvūs
     });
 
-    // Jei turi allProjects assignment, → visi projektai
-    if (assignments.some(a => a.allProjects)) {
-      return null;
-    }
-
-    // Kitaip → tik priskirti projektai
+    // Grąžinti tik priskirtas projektų IDs
     return assignments.map(a => a.projectId).filter(Boolean);
   } catch (err) {
     console.error('Failed to load accessible projects:', err);

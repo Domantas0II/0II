@@ -56,8 +56,18 @@ export default function Pipeline() {
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('-created_date', 100),
+    queryKey: ['pipelineClients', interests.length],
+    queryFn: async () => {
+      // PERFORMANCE: Load only clients that appear in current pipeline interests
+      // Instead of full client list, fetch just the ones we need
+      if (interests.length === 0) return [];
+      const clientIds = [...new Set(interests.map(i => i.clientId).filter(Boolean))];
+      if (clientIds.length === 0) return [];
+      return await base44.entities.Client.filter({
+        id: { $in: clientIds }
+      });
+    },
+    enabled: interests.length > 0,
   });
 
   const { data: units = [] } = useQuery({
@@ -72,21 +82,32 @@ export default function Pipeline() {
   const { data: activities = [] } = useQuery({
     queryKey: ['activities', user?.id, accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Activity.list('-scheduledAt');
-      // Filter: only valid projectId + accessible + not cancelled
-      const filtered = all.filter(a => {
-        if (!a.projectId || a.status === 'cancelled') return false;
-        // accessibleIds === null means FULL ACCESS (admin)
-        if (accessibleIds === null) return true;
-        return accessibleIds.includes(a.projectId);
-      });
-      // Get last activity per client
+      // PERFORMANCE: Query activities smartly based on access level
+      // - null accessibleIds = ADMINISTRATOR, use limit to avoid full scan
+      // - Otherwise filter by accessible projectIds server-side
+      let activities;
+      if (accessibleIds === null) {
+        // Admin: limit to recent 500 activities (avoids unbounded full scan)
+        activities = await base44.entities.Activity.list('-scheduledAt', 500);
+      } else if (accessibleIds.length === 0) {
+        return []; // No projects = no activities
+      } else {
+        // Filter activities by accessible projects server-side
+        activities = await base44.entities.Activity.filter({
+          projectId: { $in: accessibleIds },
+          status: { $ne: 'cancelled' }
+        });
+      }
+      
+      // Get last activity per client (not cancelled)
       const lastByClient = {};
-      filtered.forEach(a => {
-        if (!lastByClient[a.clientId] || new Date(a.scheduledAt) > new Date(lastByClient[a.clientId].scheduledAt)) {
-          lastByClient[a.clientId] = a;
-        }
-      });
+      activities
+        .filter(a => a.projectId && a.status !== 'cancelled')
+        .forEach(a => {
+          if (!lastByClient[a.clientId] || new Date(a.scheduledAt) > new Date(lastByClient[a.clientId].scheduledAt)) {
+            lastByClient[a.clientId] = a;
+          }
+        });
       return Object.values(lastByClient);
     },
     enabled: accessibleIds !== undefined && !!user?.id,

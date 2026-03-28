@@ -73,7 +73,8 @@ export function calcCompleteness(project, inventory, components, technical, fina
 
 /**
  * Tikrina ar galima perkelti į internal_ready.
- * Reikalingi VISI blokai: project, inventory, components, technical, financial, process
+ * Reikalingi PENKI KRITINIAI blokai: base, inventory, components, financial, process
+ * Technical yra informatyvus bet ne kritinis.
  */
 export function canSetInternalReady(project, inventory, components, technical, financial, process) {
   const { criticalBlockers } = calcCompleteness(project, inventory, components, technical, financial, process);
