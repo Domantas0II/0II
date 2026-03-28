@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { base44 } from '@/api/base44Client';
 import AdminLayout from '@/components/layout/AdminLayout';
 import UsersList from '@/pages/UsersList';
 import UserDetail from '@/pages/UserDetail';
@@ -25,10 +26,24 @@ const AuthenticatedApp = () => {
 
   // Handle authentication errors
   if (authError) {
-    if (authError.type === 'user_not_registered') {
+    if (authError.type === 'account_disabled') {
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-background p-6">
+          <div className="text-center max-w-sm">
+            <div className="h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+              <svg className="h-8 w-8 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold mb-2">Paskyra išjungta</h1>
+            <p className="text-muted-foreground text-sm mb-6">Jūsų paskyra yra išjungta. Kreipkitės į administratorių.</p>
+            <button onClick={() => base44.auth.logout()} className="text-sm text-muted-foreground underline">Atsijungti</button>
+          </div>
+        </div>
+      );
+    } else if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }

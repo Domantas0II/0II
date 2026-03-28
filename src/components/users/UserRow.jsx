@@ -13,13 +13,16 @@ import RoleBadge from './RoleBadge';
 import UserStatusBadge from './UserStatusBadge';
 import { CAN_MANAGE_USERS } from '@/lib/constants';
 
+const CAN_VIEW = ['ADMIN', 'SALES_MANAGER'];
+
 export default function UserRow({ user, invite, projectCount, currentUser, onDisable, onEnable, onResend, onRevoke }) {
   const canManage = CAN_MANAGE_USERS.includes(currentUser?.role);
+  const canView = CAN_VIEW.includes(currentUser?.role);
   const isInvite = !!invite && !user;
   const displayName = isInvite ? (invite.email) : (user.full_name || 'Be vardo');
   const email = isInvite ? invite.email : user.email;
   const role = isInvite ? invite.role : user.role;
-  const status = isInvite ? invite.status : user.accountStatus;
+  const status = isInvite ? invite.status : (user.accountStatus || 'active');
 
   return (
     <div className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border hover:border-primary/20 hover:shadow-sm transition-all duration-200">
@@ -50,7 +53,7 @@ export default function UserRow({ user, invite, projectCount, currentUser, onDis
       <UserStatusBadge status={status} />
 
       {/* Actions */}
-      {canManage && (
+      {(canManage || canView) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
@@ -65,19 +68,23 @@ export default function UserRow({ user, invite, projectCount, currentUser, onDis
                     <Eye className="h-4 w-4 mr-2" /> Peržiūrėti
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {user.accountStatus === 'active' ? (
-                  <DropdownMenuItem onClick={() => onDisable(user)} className="text-destructive">
-                    <Ban className="h-4 w-4 mr-2" /> Išjungti paskyrą
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => onEnable(user)}>
-                    <CheckCircle className="h-4 w-4 mr-2" /> Aktyvuoti paskyrą
-                  </DropdownMenuItem>
+                {canManage && (
+                  <>
+                    <DropdownMenuSeparator />
+                    {(user.accountStatus || 'active') === 'active' ? (
+                      <DropdownMenuItem onClick={() => onDisable(user)} className="text-destructive">
+                        <Ban className="h-4 w-4 mr-2" /> Išjungti paskyrą
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={() => onEnable(user)}>
+                        <CheckCircle className="h-4 w-4 mr-2" /> Aktyvuoti paskyrą
+                      </DropdownMenuItem>
+                    )}
+                  </>
                 )}
               </>
             )}
-            {isInvite && invite.status === 'pending' && (
+            {isInvite && canManage && invite.status === 'pending' && (
               <>
                 <DropdownMenuItem onClick={() => onResend(invite)}>
                   <RotateCw className="h-4 w-4 mr-2" /> Persiųsti pakvietimą

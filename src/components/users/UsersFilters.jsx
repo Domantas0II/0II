@@ -1,15 +1,15 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter } from 'lucide-react';
-import { ROLE_OPTIONS } from '@/lib/constants';
+import { Search } from 'lucide-react';
+import { ROLE_OPTIONS, PLACEHOLDER_PROJECTS } from '@/lib/constants';
 
 export default function UsersFilters({ filters, onFilterChange }) {
   const update = (key, value) => onFilterChange({ ...filters, [key]: value });
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
-      <div className="relative flex-1">
+    <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+      <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Ieškoti pagal vardą arba el. paštą..."
@@ -38,6 +38,18 @@ export default function UsersFilters({ filters, onFilterChange }) {
           <SelectItem value="active">Aktyvūs</SelectItem>
           <SelectItem value="disabled">Išjungti</SelectItem>
           <SelectItem value="pending">Laukia pakvietimo</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={filters.project} onValueChange={v => update('project', v)}>
+        <SelectTrigger className="w-full sm:w-[200px] bg-card">
+          <SelectValue placeholder="Visi projektai" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Visi projektai</SelectItem>
+          <SelectItem value="allProjects">Visi projektai (flag)</SelectItem>
+          {PLACEHOLDER_PROJECTS.map(p => (
+            <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

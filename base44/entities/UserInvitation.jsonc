@@ -21,12 +21,12 @@
       "default": false,
       "description": "Ar suteikti prieig\u0105 prie vis\u0173 projekt\u0173"
     },
-    "projectCodes": {
+    "projectKeys": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Projekt\u0173 kodai (placeholder kol n\u0117ra Project entity)"
+      "description": "Projekt\u0173 raktai (placeholder kol n\u0117ra Project entity)"
     },
     "invitedByUserId": {
       "type": "string",

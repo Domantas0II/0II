@@ -10,9 +10,9 @@
       "type": "string",
       "description": "Vartotojo vardas (denormalizuotas)"
     },
-    "projectCode": {
+    "projectKey": {
       "type": "string",
-      "description": "Projekto kodas (placeholder kol n\u0117ra Project entity)"
+      "description": "Projekto raktas (placeholder kol n\u0117ra Project entity)"
     },
     "projectName": {
       "type": "string",
@@ -26,20 +26,20 @@
       "type": "string",
       "description": "Priskyr\u0117jo vardas"
     },
+    "assignedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Priskyrimo data (alias created_date)"
+    },
     "removedAt": {
       "type": "string",
       "format": "date-time",
       "description": "Pa\u0161alinimo i\u0161 projekto data (null = aktyvus)"
-    },
-    "allProjects": {
-      "type": "boolean",
-      "default": false,
-      "description": "Ar vartotojas turi prieig\u0105 prie vis\u0173 projekt\u0173"
     }
   },
   "required": [
     "userId",
-    "projectCode",
+    "projectKey",
     "assignedByUserId"
   ]
 }

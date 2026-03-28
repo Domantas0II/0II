@@ -25,7 +25,7 @@ export default function InviteUser() {
     email: '',
     role: '',
     allProjects: false,
-    projectCodes: [],
+    projectKeys: [],
   });
   const [showPreview, setShowPreview] = useState(false);
   const [sending, setSending] = useState(false);
@@ -57,9 +57,9 @@ export default function InviteUser() {
   const toggleProject = (code) => {
     setForm(prev => ({
       ...prev,
-      projectCodes: prev.projectCodes.includes(code)
-        ? prev.projectCodes.filter(c => c !== code)
-        : [...prev.projectCodes, code],
+      projectKeys: prev.projectKeys.includes(code)
+        ? prev.projectKeys.filter(c => c !== code)
+        : [...prev.projectKeys, code],
     }));
   };
 
@@ -73,7 +73,7 @@ export default function InviteUser() {
       email: form.email,
       role: form.role,
       allProjects: form.allProjects,
-      projectCodes: form.allProjects ? [] : form.projectCodes,
+      projectKeys: form.allProjects ? [] : form.projectKeys,
       invitedByUserId: currentUser?.id,
       invitedByName: currentUser?.full_name,
       status: 'pending',
@@ -191,7 +191,7 @@ export default function InviteUser() {
                   {PLACEHOLDER_PROJECTS.map(p => (
                     <label key={p.code} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 cursor-pointer transition-colors">
                       <Checkbox
-                        checked={form.projectCodes.includes(p.code)}
+                        checked={form.projectKeys.includes(p.code)}
                         onCheckedChange={() => toggleProject(p.code)}
                       />
                       <div>
@@ -243,9 +243,9 @@ export default function InviteUser() {
                     <Badge className="mt-0.5 bg-amber-50 text-amber-700 border-amber-200 border">
                       <AlertTriangle className="h-3 w-3 mr-1" /> Visi projektai
                     </Badge>
-                  ) : form.projectCodes.length > 0 ? (
+                  ) : form.projectKeys.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-0.5">
-                      {form.projectCodes.map(code => {
+                      {form.projectKeys.map(code => {
                         const proj = PLACEHOLDER_PROJECTS.find(p => p.code === code);
                         return <Badge key={code} variant="secondary" className="text-[11px]">{proj?.name || code}</Badge>;
                       })}

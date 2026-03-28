@@ -12,7 +12,7 @@ import { CAN_MANAGE_USERS } from '@/lib/constants';
 export default function UsersList() {
   const { user: currentUser } = useOutletContext();
   const queryClient = useQueryClient();
-  const [filters, setFilters] = useState({ search: '', role: 'all', status: 'all' });
+  const [filters, setFilters] = useState({ search: '', role: 'all', status: 'all', project: 'all' });
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['users'],
@@ -100,15 +100,34 @@ export default function UsersList() {
     }
   });
 
+  // Build project filter sets
+  const usersWithAllProjects = new Set(
+    assignments.filter(a => !a.removedAt && a.allProjects).map(a => a.userId)
+  );
+  const usersByProject = {};
+  assignments.filter(a => !a.removedAt).forEach(a => {
+    if (!usersByProject[a.projectKey]) usersByProject[a.projectKey] = new Set();
+    usersByProject[a.projectKey].add(a.userId);
+  });
+
   const filteredUsers = users.filter(u => {
+    const effectiveStatus = u.accountStatus || 'active';
     if (filters.search) {
       const q = filters.search.toLowerCase();
       if (!(u.full_name || '').toLowerCase().includes(q) && !(u.email || '').toLowerCase().includes(q)) return false;
     }
     if (filters.role !== 'all' && u.role !== filters.role) return false;
-    if (filters.status === 'active' && u.accountStatus !== 'active') return false;
-    if (filters.status === 'disabled' && u.accountStatus !== 'disabled') return false;
+    if (filters.status === 'active' && effectiveStatus !== 'active') return false;
+    if (filters.status === 'disabled' && effectiveStatus !== 'disabled') return false;
     if (filters.status === 'pending') return false;
+    if (filters.project !== 'all') {
+      if (filters.project === 'allProjects') {
+        if (!usersWithAllProjects.has(u.id)) return false;
+      } else {
+        const inProject = usersByProject[filters.project]?.has(u.id);
+        if (!inProject && !usersWithAllProjects.has(u.id)) return false;
+      }
+    }
     return true;
   });
 

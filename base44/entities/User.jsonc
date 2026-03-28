@@ -29,9 +29,15 @@
       "type": "string",
       "format": "date-time",
       "description": "Paskutinio prisijungimo data"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio atnaujinimo data"
     }
   },
   "required": [
-    "role"
+    "role",
+    "phoneNumber"
   ]
 }

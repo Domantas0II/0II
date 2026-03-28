@@ -87,7 +87,8 @@ export default function UserDetail() {
   };
 
   const handleToggleStatus = () => {
-    const newStatus = targetUser.accountStatus === 'active' ? 'disabled' : 'active';
+    const effectiveStatus = targetUser.accountStatus || 'active';
+    const newStatus = effectiveStatus === 'active' ? 'disabled' : 'active';
     updateUser.mutate({ accountStatus: newStatus });
     createAudit(newStatus === 'disabled' ? 'USER_DISABLED' : 'USER_ENABLED');
     toast.success(newStatus === 'disabled' ? 'Paskyra išjungta' : 'Paskyra aktyvuota');
@@ -96,7 +97,7 @@ export default function UserDetail() {
   const handleAssignProject = () => {
     if (!selectedProject) return;
     const proj = PLACEHOLDER_PROJECTS.find(p => p.code === selectedProject);
-    const exists = activeAssignments.find(a => a.projectCode === selectedProject);
+    const exists = activeAssignments.find(a => a.projectKey === selectedProject);
     if (exists) {
       toast.error('Vartotojas jau priskirtas šiam projektui');
       return;
@@ -104,12 +105,13 @@ export default function UserDetail() {
     createAssignment.mutate({
       userId,
       userFullName: targetUser.full_name,
-      projectCode: selectedProject,
+      projectKey: selectedProject,
       projectName: proj?.name || selectedProject,
       assignedByUserId: currentUser?.id,
       assignedByName: currentUser?.full_name,
+      assignedAt: new Date().toISOString(),
     });
-    createAudit('PROJECT_ASSIGNED', { projectCode: selectedProject });
+    createAudit('PROJECT_ASSIGNED', { projectKey: selectedProject });
     setSelectedProject('');
     toast.success('Projektas priskirtas');
   };
@@ -119,7 +121,7 @@ export default function UserDetail() {
       id: assignment.id,
       data: { removedAt: new Date().toISOString() },
     });
-    createAudit('PROJECT_REMOVED', { projectCode: assignment.projectCode });
+    createAudit('PROJECT_REMOVED', { projectKey: assignment.projectKey });
     toast.success('Projektas pašalintas');
   };
 
@@ -155,7 +157,7 @@ export default function UserDetail() {
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-bold">{targetUser.full_name}</h2>
-                <UserStatusBadge status={targetUser.accountStatus} />
+                <UserStatusBadge status={targetUser.accountStatus || 'active'} />
               </div>
               <p className="text-sm text-muted-foreground">{targetUser.email}</p>
               {targetUser.phoneNumber && (
@@ -171,8 +173,8 @@ export default function UserDetail() {
             {canManage && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant={targetUser.accountStatus === 'active' ? 'destructive' : 'default'} size="sm" className="gap-2">
-                    {targetUser.accountStatus === 'active' ? (
+                  <Button variant={(targetUser.accountStatus || 'active') === 'active' ? 'destructive' : 'default'} size="sm" className="gap-2">
+                    {(targetUser.accountStatus || 'active') === 'active' ? (
                       <><Ban className="h-3.5 w-3.5" /> Išjungti</>
                     ) : (
                       <><CheckCircle className="h-3.5 w-3.5" /> Aktyvuoti</>
@@ -182,10 +184,10 @@ export default function UserDetail() {
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>
-                      {targetUser.accountStatus === 'active' ? 'Išjungti paskyrą?' : 'Aktyvuoti paskyrą?'}
+                      {(targetUser.accountStatus || 'active') === 'active' ? 'Išjungti paskyrą?' : 'Aktyvuoti paskyrą?'}
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      {targetUser.accountStatus === 'active'
+                      {(targetUser.accountStatus || 'active') === 'active'
                         ? 'Išjungtas vartotojas negalės prisijungti, bet jo duomenys bus išsaugoti.'
                         : 'Vartotojas vėl galės prisijungti prie sistemos.'}
                     </AlertDialogDescription>
@@ -284,7 +286,7 @@ export default function UserDetail() {
                   <div>
                     <p className="text-sm font-medium">{a.projectName || a.projectCode}</p>
                     <p className="text-xs text-muted-foreground">
-                      Priskirta: {a.assignedByName || 'Nežinoma'} · {a.created_date ? format(new Date(a.created_date), 'yyyy-MM-dd') : ''}
+                      Priskirta: {a.assignedByName || 'Nežinoma'} · {(a.assignedAt || a.created_date) ? format(new Date(a.assignedAt || a.created_date), 'yyyy-MM-dd') : ''}
                     </p>
                   </div>
                   {canManage && (
