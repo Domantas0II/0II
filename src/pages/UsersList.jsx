@@ -102,9 +102,6 @@ export default function UsersList() {
   });
 
   // Build project filter sets
-  const usersWithAllProjects = new Set(
-    assignments.filter(a => !a.removedAt && a.allProjects).map(a => a.userId)
-  );
   const usersByProject = {};
   assignments.filter(a => !a.removedAt).forEach(a => {
     if (!usersByProject[a.projectId]) usersByProject[a.projectId] = new Set();
@@ -122,12 +119,8 @@ export default function UsersList() {
     if (filters.status === 'disabled' && effectiveStatus !== 'disabled') return false;
     if (filters.status === 'pending') return false;
     if (filters.project !== 'all') {
-      if (filters.project === 'allProjects') {
-        if (!usersWithAllProjects.has(u.id)) return false;
-      } else {
-        const inProject = usersByProject[filters.project]?.has(u.id);
-        if (!inProject && !usersWithAllProjects.has(u.id)) return false;
-      }
+      const inProject = usersByProject[filters.project]?.has(u.id);
+      if (!inProject) return false;
     }
     return true;
   });
