@@ -13,7 +13,8 @@ import { canManageUnits, normalizeRole } from '@/lib/constants';
 import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function UnitsList() {
-  const { user } = useOutletContext();
+  const context = useOutletContext() || {};
+  const { user } = context;
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ search: '', project: 'all', type: 'all', status: 'all' });
   const [showCreate, setShowCreate] = useState(false);
