@@ -5,6 +5,12 @@ import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
 
+// Migracija: seni platformos roles → nauji enum
+const normalizeRole = (platformRole) => {
+  const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
+  return map[platformRole] || platformRole;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -100,7 +106,12 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      setUser(currentUser);
+      // Normalizuojame rolę: custom data.role turi prioritetą prieš platformos role
+      const normalizedUser = {
+        ...currentUser,
+        role: currentUser.data?.role || normalizeRole(currentUser.role),
+      };
+      setUser(normalizedUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
     } catch (error) {
