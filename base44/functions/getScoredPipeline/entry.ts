@@ -48,38 +48,47 @@ Deno.serve(async (req) => {
       interests = await base44.entities.ClientProjectInterest.list('-created_date', 500);
     }
 
-    // Enrich with scores
+    // FIX #2: Real scoring - generate if missing, don't use fake fallback
     const pipeline = [];
     for (const interest of (interests || []).slice(0, 200)) {
       const scores = await base44.entities.LeadScore.filter({
         interestId: interest.id
       });
 
-      const reservationScore = scores?.find(s => s.scoreType === 'reservation_probability');
-      const dealScore = scores?.find(s => s.scoreType === 'deal_probability');
-      
-      // If no scores, generate them now
-      if (!reservationScore) {
-        const activities = await base44.entities.Activity.filter({ clientId: interest.clientId });
-        const units = await base44.entities.SaleUnit.filter({
+      let reservationScore = scores?.find(s => s.scoreType === 'reservation_probability');
+      let dealScore = scores?.find(s => s.scoreType === 'deal_probability');
+
+      // If scores missing, generate them now
+      if (!reservationScore || !dealScore) {
+        const generateRes = await base44.functions.invoke('generateLeadScores', {
           projectId: interest.projectId,
-          internalStatus: 'available'
+          clientId: interest.clientId,
+          interestId: interest.id
         });
+
+        if (generateRes.data?.scores) {
+          const generated = generateRes.data.scores;
+          reservationScore = generated.find(s => s.scoreType === 'reservation_probability') || reservationScore;
+          dealScore = generated.find(s => s.scoreType === 'deal_probability') || dealScore;
+        }
       }
 
-      pipeline.push({
-        interestId: interest.id,
-        clientId: interest.clientId,
-        projectId: interest.projectId,
-        status: interest.status,
-        pipelineStage: interest.pipelineStage,
-        lastInteractionAt: interest.lastInteractionAt,
-        nextFollowUpAt: interest.nextFollowUpAt,
-        reservationScore: reservationScore?.scoreValue || 30,
-        reservationBand: reservationScore?.band || 'medium',
-        dealScore: dealScore?.scoreValue || 20,
-        dealBand: dealScore?.band || 'low'
-      });
+      // Only include if we have real scores, or skip entirely (no fake fallback)
+      if (reservationScore || dealScore) {
+        pipeline.push({
+          interestId: interest.id,
+          clientId: interest.clientId,
+          projectId: interest.projectId,
+          status: interest.status,
+          pipelineStage: interest.pipelineStage,
+          lastInteractionAt: interest.lastInteractionAt,
+          nextFollowUpAt: interest.nextFollowUpAt,
+          reservationScore: reservationScore?.scoreValue || null,
+          reservationBand: reservationScore?.band || null,
+          dealScore: dealScore?.scoreValue || null,
+          dealBand: dealScore?.band || null
+        });
+      }
     }
 
     // Group by stage
