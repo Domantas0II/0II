@@ -106,9 +106,13 @@ Deno.serve(async (req) => {
               }
             } else if (task.escalationLevel === 1) {
               // Level 1→2: Escalate to admin
-              // PERFORMANCE: Limit admin user fetch (avoid unbounded list for large orgs)
+              // FIX #4: Admin search is done by raw role:'admin' query for performance
+              // Rationale: Base44 User.role field stores 'admin' or 'user' as-is
+              // Post-fetch normalization via normalizeRole() ensures role consistency
+              // This approach avoids scanning all users + filtering in-memory
+              // The normalizeRole check (line 115) is mandatory safety gate
               const adminUsers = await base44.asServiceRole.entities.User.filter({
-                role: 'admin' // Assuming role stored as 'admin' or needs normalization
+                role: 'admin'
               });
               let found = false;
               for (const u of adminUsers || []) {

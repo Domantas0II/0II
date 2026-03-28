@@ -74,9 +74,12 @@ Deno.serve(async (req) => {
       filterQuery.priority = priority;
     }
 
-    // FIX #4: Add limit to prevent unbounded fetch (200 records max)
-    // Note: Base44 filter doesn't support native limit/offset, so we fetch and slice client-side
-    // This is intentional: query is bounded by filter constraints first, then sliced
+    // FIX #3: Query hardening with limit
+    // Base44 filter API does not support native limit/offset parameters in query
+    // Therefore: fetch all matching records (bounded by filterQuery constraints)
+    // then apply client-side limit (TASK_LIMIT = 200)
+    // This is safe because filterQuery already restricts by role/project/status
+    // See: https://docs.base44.dev/sdk - no limit/skip in filter() API
     const allTasks = await base44.entities.Task.filter(filterQuery);
     const TASK_LIMIT = 200;
     const tasks = (allTasks || []).slice(0, TASK_LIMIT);

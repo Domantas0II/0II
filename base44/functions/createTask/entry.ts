@@ -84,6 +84,64 @@ Deno.serve(async (req) => {
       }
     }
 
+    // FIX #1: Validate source entities (ClientProjectInterest / Reservation)
+    if (relatedInterestId) {
+      const interests = await base44.entities.ClientProjectInterest.filter({
+        id: relatedInterestId,
+        projectId
+      });
+      if (!interests || interests.length === 0) {
+        return Response.json({
+          error: 'ClientProjectInterest not found or does not belong to this project'
+        }, { status: 404 });
+      }
+      // If clientId provided, verify it matches
+      if (clientId && interests[0].clientId !== clientId) {
+        return Response.json({
+          error: 'ClientProjectInterest does not belong to specified client'
+        }, { status: 400 });
+      }
+    }
+
+    if (relatedReservationId) {
+      const reservations = await base44.entities.Reservation.filter({
+        id: relatedReservationId,
+        projectId
+      });
+      if (!reservations || reservations.length === 0) {
+        return Response.json({
+          error: 'Reservation not found or does not belong to this project'
+        }, { status: 404 });
+      }
+      // If clientId provided, verify it matches
+      if (clientId && reservations[0].clientId !== clientId) {
+        return Response.json({
+          error: 'Reservation does not belong to specified client'
+        }, { status: 400 });
+      }
+    }
+
+    // FIX #2: Cross-source sanity check
+    if (relatedInterestId && relatedReservationId) {
+      const interests = await base44.entities.ClientProjectInterest.filter({
+        id: relatedInterestId,
+        projectId
+      });
+      const reservations = await base44.entities.Reservation.filter({
+        id: relatedReservationId,
+        projectId
+      });
+
+      if (interests?.[0] && reservations?.[0]) {
+        // Both must belong to same project (already checked above) and same client
+        if (interests[0].clientId !== reservations[0].clientId) {
+          return Response.json({
+            error: 'ClientProjectInterest and Reservation must belong to same client'
+          }, { status: 400 });
+        }
+      }
+    }
+
     // DUPLICATION PREVENTION: Check if similar active task exists
     const duplicateQuery = {
       type,

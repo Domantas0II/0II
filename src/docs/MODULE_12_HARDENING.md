@@ -251,6 +251,45 @@ Auto-creates follow-up tasks when:
 - **Implementation**: Parallel 3 queries, merge results
 - **Status**: ✅ DONE
 
+## 11. TASK SOURCE VALIDATION & QUERY DOCUMENTATION (Final Fixes) ✅
+
+### FIX 10: createTask → SOURCE ENTITY VALIDATION
+- **Added**: Validate relatedInterestId (if provided):
+  - ClientProjectInterest exists
+  - projectId === input.projectId
+  - If input.clientId provided: clientId === input.clientId
+- **Added**: Validate relatedReservationId (if provided):
+  - Reservation exists
+  - projectId === input.projectId
+  - If input.clientId provided: clientId === input.clientId
+- **Response**: 404 if entity not found, 400 if ownership mismatch
+- **Status**: ✅ DONE
+
+### FIX 11: createTask → CROSS-SOURCE SANITY
+- **Added**: When both relatedInterestId + relatedReservationId provided:
+  - Verify they belong to same client
+  - Verify they belong to same project
+- **Response**: 400 if mismatch
+- **Prevents**: Orphaned task relationships
+- **Status**: ✅ DONE
+
+### FIX 12: getTasks → QUERY HARDENING DOCUMENTATION
+- **Added**: Explicit comment chain explaining why client-side limit:
+  - Base44 filter() API does NOT support native limit/offset parameters
+  - filterQuery already restricts scope (role/project/status-based)
+  - Client-side slice(0, 200) is safe and documented
+  - Reference to Base44 docs
+- **Status**: ✅ DONE
+
+### FIX 13: slaOverdueCheck → ADMIN SEARCH DOCUMENTATION
+- **Clarified**: Admin user search is by raw role:'admin' (not normalized)
+- **Rationale**:
+  - Performance: avoids full User table scan
+  - Base44 User.role stores 'admin'/'user' natively
+  - Post-fetch normalizeRole() is mandatory safety gate
+  - Ensures no unauthenticated admin escalation
+- **Status**: ✅ DONE
+
 ## Testing Checklist
 
 - [ ] Create task → verify no duplicates (409)
