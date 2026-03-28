@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, Clock, User, ArrowRight, Search } from 'lucide-react';
+import { Phone, Mail, Clock, User, ArrowRight, Search, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { canAccessInbound, normalizeRole } from '@/lib/constants';
 import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import { validateProjectInquiry, findDuplicateClient } from '@/lib/inquiryValidation';
 import { format } from 'date-fns';
 
 const STATUS_LABELS = {
@@ -34,6 +37,7 @@ export default function InquiryPool() {
   const { user } = useOutletContext();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ search: '', project: 'all', status: 'all', claimed: 'all' });
+  const [duplicateDialog, setDuplicateDialog] = useState(null);
 
   const canAccess = canAccessInbound(normalizeRole(user?.role));
   if (!canAccess) {
@@ -88,19 +92,35 @@ export default function InquiryPool() {
   });
 
   const convertInquiry = useMutation({
-    mutationFn: async (inquiry) => {
-      // 1. Create Client
-      const client = await base44.entities.Client.create({
-        fullName: inquiry.fullName,
-        phone: inquiry.phone,
-        email: inquiry.email,
-        createdByUserId: user?.id,
-      });
+    mutationFn: async (inquiry, useExistingClient = false, existingClientId = null) => {
+      // 0. Validate inquiry data
+      try {
+        await validateProjectInquiry(inquiry);
+      } catch (e) {
+        throw new Error(e.message);
+      }
+
+      // 0.5. Check access to project
+      if (!accessibleIds.includes(inquiry.projectId)) {
+        throw new Error('Neturite prieigos prie šio projekto');
+      }
+
+      // 1. Find or create Client
+      let clientId = existingClientId;
+      if (!useExistingClient) {
+        const client = await base44.entities.Client.create({
+          fullName: inquiry.fullName,
+          phone: inquiry.phone,
+          email: inquiry.email,
+          createdByUserId: user?.id,
+        });
+        clientId = client.id;
+      }
 
       // 2. Create ClientProjectInterest
       await base44.entities.ClientProjectInterest.create({
         projectId: inquiry.projectId,
-        clientId: client.id,
+        clientId,
         assignedManagerUserId: user?.id,
         status: 'new_interest',
       });
@@ -109,7 +129,7 @@ export default function InquiryPool() {
       if (inquiry.unitId) {
         await base44.entities.ClientUnitInterest.create({
           projectId: inquiry.projectId,
-          clientId: client.id,
+          clientId,
           unitId: inquiry.unitId,
           priorityOrder: 1,
         });
@@ -118,16 +138,30 @@ export default function InquiryPool() {
       // 4. Update inquiry
       await base44.entities.ProjectInquiry.update(inquiry.id, {
         status: 'converted',
-        convertedClientId: client.id,
+        convertedClientId: clientId,
       });
 
-      return client.id;
+      return clientId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inquiries'] });
+      setDuplicateDialog(null);
       toast.success('Konvertuota į kliento');
     },
+    onError: (error) => {
+      toast.error(error.message || 'Konversija nepavyko');
+    },
   });
+
+  const handleConvertClick = async (inquiry) => {
+    // Check for duplicate
+    const duplicate = await findDuplicateClient(inquiry.phone, inquiry.email);
+    if (duplicate) {
+      setDuplicateDialog({ inquiry, duplicate });
+    } else {
+      convertInquiry.mutate(inquiry);
+    }
+  };
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const unitMap = Object.fromEntries(units.map(u => [u.id, u]));
@@ -238,7 +272,7 @@ export default function InquiryPool() {
                 {(inquiry.claimedByUserId === user?.id || inquiry.status === 'claimed') && inquiry.status !== 'converted' && (
                   <Button
                     size="sm"
-                    onClick={() => convertInquiry.mutate(inquiry)}
+                    onClick={() => handleConvertClick(inquiry)}
                     disabled={convertInquiry.isPending}
                     className="gap-2"
                   >
@@ -250,6 +284,47 @@ export default function InquiryPool() {
           ))}
         </div>
       )}
+
+      {/* Duplicate Dialog */}
+      <Dialog open={!!duplicateDialog} onOpenChange={() => setDuplicateDialog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dublikatinis klientas</DialogTitle>
+          </DialogHeader>
+          {duplicateDialog && (
+            <div className="space-y-4">
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertCircle className="h-4 w-4 text-amber-700" />
+                <AlertDescription className="text-amber-700">
+                  Jau egzistuoja klientas su šiuo telefonu arba el. paštu
+                </AlertDescription>
+              </Alert>
+              <div className="space-y-2 p-3 rounded-lg bg-muted/50">
+                <p className="text-sm font-medium">{duplicateDialog.duplicate.fullName}</p>
+                {duplicateDialog.duplicate.phone && <p className="text-xs text-muted-foreground">{duplicateDialog.duplicate.phone}</p>}
+                {duplicateDialog.duplicate.email && <p className="text-xs text-muted-foreground">{duplicateDialog.duplicate.email}</p>}
+              </div>
+              <div className="space-y-2">
+                <Button
+                  className="w-full"
+                  onClick={() => convertInquiry.mutate(duplicateDialog.inquiry, true, duplicateDialog.duplicate.id)}
+                  disabled={convertInquiry.isPending}
+                >
+                  Naudoti esamą
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => convertInquiry.mutate(duplicateDialog.inquiry, false)}
+                  disabled={convertInquiry.isPending}
+                >
+                  Kurti naują
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

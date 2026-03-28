@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { canAccessInbound, normalizeRole } from '@/lib/constants';
+import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 const INTEREST_STATUS_LABELS = {
   new_interest: 'Naujas',
@@ -44,6 +45,13 @@ export default function ClientDetail() {
     return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
   }
 
+  // Fetch accessible project IDs
+  const { data: accessibleIds = null } = useQuery({
+    queryKey: ['accessibleProjectIds', user?.id],
+    queryFn: () => getAccessibleProjectIds(user, base44),
+    enabled: !!user?.id,
+  });
+
   const { data: client } = useQuery({
     queryKey: ['client', clientId],
     queryFn: () => base44.entities.Client.filter({ id: clientId }).then(r => r?.[0]),
@@ -63,13 +71,21 @@ export default function ClientDetail() {
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-created_date'),
+    queryKey: ['projects', accessibleIds],
+    queryFn: async () => {
+      const all = await base44.entities.Project.list('-created_date');
+      return filterByAccessibleProjects(all, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
   });
 
   const { data: units = [] } = useQuery({
-    queryKey: ['units'],
-    queryFn: () => base44.entities.SaleUnit.list('-created_date'),
+    queryKey: ['units', accessibleIds],
+    queryFn: async () => {
+      const all = await base44.entities.SaleUnit.list('-created_date');
+      return filterByAccessibleProjects(all, accessibleIds);
+    },
+    enabled: accessibleIds !== undefined,
   });
 
   const updateInterest = useMutation({
@@ -156,7 +172,7 @@ export default function ClientDetail() {
           {projectInterests.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nėra projektų</p>
           ) : (
-            projectInterests.map(interest => (
+            projectInterests.filter(interest => accessibleIds?.includes(interest.projectId)).map(interest => (
               <div key={interest.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
                 <div>
                   <p className="text-sm font-medium flex items-center gap-2">
@@ -202,7 +218,7 @@ export default function ClientDetail() {
           {unitInterests.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nėra objektų</p>
           ) : (
-            unitInterests.map(interest => (
+            unitInterests.filter(interest => accessibleIds?.includes(interest.projectId)).map(interest => (
               <div key={interest.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
                 <div>
                   <p className="text-sm font-medium flex items-center gap-2">

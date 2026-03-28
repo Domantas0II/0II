@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import { ROLE_OPTIONS, PLACEHOLDER_PROJECTS } from '@/lib/constants';
+import { ROLE_OPTIONS } from '@/lib/constants';
 
 export default function UsersFilters({ filters, onFilterChange }) {
   const update = (key, value) => onFilterChange({ ...filters, [key]: value });
@@ -46,10 +46,6 @@ export default function UsersFilters({ filters, onFilterChange }) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Visi projektai</SelectItem>
-          <SelectItem value="allProjects">Visi projektai (flag)</SelectItem>
-          {PLACEHOLDER_PROJECTS.map(p => (
-            <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
-          ))}
         </SelectContent>
       </Select>
     </div>
