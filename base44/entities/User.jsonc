@@ -5,16 +5,13 @@
     "role": {
       "type": "string",
       "enum": [
-        "ADMIN",
+        "ADMINISTRATOR",
         "SALES_MANAGER",
         "SALES_AGENT",
-        "DEVELOPER"
+        "PROJECT_DEVELOPER"
       ],
-      "description": "Vartotojo globalus vaidmuo sistemoje"
-    },
-    "phoneNumber": {
-      "type": "string",
-      "description": "Telefono numeris"
+      "default": "SALES_AGENT",
+      "description": "Vartotojo vaidmuo"
     },
     "accountStatus": {
       "type": "string",
@@ -25,19 +22,14 @@
       "default": "active",
       "description": "Paskyros statusas"
     },
+    "phoneNumber": {
+      "type": "string",
+      "description": "Telefono numeris"
+    },
     "lastLoginAt": {
       "type": "string",
       "format": "date-time",
-      "description": "Paskutinio prisijungimo data"
-    },
-    "updatedAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Paskutinio atnaujinimo data"
+      "description": "Paskutinis prisijungimas"
     }
-  },
-  "required": [
-    "role",
-    "phoneNumber"
-  ]
+  }
 }

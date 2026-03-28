@@ -9,10 +9,10 @@
     "role": {
       "type": "string",
       "enum": [
-        "ADMIN",
+        "ADMINISTRATOR",
         "SALES_MANAGER",
         "SALES_AGENT",
-        "DEVELOPER"
+        "PROJECT_DEVELOPER"
       ],
       "description": "Priskiriamas vaidmuo"
     },
@@ -26,7 +26,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Projekt\u0173 raktai (placeholder kol n\u0117ra Project entity)"
+      "description": "Projekt\u0173 raktai"
     },
     "invitedByUserId": {
       "type": "string",
