@@ -57,6 +57,15 @@ Deno.serve(async (req) => {
 
       const reservationScore = scores?.find(s => s.scoreType === 'reservation_probability');
       const dealScore = scores?.find(s => s.scoreType === 'deal_probability');
+      
+      // If no scores, generate them now
+      if (!reservationScore) {
+        const activities = await base44.entities.Activity.filter({ clientId: interest.clientId });
+        const units = await base44.entities.SaleUnit.filter({
+          projectId: interest.projectId,
+          internalStatus: 'available'
+        });
+      }
 
       pipeline.push({
         interestId: interest.id,
@@ -67,8 +76,9 @@ Deno.serve(async (req) => {
         lastInteractionAt: interest.lastInteractionAt,
         nextFollowUpAt: interest.nextFollowUpAt,
         reservationScore: reservationScore?.scoreValue || 30,
+        reservationBand: reservationScore?.band || 'medium',
         dealScore: dealScore?.scoreValue || 20,
-        urgencyBand: reservationScore?.band || 'medium'
+        dealBand: dealScore?.band || 'low'
       });
     }
 

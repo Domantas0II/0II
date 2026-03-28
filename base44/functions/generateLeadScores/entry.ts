@@ -139,6 +139,87 @@ async function scoreReservationProbability(interest, activities, units) {
   };
 }
 
+async function scoreDealProbability(reservation, agreement, payments) {
+  let score = 20;
+  const reasons = [];
+
+  if (reservation.status === 'active') {
+    score += 30;
+    reasons.push({ factor: 'reservation_active', weight: 30, explanation: 'Rezervacija yra aktyvi' });
+  } else if (reservation.status === 'converted') {
+    score += 90;
+    reasons.push({ factor: 'reservation_converted', weight: 90, explanation: 'Rezervacija jau konvertuota į sutartį' });
+  }
+
+  if (agreement && agreement.status === 'signed') {
+    score += 40;
+    reasons.push({ factor: 'agreement_signed', weight: 40, explanation: 'Sutartis pasirašyta' });
+  } else if (agreement && agreement.status === 'draft') {
+    score += 15;
+    reasons.push({ factor: 'agreement_draft', weight: 15, explanation: 'Sutartis paruošta, laukia parašo' });
+  }
+
+  const advancePayments = (payments || []).filter(p => p.paymentType === 'advance' && p.status === 'recorded');
+  if (advancePayments.length > 0) {
+    score += advancePayments.length * 15;
+    reasons.push({ factor: 'advance_payments', weight: advancePayments.length * 15, explanation: `${advancePayments.length} avanso mokėjimai zregistruoti` });
+  }
+
+  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
+
+  return {
+    scoreValue: Math.min(100, score),
+    band,
+    reasonsJson: JSON.stringify(reasons),
+    recommendationText: score >= 75 ? 'Finalizuoti deal' : score >= 50 ? 'Tęsti sutarties procesą' : 'Laukti susitarimo',
+    recommendedAction: score >= 75 ? 'call_now' : score >= 50 ? 'send_followup' : 'wait'
+  };
+}
+
+async function scoreFollowupUrgency(task, interest) {
+  let score = 40;
+  const reasons = [];
+
+  if (task.status === 'overdue') {
+    score += 35;
+    reasons.push({ factor: 'task_overdue', weight: 35, explanation: 'Užduotis jau vėluoja' });
+  } else {
+    const dueDate = new Date(task.dueAt);
+    const hoursUntilDue = (dueDate - new Date()) / (1000 * 60 * 60);
+    
+    if (hoursUntilDue < 2) {
+      score += 30;
+      reasons.push({ factor: 'due_very_soon', weight: 30, explanation: 'Terminas per 2 valandas' });
+    } else if (hoursUntilDue < 24) {
+      score += 20;
+      reasons.push({ factor: 'due_soon', weight: 20, explanation: 'Terminas per 24 valandas' });
+    }
+  }
+
+  const priorityWeights = { low: 0, medium: 5, high: 15, critical: 25 };
+  score += priorityWeights[task.priority] || 0;
+  reasons.push({
+    factor: 'task_priority',
+    weight: priorityWeights[task.priority] || 0,
+    explanation: `Prioritetas: ${task.priority}`
+  });
+
+  if (task.type === 'call' || task.type === 'meeting') {
+    score += 10;
+    reasons.push({ factor: 'interactive_task', weight: 10, explanation: 'Būtinas tiesioginis kontaktas' });
+  }
+
+  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
+
+  return {
+    scoreValue: Math.min(100, score),
+    band,
+    reasonsJson: JSON.stringify(reasons),
+    recommendationText: band === 'critical' ? 'DABAR vykdyti' : band === 'high' ? 'Šiandien vykdyti' : 'Planuoti šią savaitę',
+    recommendedAction: band === 'critical' ? 'call_now' : 'send_followup'
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -266,6 +347,38 @@ Deno.serve(async (req) => {
           sourceDataSnapshotJson: JSON.stringify({
             stage: interest.pipelineStage,
             status: interest.status
+          }),
+          modelVersion: 'v1.0',
+          generatedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        });
+        scores.push(leadscore);
+      }
+    }
+
+    // Score task urgency if provided (via clientId)
+    if (clientId) {
+      const tasks = await base44.entities.Task.filter({
+        clientId,
+        status: { $in: ['pending', 'in_progress', 'overdue'] }
+      });
+
+      for (const task of (tasks || []).slice(0, 3)) {
+        const scoreData = await scoreFollowupUrgency(task, null);
+        
+        const leadscore = await base44.entities.LeadScore.create({
+          projectId,
+          clientId,
+          scoreType: 'followup_urgency',
+          scoreValue: scoreData.scoreValue,
+          band: scoreData.band,
+          reasonsJson: scoreData.reasonsJson,
+          recommendationText: scoreData.recommendationText,
+          recommendedAction: scoreData.recommendedAction,
+          sourceDataSnapshotJson: JSON.stringify({
+            taskId: task.id,
+            taskTitle: task.title,
+            taskStatus: task.status
           }),
           modelVersion: 'v1.0',
           generatedAt: new Date().toISOString(),
