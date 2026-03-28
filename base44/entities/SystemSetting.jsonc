@@ -1,0 +1,50 @@
+{
+  "name": "SystemSetting",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unikalus settings raktas (pvz. crm.defaultReservationDuration)"
+    },
+    "valueJson": {
+      "type": "string",
+      "description": "JSON string - gali b\u016bti simple value arba nested object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Apra\u0161ymas ir dokumentacija"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "crm",
+        "sla",
+        "scoring",
+        "import",
+        "public_portal",
+        "file_management",
+        "analytics",
+        "other"
+      ],
+      "description": "Nustatymo kategorija"
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar gali b\u016bti naudojama frontend (nesensitive duomenys)"
+    },
+    "updatedByUserId": {
+      "type": "string",
+      "description": "Kuris vartotojas paskutin\u012f kart\u0105 atnaujino"
+    },
+    "updatedByName": {
+      "type": "string",
+      "description": "Vartotojo vardas (denormalizuotas)"
+    }
+  },
+  "required": [
+    "key",
+    "valueJson",
+    "category"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "SystemLimit",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unikalus limit raktas (pvz. import.maxRows)"
+    },
+    "value": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Limit reik\u0161m\u0117"
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "count",
+        "minutes",
+        "hours",
+        "days",
+        "bytes",
+        "mb",
+        "gb",
+        "percent"
+      ],
+      "description": "Matavimo vienetas"
+    },
+    "description": {
+      "type": "string",
+      "description": "Apra\u0161ymas ir ai\u0161kinimas"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "import",
+        "api",
+        "file",
+        "performance",
+        "business",
+        "other"
+      ],
+      "description": "Limito kategorija"
+    },
+    "updatedByUserId": {
+      "type": "string",
+      "description": "Kuris vartotojas paskutin\u012f kart\u0105 atnaujino"
+    }
+  },
+  "required": [
+    "key",
+    "value",
+    "unit",
+    "category"
+  ]
+}

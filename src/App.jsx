@@ -41,6 +41,7 @@ import PriorityQueue from '@/pages/PriorityQueue';
 import ManagerInsights from '@/pages/ManagerInsights';
 import CustomerPortal from '@/pages/CustomerPortal';
 import PartnerPortal from '@/pages/PartnerPortal';
+import SystemSettings from '@/pages/SystemSettings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -116,6 +117,7 @@ const AuthenticatedApp = () => {
         <Route path="/sla-dashboard" element={<SLADashboard />} />
         <Route path="/priority-queue" element={<PriorityQueue />} />
         <Route path="/manager-insights" element={<ManagerInsights />} />
+        <Route path="/system-settings" element={<SystemSettings />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />

@@ -1,0 +1,54 @@
+{
+  "name": "FeatureFlag",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unikalus flag raktas (pvz. feature.newScoring)"
+    },
+    "isEnabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar feature yra \u012fjungtas"
+    },
+    "rolloutType": {
+      "type": "string",
+      "enum": [
+        "all",
+        "role_based",
+        "percentage"
+      ],
+      "default": "all",
+      "description": "Rollout strategija"
+    },
+    "allowedRoles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vaidmenys (jei role_based): ADMINISTRATOR, SALES_MANAGER, SALES_AGENT, PROJECT_DEVELOPER"
+    },
+    "percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Rollout procento (jei percentage tipas)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Feature apra\u0161ymas ir tikslas"
+    },
+    "updatedByUserId": {
+      "type": "string",
+      "description": "Kuris vartotojas paskutin\u012f kart\u0105 atnaujino"
+    },
+    "updatedByName": {
+      "type": "string",
+      "description": "Vartotojo vardas (denormalizuotas)"
+    }
+  },
+  "required": [
+    "key",
+    "rolloutType"
+  ]
+}
