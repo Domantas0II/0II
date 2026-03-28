@@ -83,10 +83,15 @@ Deno.serve(async (req) => {
     }
 
     // === BUNDLE + AMOUNT ===
-    
+
     const bundle = await base44.entities.ReservationBundle.filter({ id: reservation.bundleId }).then(r => r?.[0]);
     if (!bundle) {
       return Response.json({ error: 'Rezervacijos pluštas neegzistuoja' }, { status: 400 });
+    }
+
+    // Bundle.unitId turi sutapti su šiuo unitId
+    if (bundle.unitId !== unitId) {
+      return Response.json({ error: 'Bundle objektas nesutampa su paduotu objektu' }, { status: 400 });
     }
 
     const totalAmount = bundle.finalTotalPrice;
