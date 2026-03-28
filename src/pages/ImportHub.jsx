@@ -32,14 +32,26 @@ export default function ImportHub() {
     enabled: !!user?.id && canAccess,
   });
 
-  // Fetch all projects, then filter by accessible IDs
+  // Fetch projects: ADMIN gets all, MANAGER gets only assigned
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      const allProjects = await base44.entities.Project.list('-created_date', 100);
-      return filterByAccessibleProjects(allProjects, accessibleIds);
+      if (role === 'ADMINISTRATOR') {
+        // Admin: fetch all projects
+        return await base44.entities.Project.list('-created_date', 100);
+      } else {
+        // Manager: fetch only assigned projects via UserProjectAssignment
+        const assignments = await base44.entities.UserProjectAssignment.filter({
+          userId: user.id,
+          removedAt: null
+        });
+        if (!assignments || assignments.length === 0) return [];
+        const projectIds = assignments.map(a => a.projectId);
+        const allProjects = await base44.entities.Project.filter({});
+        return allProjects.filter(p => projectIds.includes(p.id));
+      }
     },
-    enabled: accessibleIds !== undefined && canAccess
+    enabled: !!user?.id && canAccess
   });
 
   if (!canAccess) {

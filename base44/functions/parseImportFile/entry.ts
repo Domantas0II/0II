@@ -96,7 +96,7 @@ async function parseUnits(rows, mapping, project, base44, validRows, invalidRows
       errors.push('type turi būti apartment, house arba townhouse');
     }
     if (!areaM2 || areaM2 <= 0) errors.push('areaM2 turi būti > 0');
-    if (!price || price < 0) errors.push('price turi būti >= 0');
+    if (typeof price !== 'number' || price < 0) errors.push('price turi būti >= 0');
     if (!roomsCount || roomsCount < 0) errors.push('roomsCount reikalingas');
     if (!bathroomsCount || bathroomsCount < 0) errors.push('bathroomsCount reikalingas');
     if (type === 'apartment' && !floor) errors.push('apartment turi floor');
@@ -201,7 +201,7 @@ async function parseBulkPrice(rows, mapping, project, base44, validRows, invalid
     const newPrice = parseFloat(row[mapping.newPrice]);
 
     if (!label) errors.push('label reikalinga');
-    if (!newPrice || newPrice < 0) errors.push('newPrice turi būti >= 0');
+    if (typeof newPrice !== 'number' || newPrice < 0) errors.push('newPrice turi būti >= 0');
 
     const unit = unitsByLabel[label];
     if (!unit) errors.push('Unit su šiuo label nerastas');
