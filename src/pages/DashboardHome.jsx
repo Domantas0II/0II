@@ -27,7 +27,11 @@ export default function DashboardHome() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      if (accessibleIds === null) return [];
+      if (accessibleIds === undefined || accessibleIds === null) return [];
+      // null = full admin access (fetch all); [] = no projects
+      if (accessibleIds === null) {
+        return base44.entities.Project.list('-created_date', 500);
+      }
       return base44.entities.Project.filter({ id: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,

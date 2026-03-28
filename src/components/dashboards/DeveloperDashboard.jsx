@@ -7,6 +7,16 @@ import KPICard from '@/components/analytics/KPICard';
 import StatusChart from '@/components/analytics/StatusChart';
 import { Building2, TrendingUp, Briefcase, DollarSign } from 'lucide-react';
 
+const getProjectTypeLabel = (type) => {
+  const labels = {
+    'apartment_project': 'Butų projektas',
+    'house_project': 'Namų projektas',
+    'townhouse_project': 'Miesto namų projektas',
+    'mixed_residential': 'Mišri gyventojinė'
+  };
+  return labels[type] || type;
+};
+
 export default function DeveloperDashboard({ projectIds, projects }) {
   const [selectedProjectId, setSelectedProjectId] = useState(projectIds?.[0] || null);
 
@@ -29,9 +39,9 @@ export default function DeveloperDashboard({ projectIds, projects }) {
           </SelectTrigger>
           <SelectContent>
             {projects.map(p => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.projectName}
-              </SelectItem>
+             <SelectItem key={p.id} value={p.id}>
+               {p.projectName} · {p.city}
+             </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -45,9 +55,7 @@ export default function DeveloperDashboard({ projectIds, projects }) {
               <p className="text-sm text-muted-foreground">Projektas</p>
               <p className="text-2xl font-bold">{selectedProject.projectName}</p>
               <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-                <span>{selectedProject.city}</span>
-                <span>·</span>
-                <span>{selectedProject.projectType}</span>
+                <span>{getProjectTypeLabel(selectedProject.projectType)}</span>
               </div>
             </div>
           </CardContent>

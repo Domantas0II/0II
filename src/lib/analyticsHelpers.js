@@ -31,52 +31,42 @@ export const getDateRangeFilter = (dateRange) => {
 // ============================================
 export const getProjectKpis = async (projectIds) => {
   try {
-    // Units status breakdown
+    // All-time KPI (not filtered by date)
     const units = await base44.entities.SaleUnit.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const available = units.filter(u => u.internalStatus === 'available').length;
     const reserved = units.filter(u => u.internalStatus === 'reserved').length;
     const sold = units.filter(u => u.internalStatus === 'sold').length;
 
-    // Reservations
+    // Reservations (all-time)
     const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const overdue = reservations.filter(r =>
       r.status === 'overdue' || (new Date(r.expiresAt) < new Date() && r.status === 'active')
     ).length;
 
-    // Inquiries
+    // Inquiries (all-time)
     const inquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const newInquiries = inquiries.filter(i => i.status === 'new').length;
     const convertedInquiries = inquiries.filter(i => i.status === 'converted').length;
 
-    // Agreements
+    // Agreements (all-time)
     const agreements = await base44.entities.Agreement.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const signedAgreements = agreements.filter(a => a.status === 'signed').length;
 
-    // Deals
+    // Deals (all-time)
     const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
@@ -97,12 +87,11 @@ export const getProjectKpis = async (projectIds) => {
 // ============================================
 // 2. INQUIRY FUNNEL
 // ============================================
-export const getInquiryFunnel = async (projectIds, dateRange) => {
+export const getInquiryFunnel = async (projectIds) => {
   try {
+    // All-time inquiry funnel (not filtered by date)
     const inquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } },
-      '-created_date',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     return {
@@ -124,10 +113,9 @@ export const getInquiryFunnel = async (projectIds, dateRange) => {
 // ============================================
 export const getPipelineBreakdown = async (projectIds) => {
   try {
+    // All-time pipeline stages (not filtered by date)
     const interests = await base44.entities.ClientProjectInterest.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     return {
@@ -151,10 +139,9 @@ export const getPipelineBreakdown = async (projectIds) => {
 // ============================================
 export const getReservationStats = async (projectIds) => {
   try {
+    // All-time reservation states (not filtered by date)
     const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const now = new Date();
@@ -177,10 +164,9 @@ export const getReservationStats = async (projectIds) => {
 // ============================================
 export const getDealStats = async (projectIds) => {
   try {
+    // All-time deals (not filtered by date)
     const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } },
-      '-soldAt',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
@@ -203,22 +189,17 @@ export const getDealStats = async (projectIds) => {
 // ============================================
 export const getAgentPerformance = async (projectIds, userIds) => {
   try {
+    // All-time agent performance (not filtered by date)
     const interests = await base44.entities.ClientProjectInterest.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const agentMap = {};
@@ -268,34 +249,26 @@ export const getAgentPerformance = async (projectIds, userIds) => {
 // ============================================
 export const getAgentPersonalStats = async (projectIds, userId) => {
   try {
-    // My interests
+    // All-time agent personal stats (not filtered by date)
     const myInterests = await base44.entities.ClientProjectInterest.filter(
       {
         projectId: { $in: projectIds },
         assignedManagerUserId: userId
-      },
-      'id',
-      500
+      }
     );
 
-    // My reservations
     const myReservations = await base44.entities.Reservation.filter(
       {
         projectId: { $in: projectIds },
         reservedByUserId: userId
-      },
-      'id',
-      500
+      }
     );
 
-    // My deals
     const myDeals = await base44.entities.Deal.filter(
       {
         projectId: { $in: projectIds },
         soldByUserId: userId
-      },
-      'id',
-      500
+      }
     );
 
     const soldValue = myDeals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
@@ -326,28 +299,21 @@ export const getAgentPersonalStats = async (projectIds, userId) => {
 // ============================================
 export const getDeveloperProjectStats = async (projectIds) => {
   try {
+    // All-time developer project stats (not filtered by date)
     const units = await base44.entities.SaleUnit.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const inquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } },
-      'id',
-      500
+      { projectId: { $in: projectIds } }
     );
 
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
@@ -376,11 +342,9 @@ export const getOverdueAlerts = async (projectIds, userId) => {
   try {
     const now = new Date();
 
-    // Overdue reservations
+    // Overdue reservations (live state check)
     const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } },
-      '-expiresAt',
-      100
+      { projectId: { $in: projectIds } }
     );
 
     const overdueReservations = reservations.filter(r =>
@@ -404,9 +368,7 @@ export const getOverdueAlerts = async (projectIds, userId) => {
 
     // Stale inquiries (new but unclaimed > 7 days)
     const allInquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } },
-      'created_date',
-      300
+      { projectId: { $in: projectIds } }
     );
 
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

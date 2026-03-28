@@ -22,8 +22,9 @@ export default function ManagerDashboard({ projectIds, dateRange, setDateRange, 
   });
 
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list('-created_date', 50),
+    queryKey: ['agentUsers'],
+    queryFn: () => base44.entities.User.list('-created_date', 100),
+    enabled: projectIds?.length > 0,
   });
 
   const alertMessages = [];
@@ -78,9 +79,9 @@ export default function ManagerDashboard({ projectIds, dateRange, setDateRange, 
             color="primary"
           />
           <KPICard
-            title="Aktyvių klientų"
-            value={allUsers.length}
-            icon={Users}
+            title="Viso rezervacijų"
+            value={kpis.reservationStats.total}
+            icon={Briefcase}
             color="primary"
           />
           <KPICard
