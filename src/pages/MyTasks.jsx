@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, formatDistance } from 'date-fns';
 
 const STATUS_COLORS = {
   pending: 'bg-blue-50 border-blue-200',
@@ -34,6 +34,50 @@ const TYPE_LABELS = {
   custom: '✏️ Custom'
 };
 
+// TaskCountdown component - updates every second
+function TaskCountdown({ dueAt, status }) {
+  const [timeLeft, setTimeLeft] = useState('');
+  const [isOverdue, setIsOverdue] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const due = new Date(dueAt);
+      const diff = due - now;
+
+      if (diff < 0) {
+        setIsOverdue(true);
+        const absDiff = Math.abs(diff);
+        const hours = Math.floor(absDiff / 3600000);
+        const minutes = Math.floor((absDiff % 3600000) / 60000);
+        setTimeLeft(`${hours}h ${minutes}m vėluoja`);
+      } else {
+        setIsOverdue(false);
+        const hours = Math.floor(diff / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        if (hours > 0) {
+          setTimeLeft(`${hours}h ${minutes}m likutis`);
+        } else {
+          setTimeLeft(`${minutes}m likutis`);
+        }
+      }
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [dueAt]);
+
+  return (
+    <span className={cn(
+      'font-medium',
+      isOverdue ? 'text-red-600' : (status === 'pending' ? 'text-orange-600' : 'text-blue-600')
+    )}>
+      {timeLeft}
+    </span>
+  );
+}
+
 export default function MyTasks() {
   const { user } = useOutletContext();
   const [statusFilter, setStatusFilter] = useState('all');
@@ -52,14 +96,17 @@ export default function MyTasks() {
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      await base44.functions.invoke('updateTaskStatus', {
+      const response = await base44.functions.invoke('updateTaskStatus', {
         taskId,
         newStatus
       });
-      // Refetch
-      location.reload();
+      if (response.data?.success) {
+        // Optimistically update UI
+        location.reload();
+      }
     } catch (err) {
       console.error('Failed to update task:', err);
+      alert('Nepavyko atnaujinti užduoties: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -109,7 +156,8 @@ export default function MyTasks() {
       </div>
 
       {/* Filter */}
-      <div>
+      <div className="flex gap-2 items-center">
+        <label className="text-sm font-medium">Filtras:</label>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
             <SelectValue />
@@ -166,17 +214,18 @@ export default function MyTasks() {
                         <p className="text-xs text-muted-foreground mb-2">{task.description}</p>
                       )}
 
-                      <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-3 text-xs flex-wrap">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span className={cn(isOverdue && 'text-red-600 font-medium')}>
-                            {timeLeft}
-                          </span>
+                          <TaskCountdown dueAt={task.dueAt} status={task.status} />
                         </div>
                         {task.escalationLevel > 0 && (
-                          <div className="flex items-center gap-1 text-amber-600 font-medium">
-                            <AlertCircle className="h-3 w-3" />
-                            Escalation L{task.escalationLevel}
+                          <div className={cn(
+                            'flex items-center gap-1 font-medium',
+                            task.escalationLevel === 1 ? 'text-amber-600' : 'text-red-600'
+                          )}>
+                            <Zap className="h-3 w-3" />
+                            Level {task.escalationLevel}
                           </div>
                         )}
                       </div>

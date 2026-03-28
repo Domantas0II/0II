@@ -81,6 +81,28 @@ Deno.serve(async (req) => {
       }
     }
 
+    // DUPLICATION PREVENTION: Check if similar active task exists
+    const duplicateQuery = {
+      type,
+      projectId,
+      status: { $in: ['pending', 'in_progress'] }
+    };
+
+    if (relatedInterestId) {
+      duplicateQuery.relatedInterestId = relatedInterestId;
+    } else if (relatedReservationId) {
+      duplicateQuery.relatedReservationId = relatedReservationId;
+    }
+
+    const existing = await base44.entities.Task.filter(duplicateQuery);
+    if (existing && existing.length > 0) {
+      return Response.json({
+        error: 'Task already exists for this item',
+        existingTaskId: existing[0].id,
+        status: 400
+      }, { status: 409 });
+    }
+
     // Create task
     const task = await base44.entities.Task.create({
       projectId,

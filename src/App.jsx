@@ -35,6 +35,8 @@ import ImportMapping from '@/pages/ImportMapping';
 import ImportPreview from '@/pages/ImportPreview';
 import ImportHistory from '@/pages/ImportHistory';
 import MyTasks from '@/pages/MyTasks';
+import TasksBoard from '@/pages/TasksBoard';
+import SLADashboard from '@/pages/SLADashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -105,6 +107,8 @@ const AuthenticatedApp = () => {
         <Route path="/import/preview" element={<ImportPreview />} />
         <Route path="/import/history" element={<ImportHistory />} />
         <Route path="/tasks" element={<MyTasks />} />
+        <Route path="/tasks-board" element={<TasksBoard />} />
+        <Route path="/sla-dashboard" element={<SLADashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
