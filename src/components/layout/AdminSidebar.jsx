@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, UserPlus, Settings, Palette, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, UserPlus, Palette, Shield, ChevronLeft, ChevronRight, Building2, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { path: '/', label: 'Vartotojai', icon: Users },
+  { path: '/', label: 'Vartotojai', icon: Users, exact: true },
+  { path: '/projects', label: 'Projektai', icon: Building2 },
+  { path: '/units', label: 'Objektai', icon: Home },
   { path: '/invite', label: 'Pakviesti', icon: UserPlus },
   { path: '/branding', label: 'Branding', icon: Palette },
 ];
@@ -45,8 +47,8 @@ export default function AdminSidebar({ collapsed, onToggle, branding }) {
               to={item.path}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                isActive 
-                  ? "bg-sidebar-accent text-sidebar-primary" 
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-primary"
                   : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
@@ -58,7 +60,7 @@ export default function AdminSidebar({ collapsed, onToggle, branding }) {
       </nav>
 
       {/* Toggle */}
-      <button 
+      <button
         onClick={onToggle}
         className="h-12 flex items-center justify-center border-t border-sidebar-border hover:bg-sidebar-accent/50 transition-colors"
       >

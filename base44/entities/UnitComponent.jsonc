@@ -1,0 +1,86 @@
+{
+  "name": "UnitComponent",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (privalomas cross-project izoliacjai)"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "SaleUnit ID (optional \u2013 pool)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "land",
+        "parking",
+        "storage"
+      ],
+      "description": "Dedamosios tipas"
+    },
+    "label": {
+      "type": "string",
+      "description": "\u017dym\u0117, pvz. P12"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "reserved",
+        "sold",
+        "withheld"
+      ],
+      "default": "available",
+      "description": "Statusas"
+    },
+    "includedInPrice": {
+      "type": "boolean",
+      "description": "\u012eskai\u010diuota \u012f objekto kain\u0105"
+    },
+    "price": {
+      "type": "number",
+      "description": "Atskira kaina (jei ne \u012f kain\u0105)"
+    },
+    "landType": {
+      "type": "string",
+      "enum": [
+        "private",
+        "usage_defined",
+        "shared_part"
+      ],
+      "description": "\u017dem\u0117s nuosavyb\u0117s tipas"
+    },
+    "landAreaAres": {
+      "type": "number",
+      "description": "\u017dem\u0117s plotas arais"
+    },
+    "parkingPlacement": {
+      "type": "string",
+      "enum": [
+        "surface",
+        "underground"
+      ],
+      "description": "Parkavimo vieta"
+    },
+    "parkingUseType": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "ev",
+        "accessible"
+      ],
+      "description": "Parkavimo tipas"
+    },
+    "storageAreaM2": {
+      "type": "number",
+      "description": "Sand\u0117lio plotas m\u00b2"
+    }
+  },
+  "required": [
+    "projectId",
+    "type",
+    "label",
+    "includedInPrice"
+  ]
+}

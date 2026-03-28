@@ -1,0 +1,178 @@
+{
+  "name": "SaleUnit",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "label": {
+      "type": "string",
+      "description": "Objekto \u017eym\u0117, pvz. A12"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "apartment",
+        "house",
+        "townhouse"
+      ],
+      "description": "Objekto tipas"
+    },
+    "internalStatus": {
+      "type": "string",
+      "enum": [
+        "available",
+        "reserved",
+        "sold",
+        "withheld",
+        "developer_reserved"
+      ],
+      "default": "available",
+      "description": "Vidinis statusas"
+    },
+    "areaM2": {
+      "type": "number",
+      "description": "Plotas m\u00b2"
+    },
+    "price": {
+      "type": "number",
+      "description": "Kaina \u20ac"
+    },
+    "pricePerM2": {
+      "type": "number",
+      "description": "Kaina u\u017e m\u00b2 \u20ac"
+    },
+    "roomsCount": {
+      "type": "number",
+      "description": "Kambari\u0173 skai\u010dius"
+    },
+    "bathroomsCount": {
+      "type": "number",
+      "description": "Vonios kambari\u0173 skai\u010dius"
+    },
+    "floor": {
+      "type": "number",
+      "description": "Auk\u0161tas (apartment)"
+    },
+    "totalFloors": {
+      "type": "number",
+      "description": "Viso auk\u0161t\u0173 pastate"
+    },
+    "floorsCount": {
+      "type": "number",
+      "description": "Auk\u0161t\u0173 skai\u010dius objekte (house/townhouse)"
+    },
+    "buildingName": {
+      "type": "string",
+      "description": "Korpuso pavadinimas"
+    },
+    "sectionName": {
+      "type": "string",
+      "description": "Sekcijos pavadinimas"
+    },
+    "phaseName": {
+      "type": "string",
+      "description": "Etapo pavadinimas"
+    },
+    "installationStatus": {
+      "type": "string",
+      "enum": [
+        "fully_finished",
+        "partial_finish",
+        "not_finished"
+      ],
+      "description": "\u012erengimo lygis"
+    },
+    "energyClass": {
+      "type": "string",
+      "enum": [
+        "A_plus_plus",
+        "A_plus",
+        "A",
+        "B",
+        "C",
+        "D",
+        "other"
+      ],
+      "description": "Energetin\u0117 klas\u0117"
+    },
+    "constructionYear": {
+      "type": "number",
+      "description": "Statybos metai"
+    },
+    "hasBalcony": {
+      "type": "boolean",
+      "description": "Yra balkonas"
+    },
+    "balconyAreaM2": {
+      "type": "number",
+      "description": "Balkono plotas m\u00b2"
+    },
+    "hasTerrace": {
+      "type": "boolean",
+      "description": "Yra terasa"
+    },
+    "terraceAreaM2": {
+      "type": "number",
+      "description": "Terasos plotas m\u00b2"
+    },
+    "hasGarage": {
+      "type": "boolean",
+      "description": "Yra gara\u017eas"
+    },
+    "windowDirections": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "north",
+          "south",
+          "east",
+          "west"
+        ]
+      },
+      "description": "Lang\u0173 kryptys"
+    },
+    "publicComment": {
+      "type": "string",
+      "description": "Vie\u0161as komentaras"
+    },
+    "internalNotes": {
+      "type": "string",
+      "description": "Vidin\u0117s pastabos"
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar matomas vie\u0161ai"
+    },
+    "cardVisualSourceType": {
+      "type": "string",
+      "enum": [
+        "exterior",
+        "interior",
+        "layout"
+      ],
+      "description": "Kortel\u0117s vizualo tipas"
+    },
+    "cardVisualAssetId": {
+      "type": "string",
+      "description": "Vizualo asset ID"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0117jo ID"
+    }
+  },
+  "required": [
+    "projectId",
+    "label",
+    "type",
+    "areaM2",
+    "price",
+    "pricePerM2",
+    "roomsCount",
+    "bathroomsCount"
+  ]
+}

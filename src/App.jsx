@@ -14,6 +14,8 @@ import BrandingSettings from '@/pages/BrandingSettings';
 import ProjectsList from '@/pages/ProjectsList';
 import ProjectWizard from '@/pages/ProjectWizard';
 import ProjectDetail from '@/pages/ProjectDetail';
+import UnitsList from '@/pages/UnitsList';
+import UnitDetail from '@/pages/UnitDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +65,8 @@ const AuthenticatedApp = () => {
         <Route path="/projects" element={<ProjectsList />} />
         <Route path="/projects/new" element={<ProjectWizard />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/units" element={<UnitsList />} />
+        <Route path="/units/:id" element={<UnitDetail />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
