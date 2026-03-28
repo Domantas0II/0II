@@ -64,7 +64,12 @@ export default function Pipeline() {
     queryKey: ['activities', user?.id, accessibleIds],
     queryFn: async () => {
       const all = await base44.entities.Activity.list('-scheduledAt');
-      const filtered = filterByAccessibleProjects(all, accessibleIds);
+      // Filter: only valid projectId + accessible + not cancelled
+      const filtered = all.filter(a => 
+        a.projectId && 
+        accessibleIds?.includes(a.projectId) && 
+        a.status !== 'cancelled'
+      );
       // Get last activity per client
       const lastByClient = {};
       filtered.forEach(a => {
