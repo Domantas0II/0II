@@ -17,7 +17,7 @@ const getProjectTypeLabel = (type) => {
   return labels[type] || type;
 };
 
-export default function DeveloperDashboard({ projectIds, projects, dateRange, setDateRange }) {
+export default function DeveloperDashboard({ projectIds, projects }) {
   const [selectedProjectId, setSelectedProjectId] = useState(projectIds?.[0] || null);
 
   const { data: stats } = useQuery({

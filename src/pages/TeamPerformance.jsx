@@ -29,6 +29,7 @@ export default function TeamPerformance() {
   });
 
   // Fetch all users (for agent list)
+  // Limited to 100 users for performance. In large teams, this should be paginated.
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list('-created_date', 100),
