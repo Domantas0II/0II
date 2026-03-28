@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Send, AlertTriangle, Eye, Mail, Shield, FolderOpen, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,19 +13,18 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
-import { ROLE_OPTIONS, PLACEHOLDER_PROJECTS, ROLE_LABELS, canInviteUsers } from '@/lib/constants';
+import { ROLE_OPTIONS, ROLE_LABELS, canInviteUsers } from '@/lib/constants';
 import RoleBadge from '@/components/users/RoleBadge';
 
 export default function InviteUser() {
   const { user: currentUser } = useOutletContext();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
     email: '',
     role: '',
     allProjects: false,
-    projectKeys: [],
+    projectIds: [],
   });
   const [showPreview, setShowPreview] = useState(false);
   const [sending, setSending] = useState(false);
@@ -40,6 +39,11 @@ export default function InviteUser() {
     queryFn: () => base44.entities.UserInvitation.list(),
   });
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list('-projectName'),
+  });
+
   const canManage = canInviteUsers(currentUser?.role);
   if (!canManage) {
     return (
@@ -50,16 +54,16 @@ export default function InviteUser() {
     );
   }
 
-  const existingUser = users.find(u => u.email === form.email && u.accountStatus === 'active');
+  const existingUser = users.find(u => u.email === form.email && u.accountStatus !== 'disabled');
   const pendingInvite = invitations.find(inv => inv.email === form.email && inv.status === 'pending');
   const expiresAt = addDays(new Date(), 3);
 
-  const toggleProject = (code) => {
+  const toggleProject = (projectId) => {
     setForm(prev => ({
       ...prev,
-      projectKeys: prev.projectKeys.includes(code)
-        ? prev.projectKeys.filter(c => c !== code)
-        : [...prev.projectKeys, code],
+      projectIds: prev.projectIds.includes(projectId)
+        ? prev.projectIds.filter(id => id !== projectId)
+        : [...prev.projectIds, projectId],
     }));
   };
 
@@ -73,7 +77,7 @@ export default function InviteUser() {
       email: form.email,
       role: form.role,
       allProjects: form.allProjects,
-      projectKeys: form.allProjects ? [] : form.projectKeys,
+      projectIds: form.allProjects ? [] : form.projectIds,
       invitedByUserId: currentUser?.id,
       invitedByName: currentUser?.full_name,
       status: 'pending',
@@ -88,7 +92,6 @@ export default function InviteUser() {
       details: JSON.stringify({ role: form.role, allProjects: form.allProjects }),
     });
 
-    // Send invite email
     await base44.integrations.Core.SendEmail({
       to: form.email,
       subject: 'Pakvietimas prisijungti prie NT sistemos',
@@ -101,11 +104,15 @@ export default function InviteUser() {
       `,
     });
 
-    queryClient.invalidateQueries({ queryKey: ['invitations'] });
     toast.success('Pakvietimas išsiųstas!');
     setSending(false);
     navigate('/');
   };
+
+  const selectedProjectNames = form.projectIds.map(id => {
+    const p = projects.find(pr => pr.id === id);
+    return p?.projectName || id;
+  });
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -115,15 +122,12 @@ export default function InviteUser() {
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Pakviesti vartotoją</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Pakvietimas galios 3 dienas nuo išsiuntimo
-        </p>
+        <p className="text-sm text-muted-foreground mt-0.5">Pakvietimas galios 3 dienas nuo išsiuntimo</p>
       </div>
 
       {!showPreview ? (
         <Card>
           <CardContent className="p-6 space-y-5">
-            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">El. pašto adresas</Label>
               <Input
@@ -135,72 +139,64 @@ export default function InviteUser() {
               />
               {existingUser && (
                 <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Aktyvus vartotojas su šiuo el. paštu jau egzistuoja
+                  <AlertTriangle className="h-3 w-3" /> Aktyvus vartotojas su šiuo el. paštu jau egzistuoja
                 </p>
               )}
               {pendingInvite && (
                 <p className="text-xs text-amber-600 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Aktyvus pakvietimas šiam el. paštui jau egzistuoja
+                  <AlertTriangle className="h-3 w-3" /> Aktyvus pakvietimas šiam el. paštui jau egzistuoja
                 </p>
               )}
             </div>
 
-            {/* Role */}
             <div className="space-y-2">
               <Label>Vaidmuo</Label>
               <Select value={form.role} onValueChange={v => setForm({ ...form, role: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pasirinkite vaidmenį..." />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Pasirinkite vaidmenį..." /></SelectTrigger>
                 <SelectContent>
-                  {ROLE_OPTIONS.map(r => (
-                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                  ))}
+                  {ROLE_OPTIONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* All Projects Toggle */}
             <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
               <div>
                 <p className="text-sm font-medium">Visi projektai</p>
                 <p className="text-xs text-muted-foreground">Prieiga prie visų esamų ir būsimų projektų</p>
               </div>
-              <Switch
-                checked={form.allProjects}
-                onCheckedChange={v => setForm({ ...form, allProjects: v })}
-              />
+              <Switch checked={form.allProjects} onCheckedChange={v => setForm({ ...form, allProjects: v })} />
             </div>
 
             {form.allProjects && (
               <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
                 <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <p className="text-xs">
-                  <strong>Dėmesio!</strong> Vartotojas turės prieigą prie VISŲ projektų, įskaitant būsimus.
-                </p>
+                <p className="text-xs"><strong>Dėmesio!</strong> Vartotojas turės prieigą prie VISŲ projektų.</p>
               </div>
             )}
 
-            {/* Project Selection */}
             {!form.allProjects && (
               <div className="space-y-2">
-                <Label>Projektai</Label>
-                <div className="space-y-2">
-                  {PLACEHOLDER_PROJECTS.map(p => (
-                    <label key={p.code} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 cursor-pointer transition-colors">
-                      <Checkbox
-                        checked={form.projectKeys.includes(p.code)}
-                        onCheckedChange={() => toggleProject(p.code)}
-                      />
-                      <div>
-                        <p className="text-sm font-medium">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p.code}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
+                <Label>Projektai {projects.length === 0 && <span className="text-muted-foreground font-normal">(nėra sukurtų)</span>}</Label>
+                {projects.length === 0 ? (
+                  <p className="text-sm text-muted-foreground p-3 rounded-lg border bg-muted/30">
+                    Pirmiausia sukurkite projektus skiltyje „Projektai"
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {projects.map(p => (
+                      <label key={p.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 cursor-pointer transition-colors">
+                        <Checkbox
+                          checked={form.projectIds.includes(p.id)}
+                          onCheckedChange={() => toggleProject(p.id)}
+                        />
+                        <div>
+                          <p className="text-sm font-medium">{p.projectName}</p>
+                          <p className="text-xs text-muted-foreground">{p.projectCode} · {p.city}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -212,7 +208,6 @@ export default function InviteUser() {
           </CardContent>
         </Card>
       ) : (
-        /* Preview */
         <Card className="border-primary/20">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -243,12 +238,11 @@ export default function InviteUser() {
                     <Badge className="mt-0.5 bg-amber-50 text-amber-700 border-amber-200 border">
                       <AlertTriangle className="h-3 w-3 mr-1" /> Visi projektai
                     </Badge>
-                  ) : form.projectKeys.length > 0 ? (
+                  ) : selectedProjectNames.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-0.5">
-                      {form.projectKeys.map(code => {
-                        const proj = PLACEHOLDER_PROJECTS.find(p => p.code === code);
-                        return <Badge key={code} variant="secondary" className="text-[11px]">{proj?.name || code}</Badge>;
-                      })}
+                      {selectedProjectNames.map((name, i) => (
+                        <Badge key={i} variant="secondary" className="text-[11px]">{name}</Badge>
+                      ))}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">Nepasirinkti</p>
@@ -263,11 +257,8 @@ export default function InviteUser() {
                 </div>
               </div>
             </div>
-
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setShowPreview(false)} className="flex-1">
-                Redaguoti
-              </Button>
+              <Button variant="outline" onClick={() => setShowPreview(false)} className="flex-1">Redaguoti</Button>
               <Button onClick={handleSend} disabled={sending} className="flex-1 gap-2">
                 <Send className="h-4 w-4" />
                 {sending ? 'Siunčiama...' : 'Siųsti pakvietimą'}

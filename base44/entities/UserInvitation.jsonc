@@ -21,12 +21,12 @@
       "default": false,
       "description": "Ar suteikti prieig\u0105 prie vis\u0173 projekt\u0173"
     },
-    "projectKeys": {
+    "projectIds": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Projekt\u0173 raktai"
+      "description": "Projekt\u0173 ID s\u0105ra\u0161as (relation -> Project[])"
     },
     "invitedByUserId": {
       "type": "string",

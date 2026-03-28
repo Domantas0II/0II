@@ -62,14 +62,14 @@ export default function UnitDetail() {
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
+    queryFn: () => base44.entities.Project.list('-created_date'),
   });
   const project = projects.find(p => p.id === unit?.projectId);
 
   const { data: components = [] } = useQuery({
     queryKey: ['components', id],
-    queryFn: () => base44.entities.UnitComponent.filter({ unitId: id }),
-    enabled: !!id,
+    queryFn: () => base44.entities.UnitComponent.filter({ unitId: id, projectId: unit?.projectId }),
+    enabled: !!id && !!unit?.projectId,
   });
 
   const updateUnit = useMutation({

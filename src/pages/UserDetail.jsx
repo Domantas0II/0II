@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Ban, CheckCircle, Plus, X, FolderOpen, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Ban, CheckCircle, Plus, X, FolderOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import RoleBadge from '@/components/users/RoleBadge';
 import UserStatusBadge from '@/components/users/UserStatusBadge';
-import { ROLE_OPTIONS, canManageUsers, PLACEHOLDER_PROJECTS } from '@/lib/constants';
+import { ROLE_OPTIONS, canManageUsers } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +35,7 @@ export default function UserDetail() {
   });
   const targetUser = users.find(u => u.id === userId);
 
-  const { data: assignments = [], isLoading: loadingAssignments } = useQuery({
+  const { data: assignments = [] } = useQuery({
     queryKey: ['assignments', userId],
     queryFn: () => base44.entities.UserProjectAssignment.filter({ userId }),
     enabled: !!userId,
@@ -47,8 +46,15 @@ export default function UserDetail() {
     queryFn: () => base44.entities.UserInvitation.list(),
   });
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list('-projectName'),
+  });
+
   const activeAssignments = assignments.filter(a => !a.removedAt);
   const userInvite = invitations.find(inv => inv.email === targetUser?.email);
+  const assignedProjectIds = new Set(activeAssignments.map(a => a.projectId));
+  const availableProjects = projects.filter(p => !assignedProjectIds.has(p.id));
 
   const updateUser = useMutation({
     mutationFn: (data) => base44.entities.User.update(userId, data),
@@ -79,7 +85,7 @@ export default function UserDetail() {
     });
   };
 
-  const [selectedProject, setSelectedProject] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
 
   const handleRoleChange = (newRole) => {
     updateUser.mutate({ role: newRole });
@@ -95,24 +101,19 @@ export default function UserDetail() {
   };
 
   const handleAssignProject = () => {
-    if (!selectedProject) return;
-    const proj = PLACEHOLDER_PROJECTS.find(p => p.code === selectedProject);
-    const exists = activeAssignments.find(a => a.projectKey === selectedProject);
-    if (exists) {
-      toast.error('Vartotojas jau priskirtas šiam projektui');
-      return;
-    }
+    if (!selectedProjectId) return;
+    const proj = projects.find(p => p.id === selectedProjectId);
     createAssignment.mutate({
       userId,
       userFullName: targetUser.full_name,
-      projectKey: selectedProject,
-      projectName: proj?.name || selectedProject,
+      projectId: selectedProjectId,
+      projectName: proj?.projectName || selectedProjectId,
       assignedByUserId: currentUser?.id,
       assignedByName: currentUser?.full_name,
       assignedAt: new Date().toISOString(),
     });
-    createAudit('PROJECT_ASSIGNED', { projectKey: selectedProject });
-    setSelectedProject('');
+    createAudit('PROJECT_ASSIGNED', { projectId: selectedProjectId, projectName: proj?.projectName });
+    setSelectedProjectId('');
     toast.success('Projektas priskirtas');
   };
 
@@ -121,7 +122,7 @@ export default function UserDetail() {
       id: assignment.id,
       data: { removedAt: new Date().toISOString() },
     });
-    createAudit('PROJECT_REMOVED', { projectKey: assignment.projectKey });
+    createAudit('PROJECT_REMOVED', { projectId: assignment.projectId, projectName: assignment.projectName });
     toast.success('Projektas pašalintas');
   };
 
@@ -140,7 +141,6 @@ export default function UserDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Back */}
       <Button variant="ghost" asChild className="gap-2 -ml-3">
         <Link to="/"><ArrowLeft className="h-4 w-4" /> Vartotojai</Link>
       </Button>
@@ -165,15 +165,17 @@ export default function UserDetail() {
               )}
               <div className="flex items-center gap-2 pt-1">
                 <RoleBadge role={targetUser.role} />
-                {userInvite && (
-                  <UserStatusBadge status={userInvite.status} />
-                )}
+                {userInvite && <UserStatusBadge status={userInvite.status} />}
               </div>
             </div>
             {canManage && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant={(targetUser.accountStatus || 'active') === 'active' ? 'destructive' : 'default'} size="sm" className="gap-2">
+                  <Button
+                    variant={(targetUser.accountStatus || 'active') === 'active' ? 'destructive' : 'default'}
+                    size="sm"
+                    className="gap-2"
+                  >
                     {(targetUser.accountStatus || 'active') === 'active' ? (
                       <><Ban className="h-3.5 w-3.5" /> Išjungti</>
                     ) : (
@@ -201,7 +203,6 @@ export default function UserDetail() {
             )}
           </div>
 
-          {/* Meta */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t">
             <div>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Sukurtas</p>
@@ -251,24 +252,24 @@ export default function UserDetail() {
       {/* Project Assignments */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Priskirti projektai</CardTitle>
-          </div>
+          <CardTitle className="text-base">Priskirti projektai</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {canManage && (
             <div className="flex gap-2">
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Pasirinkite projektą..." />
+                  <SelectValue placeholder={availableProjects.length === 0 ? 'Visi projektai priskirti' : 'Pasirinkite projektą...'} />
                 </SelectTrigger>
                 <SelectContent>
-                  {PLACEHOLDER_PROJECTS.map(p => (
-                    <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
+                  {availableProjects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.projectName} <span className="text-muted-foreground text-xs">({p.projectCode})</span>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleAssignProject} disabled={!selectedProject} size="icon">
+              <Button onClick={handleAssignProject} disabled={!selectedProjectId || createAssignment.isPending} size="icon">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -284,7 +285,7 @@ export default function UserDetail() {
               {activeAssignments.map(a => (
                 <div key={a.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
                   <div>
-                    <p className="text-sm font-medium">{a.projectName || a.projectCode}</p>
+                    <p className="text-sm font-medium">{a.projectName || a.projectId}</p>
                     <p className="text-xs text-muted-foreground">
                       Priskirta: {a.assignedByName || 'Nežinoma'} · {(a.assignedAt || a.created_date) ? format(new Date(a.assignedAt || a.created_date), 'yyyy-MM-dd') : ''}
                     </p>

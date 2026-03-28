@@ -10,26 +10,26 @@
       "type": "string",
       "description": "Vartotojo vardas (denormalizuotas)"
     },
-    "projectKey": {
+    "projectId": {
       "type": "string",
-      "description": "Projekto raktas (placeholder kol n\u0117ra Project entity)"
+      "description": "Projekto ID (relation -> Project)"
     },
     "projectName": {
       "type": "string",
-      "description": "Projekto pavadinimas"
+      "description": "Projekto pavadinimas (denormalizuotas)"
     },
     "assignedByUserId": {
       "type": "string",
-      "description": "Priskyr\u0117jo vartotojo ID"
+      "description": "Priskyr\u0119jo vartotojo ID"
     },
     "assignedByName": {
       "type": "string",
-      "description": "Priskyr\u0117jo vardas"
+      "description": "Priskyr\u0119jo vardas"
     },
     "assignedAt": {
       "type": "string",
       "format": "date-time",
-      "description": "Priskyrimo data (alias created_date)"
+      "description": "Priskyrimo data"
     },
     "removedAt": {
       "type": "string",
@@ -39,7 +39,7 @@
   },
   "required": [
     "userId",
-    "projectKey",
+    "projectId",
     "assignedByUserId"
   ]
 }

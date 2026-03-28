@@ -65,12 +65,3 @@ export const INVITE_STATUS_LABELS = {
   expired: 'Pasibaigęs',
   revoked: 'Atšauktas',
 };
-
-// ─── PLACEHOLDER DATA ─────────────────────────────────────────────────────────
-
-export const PLACEHOLDER_PROJECTS = [
-  { code: 'PROJ-001', name: 'Pavilnių Sodai' },
-  { code: 'PROJ-002', name: 'Šilo Namai' },
-  { code: 'PROJ-003', name: 'Centro Rezidencija' },
-  { code: 'PROJ-004', name: 'Žvėryno Terasos' },
-];

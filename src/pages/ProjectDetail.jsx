@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils';
 import {
   PROJECT_TYPE_LABELS, PROJECT_STAGE_LABELS,
   LIFECYCLE_LABELS, LIFECYCLE_COLORS,
-  UNIT_TYPE_LABELS, STRUCTURE_MODEL_LABELS,
+  STRUCTURE_MODEL_LABELS,
   COMPONENT_LABELS, INSTALLATION_STATUS_LABELS, ENERGY_CLASS_LABELS
 } from '@/lib/projectConstants';
+import { UNIT_TYPE_LABELS } from '@/lib/unitConstants';
 import { canSetInternalReady } from '@/lib/projectCompleteness';
 import { canManageProjects } from '@/lib/constants';
 
@@ -35,7 +36,7 @@ export default function ProjectDetail() {
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
-    queryFn: () => base44.entities.Project.list().then(list => list.find(p => p.id === id)),
+    queryFn: () => base44.entities.Project.filter({ id }).then(r => r?.[0]),
     enabled: !!id,
   });
 

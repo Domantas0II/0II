@@ -25,9 +25,14 @@ export default function ComponentsPool() {
     queryFn: () => base44.entities.Project.list('-created_date'),
   });
 
+  // Fetchinti tik pool komponentus — be unitId
+  // Base44 filter negali filtruoti pagal null, todėl fetchinti visus ir filtruoti kliente
+  // bet apriboti query pagal projektą jei pasirinktas filtras
   const { data: allComponents = [], isLoading } = useQuery({
-    queryKey: ['components-pool'],
-    queryFn: () => base44.entities.UnitComponent.list('-created_date'),
+    queryKey: ['components-pool', filters.project],
+    queryFn: () => filters.project !== 'all'
+      ? base44.entities.UnitComponent.filter({ projectId: filters.project })
+      : base44.entities.UnitComponent.list('-created_date'),
   });
 
   // Pool = tik nepriskirti (unitId = null arba undefined)
