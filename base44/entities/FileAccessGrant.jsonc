@@ -1,0 +1,55 @@
+{
+  "name": "FileAccessGrant",
+  "type": "object",
+  "properties": {
+    "fileAssetId": {
+      "type": "string",
+      "description": "FileAsset ID (required)"
+    },
+    "accessType": {
+      "type": "string",
+      "enum": [
+        "customer_token",
+        "partner_token",
+        "internal_user"
+      ],
+      "description": "Prieigos tipo nustatymas"
+    },
+    "externalAccessTokenId": {
+      "type": "string",
+      "description": "ExternalAccessToken ID (jei accessType = customer/partner_token)"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User ID (jei accessType = internal_user)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "expired"
+      ],
+      "default": "active",
+      "description": "Prieigos statusas"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada baigiasi prieiga (optional)"
+    },
+    "grantedByUserId": {
+      "type": "string",
+      "description": "Kuris vartotojas suteik\u0117 prieig\u0105"
+    },
+    "revokedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada at\u0161aukta"
+    }
+  },
+  "required": [
+    "fileAssetId",
+    "accessType"
+  ]
+}

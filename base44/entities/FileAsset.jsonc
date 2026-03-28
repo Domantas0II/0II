@@ -1,0 +1,159 @@
+{
+  "name": "FileAsset",
+  "type": "object",
+  "properties": {
+    "fileName": {
+      "type": "string",
+      "description": "Sisteminis failo pavadinimas"
+    },
+    "originalFileName": {
+      "type": "string",
+      "description": "Originalus user-patiektas pavadinimas"
+    },
+    "mimeType": {
+      "type": "string",
+      "description": "MIME tipas (image/png, application/pdf, etc)"
+    },
+    "fileSizeBytes": {
+      "type": "number",
+      "description": "Failo dydis baitais"
+    },
+    "fileUrl": {
+      "type": "string",
+      "description": "Failo URL (b\u016btinas)"
+    },
+    "thumbnailUrl": {
+      "type": "string",
+      "description": "Thumbnail URL (jei applicable)"
+    },
+    "assetType": {
+      "type": "string",
+      "enum": [
+        "document",
+        "image",
+        "video",
+        "floorplan",
+        "contract",
+        "receipt",
+        "spreadsheet",
+        "other"
+      ],
+      "description": "Failo tipo klasifikacija"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "customer_safe",
+        "partner_safe",
+        "public"
+      ],
+      "default": "internal",
+      "description": "Prieigos lygio nustatymas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived",
+        "replaced"
+      ],
+      "default": "draft",
+      "description": "Failo statusas"
+    },
+    "versionNumber": {
+      "type": "number",
+      "default": 1,
+      "description": "Versijos numeris"
+    },
+    "replacesFileAssetId": {
+      "type": "string",
+      "description": "Jei replaced, tai kurio failo ID jis pakei\u010dia"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (optional)"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "Unit ID (optional)"
+    },
+    "reservationId": {
+      "type": "string",
+      "description": "Rezervacijos ID (optional)"
+    },
+    "agreementId": {
+      "type": "string",
+      "description": "Sutarties ID (optional)"
+    },
+    "paymentId": {
+      "type": "string",
+      "description": "Mok\u0117jimo ID (optional)"
+    },
+    "dealId": {
+      "type": "string",
+      "description": "Deal ID (optional)"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID (optional)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "project_general",
+        "project_legal",
+        "project_marketing",
+        "unit_gallery",
+        "unit_floorplan",
+        "unit_technical",
+        "reservation_attachment",
+        "agreement_attachment",
+        "payment_proof",
+        "deal_attachment",
+        "portal_attachment",
+        "other"
+      ],
+      "description": "Failo kategorija"
+    },
+    "title": {
+      "type": "string",
+      "description": "\u017dmog\u0173 skaitomas pavadinimas"
+    },
+    "description": {
+      "type": "string",
+      "description": "Apra\u0161ymas"
+    },
+    "tagsJson": {
+      "type": "string",
+      "description": "JSON: ['tag1', 'tag2']"
+    },
+    "isPrimary": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar tai pagrindin\u0117 reprezentacin\u0117 media"
+    },
+    "displayOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Rodymo tvarka galerijose / listuose"
+    },
+    "uploadedByUserId": {
+      "type": "string",
+      "description": "Kuris vartotojas atsiun\u010d\u0117"
+    },
+    "uploadedByName": {
+      "type": "string",
+      "description": "User vardas (denormalizuotas)"
+    }
+  },
+  "required": [
+    "fileName",
+    "fileUrl",
+    "assetType",
+    "visibility",
+    "category",
+    "uploadedByUserId"
+  ]
+}
