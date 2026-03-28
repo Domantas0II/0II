@@ -71,16 +71,21 @@ export default function ImportMapping() {
         mapping
       });
 
-      // Save to session
+      if (!response.data || !response.data.success) {
+        toast.error('Validacijos klaida: ' + (response.data?.error || 'Unknown error'));
+        return;
+      }
+
+      // Save validation results to session
       await base44.entities.ImportSession.update(sessionId, {
         status: 'validated',
-        validRowCount: response.validRowCount,
-        invalidRowCount: response.invalidRowCount,
+        validRowCount: response.data.validRowCount,
+        invalidRowCount: response.data.invalidRowCount,
         previewJson: JSON.stringify({
-          validRows: response.validRows,
-          invalidRows: response.invalidRows
+          validRows: response.data.validRows || [],
+          invalidRows: response.data.invalidRows || []
         }),
-        errorsJson: JSON.stringify(response.invalidRows),
+        errorsJson: JSON.stringify(response.data.invalidRows || []),
         mappingJson: JSON.stringify(mapping)
       });
 

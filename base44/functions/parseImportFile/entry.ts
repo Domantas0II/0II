@@ -29,6 +29,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Project not found' }, { status: 404 });
     }
 
+    // Check user access to project (managers can only access assigned projects)
+    if (role === 'SALES_MANAGER') {
+      const userProjects = await base44.entities.UserProjectAssignment.filter({
+        userId: user.id,
+        projectId: projectId,
+        removedAt: null
+      });
+      if (!userProjects || userProjects.length === 0) {
+        return Response.json({ error: 'No access to this project' }, { status: 403 });
+      }
+    }
+
     // Parse rows based on import type
     const parseResult = await parseByType(importType, rows, mapping, projects[0], base44);
 
