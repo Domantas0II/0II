@@ -89,7 +89,7 @@ export default function ReservationDetail() {
     );
   }
 
-  const isOverdue = isPast(new Date(reservation.expiresAt)) && reservation.status === 'active';
+  const isOverdue = reservation.status === 'overdue' || (isPast(new Date(reservation.expiresAt)) && reservation.status === 'active');
   const canRelease = canReleaseReservations(normalizeRole(user?.role));
   const canExtend = canExtendReservations(normalizeRole(user?.role));
 

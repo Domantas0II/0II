@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -36,8 +37,8 @@ export default function ReservationsList() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Project.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.Project.list('-created_date', 50);
+      return base44.entities.Project.filter({ id: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,
   });
@@ -66,14 +67,14 @@ export default function ReservationsList() {
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => base44.entities.Client.list('-created_date', 200),
   });
 
   const { data: units = [] } = useQuery({
     queryKey: ['units', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.SaleUnit.list();
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.SaleUnit.list('-created_date', 100);
+      return base44.entities.SaleUnit.filter({ projectId: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,
   });

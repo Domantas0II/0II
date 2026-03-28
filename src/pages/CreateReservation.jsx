@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -66,11 +66,11 @@ export default function CreateReservation() {
   });
 
   const { data: components = [] } = useQuery({
-    queryKey: ['components', form.projectId, form.unitId],
+    queryKey: ['components', form.projectId],
     queryFn: async () => {
       if (!form.projectId) return [];
-      const all = await base44.entities.UnitComponent.filter({ projectId: form.projectId });
-      return all.filter(c => c.status === 'available' && c.unitId !== form.unitId);
+      const all = await base44.entities.UnitComponent.filter({ projectId: form.projectId, status: 'available' });
+      return all.filter(c => !c.unitId || c.unitId !== form.unitId);
     },
     enabled: !!form.projectId,
   });
@@ -129,13 +129,18 @@ export default function CreateReservation() {
 
     // Create bundle
     try {
+      const selectedComponents = components.filter(c => form.componentIds.includes(c.id));
+      const componentsTotalPrice = selectedComponents.reduce((sum, c) => sum + (c.price || 0), 0);
+      const basePrice = selectedUnit?.price || 0;
+      const finalTotalPrice = basePrice + componentsTotalPrice;
+
       const bundleData = {
         projectId: form.projectId,
         unitId: form.unitId,
         componentIds: form.componentIds,
-        baseUnitPrice: selectedUnit?.price || 0,
-        componentsTotalPrice: 0,
-        finalTotalPrice: selectedUnit?.price || 0,
+        baseUnitPrice: basePrice,
+        componentsTotalPrice,
+        finalTotalPrice,
         createdByUserId: user.id
       };
 
@@ -307,11 +312,21 @@ export default function CreateReservation() {
                 <span className="font-medium">€{selectedUnit.price}</span>
               </div>
               {form.componentIds.length > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Dedamosios:</span>
-                  <span className="font-medium">{form.componentIds.length}</span>
-                </div>
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Dedamosios:</span>
+                    <span className="font-medium">{form.componentIds.length}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Dedamųjų suma:</span>
+                    <span className="font-medium">€{components.filter(c => form.componentIds.includes(c.id)).reduce((sum, c) => sum + (c.price || 0), 0)}</span>
+                  </div>
+                </>
               )}
+              <div className="flex justify-between text-sm font-bold border-t pt-2 mt-2">
+                <span>Bendra suma:</span>
+                <span>€{(selectedUnit?.price || 0) + (form.componentIds.length > 0 ? components.filter(c => form.componentIds.includes(c.id)).reduce((sum, c) => sum + (c.price || 0), 0) : 0)}</span>
+              </div>
             </div>
 
             <div>
