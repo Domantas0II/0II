@@ -11,13 +11,13 @@ const getProjectTypeLabel = (type) => {
   const labels = {
     'apartment_project': 'Butų projektas',
     'house_project': 'Namų projektas',
-    'townhouse_project': 'Miesto namų projektas',
-    'mixed_residential': 'Mišri gyventojinė'
+    'townhouse_project': 'Kotedžų projektas',
+    'mixed_residential': 'Mišrus gyvenamasis projektas'
   };
   return labels[type] || type;
 };
 
-export default function DeveloperDashboard({ projectIds, projects }) {
+export default function DeveloperDashboard({ projectIds, projects, dateRange, setDateRange }) {
   const [selectedProjectId, setSelectedProjectId] = useState(projectIds?.[0] || null);
 
   const { data: stats } = useQuery({

@@ -13,7 +13,6 @@ import DeveloperDashboard from '@/components/dashboards/DeveloperDashboard';
 export default function DashboardHome() {
   const context = useOutletContext() || {};
   const { user } = context;
-  const [dateRange, setDateRange] = useState('month');
 
   const normalizedRole = normalizeRole(user?.role);
 
@@ -27,10 +26,12 @@ export default function DashboardHome() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      if (accessibleIds === undefined || accessibleIds === null) return [];
-      // null = full admin access (fetch all); [] = no projects
+      // null = full admin access; [] = no projects; [id, ...] = filtered projects
       if (accessibleIds === null) {
         return base44.entities.Project.list('-created_date', 500);
+      }
+      if (accessibleIds.length === 0) {
+        return [];
       }
       return base44.entities.Project.filter({ id: { $in: accessibleIds } });
     },
@@ -47,19 +48,19 @@ export default function DashboardHome() {
 
   // Route based on role
   if (normalizedRole === 'ADMINISTRATOR') {
-    return <AdminDashboard projectIds={accessibleIds} dateRange={dateRange} setDateRange={setDateRange} projects={projects} />;
+    return <AdminDashboard projectIds={accessibleIds} projects={projects} />;
   }
 
   if (normalizedRole === 'SALES_MANAGER') {
-    return <ManagerDashboard projectIds={accessibleIds} dateRange={dateRange} setDateRange={setDateRange} projects={projects} />;
+    return <ManagerDashboard projectIds={accessibleIds} projects={projects} />;
   }
 
   if (normalizedRole === 'SALES_AGENT') {
-    return <AgentDashboard projectIds={accessibleIds} dateRange={dateRange} setDateRange={setDateRange} />;
+    return <AgentDashboard projectIds={accessibleIds} />;
   }
 
   if (normalizedRole === 'PROJECT_DEVELOPER') {
-    return <DeveloperDashboard projectIds={accessibleIds} dateRange={dateRange} setDateRange={setDateRange} projects={projects} />;
+    return <DeveloperDashboard projectIds={accessibleIds} projects={projects} />;
   }
 
   return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie dashboard</div>;

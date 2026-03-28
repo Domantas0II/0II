@@ -9,7 +9,7 @@ import KPICard from '@/components/analytics/KPICard';
 import AlertBanner from '@/components/analytics/AlertBanner';
 import { AlertTriangle, Users, Briefcase, TrendingUp, Clock } from 'lucide-react';
 
-export default function AgentDashboard({ projectIds, dateRange, setDateRange }) {
+export default function AgentDashboard({ projectIds }) {
   const context = useOutletContext() || {};
   const { user } = context;
 

@@ -2,13 +2,12 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectKpis, getOverdueAlerts } from '@/lib/analyticsHelpers';
 import { base44 } from '@/api/base44Client';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import KPICard from '@/components/analytics/KPICard';
 import AlertBanner from '@/components/analytics/AlertBanner';
 import { Briefcase, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 
-export default function ManagerDashboard({ projectIds, dateRange, setDateRange, projects }) {
+export default function ManagerDashboard({ projectIds, projects }) {
   const { data: kpis, isLoading: kpisLoading } = useQuery({
     queryKey: ['projectKpis', projectIds],
     queryFn: () => getProjectKpis(projectIds),
@@ -35,19 +34,9 @@ export default function ManagerDashboard({ projectIds, dateRange, setDateRange, 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-3xl font-bold">Vadybininko Skydelis</h1>
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Šiandien</SelectItem>
-            <SelectItem value="week">Šią savaitę</SelectItem>
-            <SelectItem value="month">Šį mėnesį</SelectItem>
-            <SelectItem value="quarter">Šį ketvirtį</SelectItem>
-          </SelectContent>
-        </Select>
+        <p className="text-sm text-muted-foreground mt-1">Komandos apžvalga: tiesioginis snapshot</p>
       </div>
 
       {/* Alerts */}
