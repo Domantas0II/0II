@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -9,9 +9,15 @@ import { base44 } from '@/api/base44Client';
 
 const menuItems = [
   {
+    label: 'Kontrolė',
+    icon: LayoutDashboard,
+    href: '/dashboard',
+    requiredRole: () => true,
+  },
+  {
     label: 'Vartotojai',
     icon: Users,
-    href: '/',
+    href: '/users',
     requiredRole: (role) => canManageUsers(normalizeRole(role)),
   },
   {

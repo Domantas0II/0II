@@ -83,6 +83,7 @@ const AuthenticatedApp = () => {
       <Route element={<AdminLayout />}>
         <Route path="/" element={<DashboardHome />} />
         <Route path="/dashboard" element={<DashboardHome />} />
+        <Route path="/users" element={<UsersList />} />
         <Route path="/users/:id" element={<UserDetail />} />
         <Route path="/invite" element={<InviteUser />} />
         <Route path="/branding" element={<BrandingSettings />} />
