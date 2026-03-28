@@ -99,9 +99,9 @@ export default function ProjectDetail() {
 
   const handleLifecycleChange = (newState) => {
     if (newState === 'internal_ready') {
-      const ok = canSetInternalReady(project, inventory, components, financial);
+      const ok = canSetInternalReady(project, inventory, components, technical, financial, null);
       if (!ok) {
-        toast.error('Negalima: trūksta kritinių blokų (bazė, inventory, finansai)');
+        toast.error('Negalima: trūksta kritinių blokų (bazė, inventory, dedamosios, finansai, procesas)');
         return;
       }
     }

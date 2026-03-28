@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { canCreateProjects, normalizeRole } from '@/lib/constants';
+import { canCreateProjects } from '@/lib/constants';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, FolderOpen, Building2 } from 'lucide-react';

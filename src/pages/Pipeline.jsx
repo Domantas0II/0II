@@ -30,8 +30,12 @@ export default function Pipeline() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Project.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) {
+        return await base44.entities.Project.list('-created_date', 50);
+      }
+      return await base44.entities.Project.filter({ 
+        id: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });
@@ -70,11 +74,12 @@ export default function Pipeline() {
     queryFn: async () => {
       const all = await base44.entities.Activity.list('-scheduledAt');
       // Filter: only valid projectId + accessible + not cancelled
-      const filtered = all.filter(a => 
-        a.projectId && 
-        accessibleIds?.includes(a.projectId) && 
-        a.status !== 'cancelled'
-      );
+      const filtered = all.filter(a => {
+        if (!a.projectId || a.status === 'cancelled') return false;
+        // accessibleIds === null means FULL ACCESS (admin)
+        if (accessibleIds === null) return true;
+        return accessibleIds.includes(a.projectId);
+      });
       // Get last activity per client
       const lastByClient = {};
       filtered.forEach(a => {

@@ -29,8 +29,12 @@ export default function UnitsList() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Project.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) {
+        return await base44.entities.Project.list('-created_date', 50);
+      }
+      return await base44.entities.Project.filter({ 
+        id: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });

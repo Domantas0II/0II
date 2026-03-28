@@ -96,7 +96,12 @@ export default function ClientDetail() {
     queryFn: async () => {
       const all = await base44.entities.Activity.filter({ clientId });
       // Filter out orphan activities (missing or invalid projectId)
-      return all.filter(a => a.projectId && accessibleIds?.includes(a.projectId));
+      return all.filter(a => {
+        if (!a.projectId) return false;
+        // accessibleIds === null means FULL ACCESS (admin)
+        if (accessibleIds === null) return true;
+        return accessibleIds.includes(a.projectId);
+      });
     },
     enabled: !!clientId && accessibleIds !== undefined,
   });

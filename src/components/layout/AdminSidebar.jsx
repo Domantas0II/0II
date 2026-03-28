@@ -58,7 +58,7 @@ const menuItems = [
   },
 ];
 
-export default function AdminSidebar({ open }) {
+export default function AdminSidebar({ open, branding }) {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -66,6 +66,8 @@ export default function AdminSidebar({ open }) {
     if (!item.requiredRole) return true;
     return item.requiredRole(user?.role);
   });
+
+  const appName = branding?.appName || 'NT Sistema';
 
   return (
     <aside
@@ -75,7 +77,7 @@ export default function AdminSidebar({ open }) {
       )}
     >
       <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-lg font-bold text-sidebar-foreground">NT Sistema</h1>
+        <h1 className="text-lg font-bold text-sidebar-foreground">{appName}</h1>
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">

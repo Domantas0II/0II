@@ -1,13 +1,17 @@
 import { base44 } from '@/api/base44Client';
 
 export async function validateProjectInquiry(data) {
-  // 1. Check projectId exists
+  // 1. Check projectId exists with targeted query
   if (!data.projectId) {
     throw new Error('Projektas privalomas');
   }
 
-  const projects = await base44.entities.Project.list();
-  if (!projects.find(p => p.id === data.projectId)) {
+  try {
+    const projects = await base44.entities.Project.filter({ id: data.projectId });
+    if (!projects || projects.length === 0) {
+      throw new Error('Projektas neegzistuoja');
+    }
+  } catch (err) {
     throw new Error('Projektas neegzistuoja');
   }
 
@@ -18,13 +22,17 @@ export async function validateProjectInquiry(data) {
 
   // 3. If unitId provided, validate it belongs to the project
   if (data.unitId) {
-    const units = await base44.entities.SaleUnit.list();
-    const unit = units.find(u => u.id === data.unitId);
-    if (!unit) {
-      throw new Error('Objektas neegzistuoja');
-    }
-    if (unit.projectId !== data.projectId) {
-      throw new Error('Objektas nepriklauso šiam projektui');
+    try {
+      const units = await base44.entities.SaleUnit.filter({ id: data.unitId });
+      if (!units || units.length === 0) {
+        throw new Error('Objektas neegzistuoja');
+      }
+      const unit = units[0];
+      if (unit.projectId !== data.projectId) {
+        throw new Error('Objektas nepriklauso šiam projektui');
+      }
+    } catch (err) {
+      throw new Error(err.message || 'Objektas validacija nepavyko');
     }
   }
 }
@@ -32,6 +40,26 @@ export async function validateProjectInquiry(data) {
 export async function findDuplicateClient(phone, email) {
   if (!phone && !email) return null;
 
-  const clients = await base44.entities.Client.list();
-  return clients.find(c => (phone && c.phone === phone) || (email && c.email === email)) || null;
+  try {
+    // Try phone first
+    if (phone) {
+      const byPhone = await base44.entities.Client.filter({ phone });
+      if (byPhone && byPhone.length > 0) {
+        return byPhone[0];
+      }
+    }
+
+    // Try email
+    if (email) {
+      const byEmail = await base44.entities.Client.filter({ email });
+      if (byEmail && byEmail.length > 0) {
+        return byEmail[0];
+      }
+    }
+
+    return null;
+  } catch (err) {
+    console.error('Duplicate client search failed:', err);
+    return null;
+  }
 }

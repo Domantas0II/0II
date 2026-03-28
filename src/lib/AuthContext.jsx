@@ -2,14 +2,9 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { normalizeRole } from '@/lib/constants';
 
 const AuthContext = createContext();
-
-// Migracija: seni platformos roles → nauji enum
-const normalizeRole = (platformRole) => {
-  const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
-  return map[platformRole] || platformRole;
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

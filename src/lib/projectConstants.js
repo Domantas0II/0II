@@ -1,7 +1,7 @@
 export const PROJECT_TYPE_LABELS = {
   apartment_project: 'Daugiabučiai',
   house_project: 'Namai',
-  townhouse_project: 'Tvinkausai',
+  townhouse_project: 'Rajetoniai',
   mixed_residential: 'Mišrus gyvenamasis',
 };
 
@@ -64,7 +64,7 @@ export const ENERGY_CLASS_LABELS = {
 export const UNIT_TYPE_LABELS = {
   apartment: 'Butas',
   house: 'Namas',
-  townhouse: 'Tvinkasas',
+  townhouse: 'Rajetonias',
 };
 
 export const STRUCTURE_MODEL_LABELS = {
@@ -119,4 +119,5 @@ export const WIZARD_STEPS = [
 ];
 
 // Which steps are "critical" for internal_ready
-export const CRITICAL_BLOCKS = ['base', 'inventory', 'components'];
+// VISOS 5 sekcijos yra kritinės: base, inventory, components, financial, process
+export const CRITICAL_BLOCKS = ['base', 'inventory', 'components', 'financial', 'process'];
