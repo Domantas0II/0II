@@ -44,12 +44,16 @@ export default function ComponentsPool() {
     queryFn: async () => {
       let components;
       if (filters.project !== 'all') {
-        components = await base44.entities.UnitComponent.filter({ projectId: filters.project });
+        components = await base44.entities.UnitComponent.filter({ projectId: filters.project, unitId: null });
+      } else if (accessibleIds === null) {
+        components = await base44.entities.UnitComponent.filter({ unitId: null });
       } else {
-        components = await base44.entities.UnitComponent.list('-created_date');
+        components = await base44.entities.UnitComponent.filter({ 
+          unitId: null,
+          projectId: { $in: accessibleIds }
+        });
       }
-      // Filter by access + pool only
-      return filterByAccessibleProjects(components, accessibleIds);
+      return components;
     },
     enabled: accessibleIds !== undefined,
   });

@@ -64,8 +64,10 @@ export default function InquiryPool() {
   const { data: inquiries = [], isLoading } = useQuery({
     queryKey: ['inquiries', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.ProjectInquiry.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.ProjectInquiry.list('-created_date', 50);
+      return base44.entities.ProjectInquiry.filter({ 
+        projectId: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });
@@ -73,8 +75,8 @@ export default function InquiryPool() {
   const { data: units = [] } = useQuery({
     queryKey: ['units', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.SaleUnit.list();
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.SaleUnit.list('-created_date', 100);
+      return base44.entities.SaleUnit.filter({ projectId: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,
   });

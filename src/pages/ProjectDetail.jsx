@@ -34,13 +34,19 @@ export default function ProjectDetail() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const [hasAccess, setHasAccess] = useState(false);
+
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
-      // Security: check access first
-      const canAccess = await import('@/lib/queryAccess').then(m => m.canAccessProject(user, id, base44));
-      if (!canAccess) throw new Error('Access denied');
-      return base44.entities.Project.filter({ id }).then(r => r?.[0]);
+      const proj = await base44.entities.Project.filter({ id }).then(r => r?.[0]);
+      if (proj && user?.id) {
+        const { canAccessProject } = await import('@/lib/queryAccess');
+        const access = await canAccessProject(user, proj.id, base44);
+        setHasAccess(access);
+        if (!access) throw new Error('Access denied');
+      }
+      return proj;
     },
     enabled: !!id && !!user?.id,
   });
@@ -76,10 +82,18 @@ export default function ProjectDetail() {
   });
 
   const updateProject = useMutation({
-    mutationFn: (data) => base44.entities.Project.update(id, data),
+    mutationFn: async (data) => {
+      await base44.entities.Project.update(id, data);
+      // Recalculate completeness after project update
+      if (project && inventory && financial) {
+        const { saveCompleteness } = await import('@/lib/projectCompleteness');
+        await saveCompleteness(base44, id, project, inventory, null, null, financial, null);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['projectCompleteness', id] });
     },
   });
 

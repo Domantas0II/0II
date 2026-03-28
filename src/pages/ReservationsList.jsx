@@ -45,8 +45,10 @@ export default function ReservationsList() {
   const { data: reservations = [] } = useQuery({
     queryKey: ['reservations', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Reservation.list('-created_date');
-      return all.filter(r => accessibleIds?.includes(r.projectId));
+      if (accessibleIds === null) return base44.entities.Reservation.list('-created_date', 50);
+      return base44.entities.Reservation.filter({ 
+        projectId: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });
@@ -54,8 +56,10 @@ export default function ReservationsList() {
   const { data: bundles = [] } = useQuery({
     queryKey: ['reservationBundles', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.ReservationBundle.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.ReservationBundle.list('-created_date', 50);
+      return base44.entities.ReservationBundle.filter({ 
+        projectId: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });

@@ -24,12 +24,14 @@ export default function ProjectsList() {
     enabled: !!user?.id,
   });
 
-  // Fetch projects, then filter by access
+  // Fetch projects with access filter
   const { data: allProjects = [], isLoading } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Project.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.Project.list('-created_date', 50);
+      return base44.entities.Project.filter({ 
+        id: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });

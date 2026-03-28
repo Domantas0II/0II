@@ -38,18 +38,26 @@ export default function UnitsList() {
   const { data: allUnits = [], isLoading } = useQuery({
     queryKey: ['units', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.SaleUnit.list('-created_date');
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.SaleUnit.list('-created_date', 50);
+      return base44.entities.SaleUnit.filter({ 
+        projectId: { $in: accessibleIds } 
+      });
     },
     enabled: accessibleIds !== undefined,
   });
 
   const units = allUnits;
 
-  // Load technical defaults for all projects (for create form)
+  // Load technical defaults for accessible projects
   const { data: allTechnical = [] } = useQuery({
-    queryKey: ['projectTechnicalAll'],
-    queryFn: () => base44.entities.ProjectTechnicalDefaults.list(),
+    queryKey: ['projectTechnicalAll', accessibleIds],
+    queryFn: async () => {
+      if (accessibleIds === null) return base44.entities.ProjectTechnicalDefaults.list();
+      return base44.entities.ProjectTechnicalDefaults.filter({ 
+        projectId: { $in: accessibleIds } 
+      });
+    },
+    enabled: accessibleIds !== undefined,
   });
   const technicalByProject = Object.fromEntries(allTechnical.map(t => [t.projectId, t]));
 

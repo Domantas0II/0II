@@ -107,8 +107,8 @@ export default function UsersList() {
   );
   const usersByProject = {};
   assignments.filter(a => !a.removedAt).forEach(a => {
-    if (!usersByProject[a.projectKey]) usersByProject[a.projectKey] = new Set();
-    usersByProject[a.projectKey].add(a.userId);
+    if (!usersByProject[a.projectId]) usersByProject[a.projectId] = new Set();
+    usersByProject[a.projectId].add(a.userId);
   });
 
   const filteredUsers = users.filter(u => {

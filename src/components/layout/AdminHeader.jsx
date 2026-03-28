@@ -11,12 +11,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ROLE_LABELS, normalizeRole } from '@/lib/constants';
 
-const getRoleLabel = (role) => ROLE_LABELS[role] || role;
-
-export default function AdminHeader({ user, onMobileMenuToggle }) {
-  const rawRole = user?.role;
-  const normalizedRole = normalizeRole(rawRole);
-  const roleLabel = getRoleLabel(normalizedRole);
+export default function AdminHeader({ user, onMenuClick }) {
+  const normalizedRole = normalizeRole(user?.role);
+  const roleLabel = ROLE_LABELS[normalizedRole] || normalizedRole;
 
   const initials = (user?.full_name || 'U')
     .split(' ')
@@ -27,7 +24,7 @@ export default function AdminHeader({ user, onMobileMenuToggle }) {
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 lg:px-6">
-      <button onClick={onMobileMenuToggle} className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted">
+      <button onClick={onMenuClick} className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-muted">
         <Menu className="h-5 w-5" />
       </button>
       <div className="hidden lg:block" />
@@ -36,7 +33,7 @@ export default function AdminHeader({ user, onMobileMenuToggle }) {
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-3 p-1.5 rounded-lg hover:bg-muted transition-colors">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium leading-tight">{user?.full_name || 'Vartotojas'}</p>
+              <p className="text-sm font-medium leading-tight">{user?.full_name}</p>
               <p className="text-xs text-muted-foreground">{roleLabel}</p>
             </div>
             <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
@@ -51,7 +48,6 @@ export default function AdminHeader({ user, onMobileMenuToggle }) {
             <Badge variant="secondary" className="mt-1.5 text-[10px]">
               {roleLabel}
             </Badge>
-
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-destructive">

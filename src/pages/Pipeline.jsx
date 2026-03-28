@@ -39,8 +39,13 @@ export default function Pipeline() {
   const { data: interests = [] } = useQuery({
     queryKey: ['pipelineInterests', user?.id, accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.ClientProjectInterest.list('-created_date');
-      const filtered = filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) {
+        const all = await base44.entities.ClientProjectInterest.list('-created_date', 50);
+        return filterPipelineByRole(all, user);
+      }
+      const filtered = await base44.entities.ClientProjectInterest.filter({ 
+        projectId: { $in: accessibleIds } 
+      });
       return filterPipelineByRole(filtered, user);
     },
     enabled: accessibleIds !== undefined && !!user?.id,
@@ -48,14 +53,14 @@ export default function Pipeline() {
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => base44.entities.Client.list('-created_date', 100),
   });
 
   const { data: units = [] } = useQuery({
     queryKey: ['units', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.SaleUnit.list();
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.SaleUnit.list('-created_date', 50);
+      return base44.entities.SaleUnit.filter({ projectId: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,
   });
