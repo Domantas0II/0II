@@ -29,6 +29,11 @@ import DealsList from '@/pages/DealsList';
 import DashboardHome from '@/pages/DashboardHome';
 import TeamPerformance from '@/pages/TeamPerformance';
 import ProjectAnalytics from '@/pages/ProjectAnalytics';
+import ImportHub from '@/pages/ImportHub';
+import ImportUpload from '@/pages/ImportUpload';
+import ImportMapping from '@/pages/ImportMapping';
+import ImportPreview from '@/pages/ImportPreview';
+import ImportHistory from '@/pages/ImportHistory';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -93,6 +98,11 @@ const AuthenticatedApp = () => {
         <Route path="/deals" element={<DealsList />} />
         <Route path="/team-performance" element={<TeamPerformance />} />
         <Route path="/project-analytics/:id" element={<ProjectAnalytics />} />
+        <Route path="/import" element={<ImportHub />} />
+        <Route path="/import/upload" element={<ImportUpload />} />
+        <Route path="/import/mapping" element={<ImportMapping />} />
+        <Route path="/import/preview" element={<ImportPreview />} />
+        <Route path="/import/history" element={<ImportHistory />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -49,6 +49,12 @@ const menuItems = [
     icon: Clock,
     href: '/reservations',
     requiredRole: (role) => canAccessInbound(normalizeRole(role)),
+  },
+  {
+    label: 'Import & Bulk',
+    icon: Upload,
+    href: '/import',
+    requiredRole: (role) => canManageProjects(normalizeRole(role)),
   },
   {
     label: 'Nustatymai',

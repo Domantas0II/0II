@@ -1,0 +1,85 @@
+{
+  "name": "ImportSession",
+  "type": "object",
+  "properties": {
+    "importType": {
+      "type": "string",
+      "enum": [
+        "units",
+        "components",
+        "bulk_price",
+        "bulk_status",
+        "bulk_publish"
+      ],
+      "description": "Import tipo pasirinkimas"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "fileName": {
+      "type": "string",
+      "description": "Failo pavadinimas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "uploaded",
+        "parsed",
+        "validated",
+        "failed",
+        "committed",
+        "partially_committed"
+      ],
+      "default": "uploaded",
+      "description": "Import sesijos b\u016bsena"
+    },
+    "rowCount": {
+      "type": "number",
+      "description": "Bendras eilu\u010di\u0173 skai\u010dius"
+    },
+    "validRowCount": {
+      "type": "number",
+      "description": "Valid\u017ei\u0173 eilu\u010di\u0173 skai\u010dius"
+    },
+    "invalidRowCount": {
+      "type": "number",
+      "description": "Nevalid\u017ei\u0173 eilu\u010di\u0173 skai\u010dius"
+    },
+    "previewJson": {
+      "type": "string",
+      "description": "JSON: parsed ir validated data preview"
+    },
+    "errorsJson": {
+      "type": "string",
+      "description": "JSON: validation errors per row"
+    },
+    "mappingJson": {
+      "type": "string",
+      "description": "JSON: column mapping config"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "User kuris suk\u016br\u0117 import"
+    },
+    "createdByName": {
+      "type": "string",
+      "description": "User vardas"
+    },
+    "committedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Commit laikas"
+    },
+    "committedRowCount": {
+      "type": "number",
+      "description": "Sekmingai importuot\u0173 eilu\u010di\u0173 skai\u010dius"
+    }
+  },
+  "required": [
+    "importType",
+    "projectId",
+    "fileName",
+    "createdByUserId"
+  ]
+}
