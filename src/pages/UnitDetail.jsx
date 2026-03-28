@@ -54,15 +54,15 @@ export default function UnitDetail() {
   const [showAddComponent, setShowAddComponent] = useState(false);
   const [showAssignComponent, setShowAssignComponent] = useState(false);
 
-  const { data: units = [] } = useQuery({
-    queryKey: ['units'],
-    queryFn: () => base44.entities.SaleUnit.list(),
+  const { data: unit } = useQuery({
+    queryKey: ['unit', id],
+    queryFn: () => base44.entities.SaleUnit.filter({ id }).then(r => r?.[0]),
+    enabled: !!id,
   });
-  const unit = units.find(u => u.id === id);
 
   const { data: project } = useQuery({
     queryKey: ['project', unit?.projectId],
-    queryFn: () => base44.entities.Project.filter({ id: unit.projectId }).then(r => r?.[0]),
+    queryFn: () => base44.entities.Project.filter({ id: unit?.projectId }).then(r => r?.[0]),
     enabled: !!unit?.projectId,
   });
 

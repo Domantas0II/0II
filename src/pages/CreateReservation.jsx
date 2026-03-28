@@ -44,15 +44,15 @@ export default function CreateReservation() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      const all = await base44.entities.Project.list();
-      return filterByAccessibleProjects(all, accessibleIds);
+      if (accessibleIds === null) return base44.entities.Project.list('-created_date', 50);
+      return base44.entities.Project.filter({ id: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => base44.entities.Client.list('-created_date', 200),
   });
 
   const { data: units = [] } = useQuery({
