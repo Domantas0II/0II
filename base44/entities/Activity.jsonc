@@ -1,0 +1,63 @@
+{
+  "name": "Activity",
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "call",
+        "sms",
+        "email",
+        "consultation",
+        "visit",
+        "other"
+      ],
+      "description": "Veiklos tipas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "done",
+        "cancelled"
+      ],
+      "default": "planned",
+      "description": "Statusas"
+    },
+    "scheduledAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Suplanuota data"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Baigta data"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0119s vartotojas"
+    },
+    "assignedToUserId": {
+      "type": "string",
+      "description": "Priskirtam vartotojui"
+    }
+  },
+  "required": [
+    "clientId",
+    "projectId",
+    "type"
+  ]
+}

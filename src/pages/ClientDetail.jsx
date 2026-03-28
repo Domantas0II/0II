@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Phone, Mail, Plus, X, Folder, Home } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Plus, X, Folder, Home, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { canAccessInbound, normalizeRole } from '@/lib/constants';
 import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import ActivityRow from '@/components/pipeline/ActivityRow';
+import ActivityForm from '@/components/pipeline/ActivityForm';
 
 const INTEREST_STATUS_LABELS = {
   new_interest: 'Naujas',
@@ -88,6 +91,12 @@ export default function ClientDetail() {
     enabled: accessibleIds !== undefined,
   });
 
+  const { data: activities = [] } = useQuery({
+    queryKey: ['activities', clientId],
+    queryFn: () => base44.entities.Activity.filter({ clientId }),
+    enabled: !!clientId,
+  });
+
   const updateInterest = useMutation({
     mutationFn: ({ id, data }) => base44.entities.ClientProjectInterest.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projectInterests', clientId] }),
@@ -112,6 +121,38 @@ export default function ClientDetail() {
   const removeUnitInterest = useMutation({
     mutationFn: (interestId) => base44.entities.ClientUnitInterest.delete(interestId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['unitInterests', clientId] }),
+  });
+
+  const createActivity = useMutation({
+    mutationFn: (data) =>
+      base44.entities.Activity.create({
+        clientId,
+        projectId: data.projectId,
+        type: data.type,
+        scheduledAt: data.scheduledAt,
+        notes: data.notes,
+        createdByUserId: user?.id,
+        assignedToUserId: user?.id,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities', clientId] });
+      toast.success('Veikla sukurta');
+    },
+  });
+
+  const markActivityDone = useMutation({
+    mutationFn: (activityId) =>
+      base44.entities.Activity.update(activityId, {
+        status: 'done',
+        completedAt: new Date().toISOString(),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities', clientId] }),
+  });
+
+  const cancelActivity = useMutation({
+    mutationFn: (activityId) =>
+      base44.entities.Activity.update(activityId, { status: 'cancelled' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities', clientId] }),
   });
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
@@ -239,6 +280,48 @@ export default function ClientDetail() {
                 </Button>
               </div>
             ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Activities */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Veiklos</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {(() => {
+            const upcomingActivities = activities.filter(a => a.status === 'planned' && new Date(a.scheduledAt) > new Date());
+            const overdue = projectInterests.length > 0 && projectInterests[0].nextFollowUpAt && isPast(new Date(projectInterests[0].nextFollowUpAt)) && upcomingActivities.length === 0;
+            
+            return overdue && (
+              <Alert className="border-amber-200 bg-amber-50 mb-3">
+                <AlertCircle className="h-4 w-4 text-amber-700" />
+                <AlertDescription className="text-amber-700">
+                  ⚠️ Reikia follow-up
+                </AlertDescription>
+              </Alert>
+            );
+          })()}
+
+          <ActivityForm
+            onSubmit={(data) => createActivity.mutate({ ...data, projectId: unit?.projectId || projects[0]?.id })}
+            saving={createActivity.isPending}
+          />
+
+          {activities.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nėra veiklų</p>
+          ) : (
+            <div className="space-y-2">
+              {activities.map(a => (
+                <ActivityRow
+                  key={a.id}
+                  activity={a}
+                  onMarkDone={markActivityDone.mutate}
+                  onCancel={cancelActivity.mutate}
+                />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

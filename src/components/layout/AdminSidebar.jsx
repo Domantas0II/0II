@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
+import { canViewPipeline } from '@/lib/pipelineAccess';
 import { base44 } from '@/api/base44Client';
 
 const menuItems = [
@@ -36,6 +37,12 @@ const menuItems = [
     icon: Mail,
     href: '/inquiry',
     requiredRole: (role) => canAccessInbound(normalizeRole(role)),
+  },
+  {
+    label: 'Pipeline',
+    icon: Kanban,
+    href: '/pipeline',
+    requiredRole: (role) => canViewPipeline(normalizeRole(role)),
   },
   {
     label: 'Nustatymai',

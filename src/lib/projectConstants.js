@@ -61,7 +61,11 @@ export const ENERGY_CLASS_LABELS = {
   other: 'Kita',
 };
 
-// UNIT_TYPE_LABELS — naudoti iš lib/unitConstants.js (vienas source of truth)
+export const UNIT_TYPE_LABELS = {
+  apartment: 'Butas',
+  house: 'Namas',
+  townhouse: 'Tvinkasas',
+};
 
 export const STRUCTURE_MODEL_LABELS = {
   none: 'Be struktūros',

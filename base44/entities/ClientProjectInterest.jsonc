@@ -28,10 +28,30 @@
       "default": "new_interest",
       "description": "Statumas"
     },
+    "pipelineStage": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "consultation",
+        "visit",
+        "negotiation",
+        "reserved",
+        "won",
+        "lost"
+      ],
+      "default": "new",
+      "description": "Pipeline stadija"
+    },
+    "stageUpdatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada stadija paskutini\u0105kart pasikeit\u0117"
+    },
     "lastInteractionAt": {
       "type": "string",
       "format": "date-time",
-      "description": "Paskutin\u0117 s\u0105veika"
+      "description": "Paskutinis kontaktas"
     },
     "nextFollowUpAt": {
       "type": "string",
