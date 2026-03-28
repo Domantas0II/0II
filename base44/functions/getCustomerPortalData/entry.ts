@@ -85,34 +85,35 @@ Deno.serve(async (req) => {
       paymentType: p.paymentType
     }));
 
-    // Fetch units for reservations
-    const unitIds = new Set();
-    safeReservations.forEach(r => {
-      if (r.bundleId) {
-        // In real flow, extract unitId from bundle
-        unitIds.add(r.bundleId);
-      }
-    });
-
+    // Fetch units for reservations (via bundle -> unit mapping)
     const safeUnits = [];
-    for (const unitId of unitIds) {
-      const units = await base44.asServiceRole.entities.SaleUnit.filter({
-        id: unitId
-      });
-      if (units && units.length > 0) {
-        const u = units[0];
-        safeUnits.push({
-          id: u.id,
-          label: u.label,
-          type: u.type,
-          areaM2: u.areaM2,
-          price: u.price,
-          publicPrice: u.publicPrice,
-          roomsCount: u.roomsCount,
-          bathroomsCount: u.bathroomsCount,
-          publicDescription: u.publicDescription,
-          publicImages: u.publicImages
+    for (const res of safeReservations) {
+      if (res.bundleId) {
+        // Fetch bundle to get unitId
+        const bundles = await base44.asServiceRole.entities.ReservationBundle.filter({
+          id: res.bundleId
         });
+        if (bundles && bundles.length > 0) {
+          const unitId = bundles[0].unitId;
+          const units = await base44.asServiceRole.entities.SaleUnit.filter({
+            id: unitId
+          });
+          if (units && units.length > 0) {
+            const u = units[0];
+            safeUnits.push({
+              id: u.id,
+              label: u.label,
+              type: u.type,
+              areaM2: u.areaM2,
+              price: u.price,
+              publicPrice: u.publicPrice,
+              roomsCount: u.roomsCount,
+              bathroomsCount: u.bathroomsCount,
+              publicDescription: u.publicDescription,
+              publicImages: u.publicImages
+            });
+          }
+        }
       }
     }
 

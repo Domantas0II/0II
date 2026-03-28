@@ -82,8 +82,7 @@ Deno.serve(async (req) => {
       phone: l.phone,
       status: l.status,
       submittedAt: l.submittedAt,
-      convertedAt: l.convertedAt,
-      claimedAt: l.claimedAt
+      convertedAt: l.convertedAt
     }));
 
     // Fetch unit inventory summary for assigned projects

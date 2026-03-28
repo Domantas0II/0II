@@ -27,6 +27,14 @@ Deno.serve(async (req) => {
 
     const tokenRecord = tokens[0];
 
+    // Check expiry
+    if (new Date(tokenRecord.expiresAt) < new Date()) {
+      await base44.asServiceRole.entities.ExternalAccessToken.update(tokenRecord.id, {
+        status: 'expired'
+      });
+      return Response.json({ error: 'Token expired' }, { status: 401 });
+    }
+
     // Only partner portal tokens allowed
     if (tokenRecord.accessType !== 'partner_portal') {
       return Response.json({ error: 'Invalid access type' }, { status: 403 });
