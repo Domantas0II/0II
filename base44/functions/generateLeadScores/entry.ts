@@ -232,13 +232,15 @@ Deno.serve(async (req) => {
     const { projectId, clientId, inquiryId, interestId } = await req.json();
     const role = normalizeRole(user.role);
 
-    // Access control: only admin/manager
-    if (role !== 'ADMINISTRATOR' && role !== 'SALES_MANAGER') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // FIX #1: Agent access control - enable with scope validation
+    // SALES_AGENT can score, but only within their visible scope
+    if (role === 'SALES_AGENT') {
+      // projectId is required for agents (no full pipeline)
+      if (!projectId) {
+        return Response.json({ error: 'projectId required for agents' }, { status: 400 });
+      }
 
-    // If manager, verify project access
-    if (role === 'SALES_MANAGER' && projectId) {
+      // Verify agent has access to project
       const access = await base44.entities.UserProjectAssignment.filter({
         userId: user.id,
         projectId,
@@ -247,6 +249,47 @@ Deno.serve(async (req) => {
       if (!access || access.length === 0) {
         return Response.json({ error: 'Access denied to project' }, { status: 403 });
       }
+
+      // If interestId provided, verify it belongs to this project
+      if (interestId) {
+        const interests = await base44.entities.ClientProjectInterest.filter({
+          id: interestId,
+          projectId
+        });
+        if (!interests || interests.length === 0) {
+          return Response.json({
+            error: 'Interest not found in this project'
+          }, { status: 404 });
+        }
+      }
+
+      // If clientId provided, verify it's linked to an interest in this project
+      if (clientId) {
+        const interests = await base44.entities.ClientProjectInterest.filter({
+          clientId,
+          projectId
+        });
+        if (!interests || interests.length === 0) {
+          return Response.json({
+            error: 'Client not found in this project scope'
+          }, { status: 404 });
+        }
+      }
+    } else if (role === 'SALES_MANAGER') {
+      // Manager: verify project access if projectId provided
+      if (projectId) {
+        const access = await base44.entities.UserProjectAssignment.filter({
+          userId: user.id,
+          projectId,
+          removedAt: null
+        });
+        if (!access || access.length === 0) {
+          return Response.json({ error: 'Access denied to project' }, { status: 403 });
+        }
+      }
+    } else if (role !== 'ADMINISTRATOR') {
+      // Only ADMINISTRATOR, SALES_MANAGER, SALES_AGENT allowed
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const scores = [];

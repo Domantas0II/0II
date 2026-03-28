@@ -57,7 +57,10 @@ Deno.serve(async (req) => {
 
     let interests = [];
     if (accessibleProjectIds === null) {
-      // Admin full access: fetch all interests
+      // FIX #3: Admin full access performance note
+      // V1 compromise: list all interests with 500-item limit (observability safeguard)
+      // Future optimization: implement time-range filter or pagination
+      // Current behavior: sufficient for typical pipeline sizes, requires monitoring
       interests = await base44.entities.ClientProjectInterest.list('-created_date', 500);
     } else if (accessibleProjectIds.length > 0) {
       // Fetch interests for each accessible project
