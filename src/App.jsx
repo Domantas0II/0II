@@ -39,6 +39,8 @@ import TasksBoard from '@/pages/TasksBoard';
 import SLADashboard from '@/pages/SLADashboard';
 import PriorityQueue from '@/pages/PriorityQueue';
 import ManagerInsights from '@/pages/ManagerInsights';
+import CustomerPortal from '@/pages/CustomerPortal';
+import PartnerPortal from '@/pages/PartnerPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -115,6 +117,9 @@ const AuthenticatedApp = () => {
         <Route path="/priority-queue" element={<PriorityQueue />} />
         <Route path="/manager-insights" element={<ManagerInsights />} />
       </Route>
+      {/* External Portal Routes (no layout) */}
+      <Route path="/customer-portal" element={<CustomerPortal />} />
+      <Route path="/partner-portal" element={<PartnerPortal />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

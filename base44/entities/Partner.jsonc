@@ -1,0 +1,46 @@
+{
+  "name": "Partner",
+  "type": "object",
+  "properties": {
+    "companyName": {
+      "type": "string",
+      "description": "Partnerin\u0117s \u012fmon\u0117s pavadinimas"
+    },
+    "contactName": {
+      "type": "string",
+      "description": "Kontaktinio asmens vardas"
+    },
+    "email": {
+      "type": "string",
+      "description": "Kontaktinis el. pa\u0161tas"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Kontaktinis telefonas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "Partnerio statusas"
+    },
+    "assignedProjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Priskirt\u0173 projekt\u0173 ID s\u0105ra\u0161as"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Vidin\u0117s pastabos apie partner\u012f"
+    }
+  },
+  "required": [
+    "companyName",
+    "email"
+  ]
+}

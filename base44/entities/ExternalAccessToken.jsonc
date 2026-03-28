@@ -1,0 +1,68 @@
+{
+  "name": "ExternalAccessToken",
+  "type": "object",
+  "properties": {
+    "accessType": {
+      "type": "string",
+      "enum": [
+        "customer_portal",
+        "partner_portal"
+      ],
+      "description": "I\u0161orinio prieigos tipas"
+    },
+    "token": {
+      "type": "string",
+      "description": "Unikalus saugus \u017eeton"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "revoked"
+      ],
+      "default": "active",
+      "description": "\u017detono statusas"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID (customer portal scope)"
+    },
+    "partnerId": {
+      "type": "string",
+      "description": "Partnerio ID (partner portal scope)"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (optional scope)"
+    },
+    "reservationId": {
+      "type": "string",
+      "description": "Rezervacijos ID (optional scope)"
+    },
+    "agreementId": {
+      "type": "string",
+      "description": "Sutarties ID (optional scope)"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u017detono galiojimo pabaiga"
+    },
+    "lastUsedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio naudojimo laikas"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0119 administratoriaus ID"
+    }
+  },
+  "required": [
+    "accessType",
+    "token",
+    "expiresAt",
+    "createdByUserId"
+  ]
+}

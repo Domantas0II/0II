@@ -1,0 +1,72 @@
+{
+  "name": "PartnerLead",
+  "type": "object",
+  "properties": {
+    "partnerId": {
+      "type": "string",
+      "description": "Partnerio ID"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (privalomas s\u0105ra\u0161as skaitant partnerio assigned lista)"
+    },
+    "fullName": {
+      "type": "string",
+      "description": "Vedinio vardo"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Vedinio telefono"
+    },
+    "email": {
+      "type": "string",
+      "description": "Vedinio el. pa\u0161tas"
+    },
+    "message": {
+      "type": "string",
+      "description": "Vedinio \u017einut\u0117 / komentaras"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "submitted",
+        "claimed",
+        "converted",
+        "rejected",
+        "duplicate"
+      ],
+      "default": "new",
+      "description": "Vedinio statusas"
+    },
+    "createdClientId": {
+      "type": "string",
+      "description": "Sukurto kliento ID (konversijos metu)"
+    },
+    "createdInquiryId": {
+      "type": "string",
+      "description": "Sukurto inquiry ID (konversijos metu)"
+    },
+    "submittedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada pateikta"
+    },
+    "claimedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada tvirtintas CRM"
+    },
+    "convertedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada konvertuota \u012f CRM flow"
+    }
+  },
+  "required": [
+    "partnerId",
+    "projectId",
+    "fullName",
+    "email"
+  ]
+}
