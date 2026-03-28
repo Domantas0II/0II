@@ -16,8 +16,7 @@ import {
   COMPONENT_LABELS, INSTALLATION_STATUS_LABELS, ENERGY_CLASS_LABELS
 } from '@/lib/projectConstants';
 import { canSetInternalReady } from '@/lib/projectCompleteness';
-
-const CAN_MANAGE = ['ADMIN', 'SALES_MANAGER'];
+import { canManageProjects } from '@/lib/constants';
 
 function InfoRow({ label, value }) {
   return (
@@ -90,7 +89,7 @@ export default function ProjectDetail() {
     toast.success('Būsena pakeista');
   };
 
-  const canManage = CAN_MANAGE.includes(user?.role);
+  const canManage = canManageProjects(user?.role);
   const percent = completeness?.setupProgressPercent ?? 0;
 
   if (isLoading) {
