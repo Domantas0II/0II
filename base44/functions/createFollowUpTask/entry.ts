@@ -30,6 +30,44 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // FIX #2: Validate source entity (ClientProjectInterest) exists and belongs to project
+    const interests = await base44.entities.ClientProjectInterest.filter({
+      id: relatedInterestId,
+      projectId
+    });
+
+    if (!interests || interests.length === 0) {
+      return Response.json({
+        error: 'ClientProjectInterest not found or does not belong to this project'
+      }, { status: 404 });
+    }
+
+    // FIX #1: Validate assignee has access to project
+    const assignees = await base44.entities.User.filter({
+      id: assignedToUserId
+    });
+
+    if (!assignees || assignees.length === 0) {
+      return Response.json({
+        error: 'Assignee user not found'
+      }, { status: 404 });
+    }
+
+    const assigneeRole = assignees[0].role;
+    // Admin users have access to all projects
+    if (assigneeRole !== 'admin') {
+      const assigneeAccess = await base44.entities.UserProjectAssignment.filter({
+        userId: assignedToUserId,
+        projectId,
+        removedAt: null
+      });
+      if (!assigneeAccess || assigneeAccess.length === 0) {
+        return Response.json({
+          error: 'Assignee does not have access to this project'
+        }, { status: 403 });
+      }
+    }
+
     // Check duplication
     const existing = await base44.entities.Task.filter({
       projectId,

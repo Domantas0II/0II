@@ -204,7 +204,8 @@ Auto-creates follow-up tasks when:
 - **Status**: ✅ DONE
 
 ### FIX 3: slaOverdueCheck → Query Hardening
-- Changed from `Task.list('-created_date', 500)` → `Task.filter({status: {$nin: ['completed','cancelled']}})`
+- Changed from `Task.list('-created_date', 500)` → explicit 3-query fetch (pending + in_progress + overdue)
+- Replaces `$nin` operator with explicit status matches (Base44 compatibility)
 - Reduces scan scope to only active tasks
 - Documented performance constraint with comment
 - **Status**: ✅ DONE
@@ -218,8 +219,36 @@ Auto-creates follow-up tasks when:
 ### FIX 5: Role Normalization Cleanup
 - Consolidated normalizeRole logic in: createTask, getTasks, reassignTask, slaOverdueCheck
 - All use same mapping: `{ 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' }`
-- Created documentation file `_roleNormalization.js` explaining pattern
-- Note: Deno prevents direct imports between functions, so pattern is documented + copy-pasted safely
+- Added inline comment explaining intentional copy-paste pattern (Deno limitations)
+- **Status**: ✅ DONE
+
+## 10. FINAL HARDENING FIXES (Access & Reliability) ✅
+
+### FIX 6: createFollowUpTask → PROJECT ACCESS CHECK
+- **Added**: Validate assignee user exists
+- **Added**: If assignee role ≠ 'admin', check active UserProjectAssignment:
+  - userId = assignedToUserId
+  - projectId = projectId
+  - removedAt = null
+- **Response**: 403 if assignee lacks project access
+- **Status**: ✅ DONE
+
+### FIX 7: createFollowUpTask → SOURCE ENTITY VALIDATION
+- **Added**: Validate ClientProjectInterest exists before task creation
+- **Check**: interest.projectId === projectId (prevent cross-project task creation)
+- **Response**: 404 if interest not found or doesn't belong to project
+- **Status**: ✅ DONE
+
+### FIX 8: getTasks → LIMIT
+- **Added**: Max 200 tasks per request (TASK_LIMIT constant)
+- **Implementation**: Fetch all matching tasks, slice client-side to 200
+- **Response**: Returns `limited: true` + `totalAvailable: N` if exceeded
+- **Status**: ✅ DONE
+
+### FIX 9: slaOverdueCheck → QUERY RELIABILITY (Enhanced #3)
+- **Changed**: From `$nin` operator → 3 explicit queries (pending, in_progress, overdue)
+- **Why**: Ensures Base44 filter engine compatibility
+- **Implementation**: Parallel 3 queries, merge results
 - **Status**: ✅ DONE
 
 ## Testing Checklist

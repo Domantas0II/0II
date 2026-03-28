@@ -74,16 +74,22 @@ Deno.serve(async (req) => {
       filterQuery.priority = priority;
     }
 
-    // Fetch tasks
-    const tasks = await base44.entities.Task.filter(filterQuery);
+    // FIX #4: Add limit to prevent unbounded fetch (200 records max)
+    // Note: Base44 filter doesn't support native limit/offset, so we fetch and slice client-side
+    // This is intentional: query is bounded by filter constraints first, then sliced
+    const allTasks = await base44.entities.Task.filter(filterQuery);
+    const TASK_LIMIT = 200;
+    const tasks = (allTasks || []).slice(0, TASK_LIMIT);
 
     // Sort by dueAt ascending
-    const sorted = (tasks || []).sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+    const sorted = tasks.sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
 
     return Response.json({
       success: true,
       tasks: sorted,
-      count: sorted.length
+      count: sorted.length,
+      limited: (allTasks?.length || 0) > TASK_LIMIT,
+      totalAvailable: allTasks?.length || 0
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

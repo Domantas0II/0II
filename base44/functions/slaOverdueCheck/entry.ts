@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// FIX #5: Role normalization (shared pattern across task functions)
+// This pattern is intentionally copy-pasted into createTask, getTasks, reassignTask, slaOverdueCheck
+// to avoid import dependencies. Ensure all maintain identical mapping.
 const normalizeRole = (role) => {
   const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
   return map[role] || role;
@@ -9,11 +12,17 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // PERFORMANCE: Query only non-completed/non-cancelled tasks to reduce scan
-    // NOTE: Base44 filter has status constraint; query excludes already-done tasks
-    const allTasks = await base44.asServiceRole.entities.Task.filter({
-      status: { $nin: ['completed', 'cancelled'] }
-    });
+    // FIX #3: Query reliability - use explicit status matches instead of $nin operator
+    // This ensures compatibility with Base44's filter engine
+    // Fetch only active tasks: pending, in_progress, overdue (3 separate queries)
+    const pendingTasks = await base44.asServiceRole.entities.Task.filter({ status: 'pending' });
+    const inProgressTasks = await base44.asServiceRole.entities.Task.filter({ status: 'in_progress' });
+    const overdueTasks = await base44.asServiceRole.entities.Task.filter({ status: 'overdue' });
+    const allTasks = [
+      ...(pendingTasks || []),
+      ...(inProgressTasks || []),
+      ...(overdueTasks || [])
+    ];
 
     const now = new Date();
     let updated = 0;
