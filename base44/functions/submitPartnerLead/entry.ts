@@ -16,19 +16,27 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Validate token
+    // Validate token - consistent with other external access functions
     const tokens = await base44.asServiceRole.entities.ExternalAccessToken.filter({
       token
     });
 
-    if (!tokens || tokens.length === 0 || tokens[0].status !== 'active') {
-      return Response.json({ error: 'Invalid or expired token' }, { status: 401 });
+    if (!tokens || tokens.length === 0) {
+      return Response.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const tokenRecord = tokens[0];
 
+    // Check status
+    if (tokenRecord.status !== 'active') {
+      return Response.json({
+        error: `Token is ${tokenRecord.status}`
+      }, { status: 401 });
+    }
+
     // Check expiry
     if (new Date(tokenRecord.expiresAt) < new Date()) {
+      // Mark as expired
       await base44.asServiceRole.entities.ExternalAccessToken.update(tokenRecord.id, {
         status: 'expired'
       });
@@ -76,6 +84,11 @@ Deno.serve(async (req) => {
     if (!emailRegex.test(email)) {
       return Response.json({ error: 'Invalid email format' }, { status: 400 });
     }
+
+    // Update lastUsedAt
+    await base44.asServiceRole.entities.ExternalAccessToken.update(tokenRecord.id, {
+      lastUsedAt: new Date().toISOString()
+    });
 
     // Create partner lead
     const lead = await base44.asServiceRole.entities.PartnerLead.create({

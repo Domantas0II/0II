@@ -10,16 +10,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Token required' }, { status: 400 });
     }
 
-    // Validate token
+    // Validate token - consistent with validateExternalAccessToken
     const tokens = await base44.asServiceRole.entities.ExternalAccessToken.filter({
       token
     });
 
-    if (!tokens || tokens.length === 0 || tokens[0].status !== 'active') {
-      return Response.json({ error: 'Invalid or expired token' }, { status: 401 });
+    if (!tokens || tokens.length === 0) {
+      return Response.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const tokenRecord = tokens[0];
+
+    // Check status
+    if (tokenRecord.status !== 'active') {
+      return Response.json({
+        error: `Token is ${tokenRecord.status}`
+      }, { status: 401 });
+    }
+
+    // Check expiry
+    if (new Date(tokenRecord.expiresAt) < new Date()) {
+      // Mark as expired
+      await base44.asServiceRole.entities.ExternalAccessToken.update(tokenRecord.id, {
+        status: 'expired'
+      });
+      return Response.json({ error: 'Token expired' }, { status: 401 });
+    }
 
     // Only customer portal tokens allowed
     if (tokenRecord.accessType !== 'customer_portal') {
@@ -116,6 +132,11 @@ Deno.serve(async (req) => {
         }
       }
     }
+
+    // Update lastUsedAt
+    await base44.asServiceRole.entities.ExternalAccessToken.update(tokenRecord.id, {
+      lastUsedAt: new Date().toISOString()
+    });
 
     // Log portal access
     await base44.asServiceRole.entities.AuditLog.create({
