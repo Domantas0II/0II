@@ -196,27 +196,27 @@ Deno.serve(async (req) => {
         rollbackErrors.push(`Reservation reset failed: ${e.message}`);
       }
 
-      // Reset unit
+      // Reset unit to reserved (not available - it was reserved before deal attempt)
       try {
         await base44.entities.SaleUnit.update(unitId, {
-          internalStatus: 'available'
+          internalStatus: 'reserved'
         });
       } catch (e) {
         rollbackErrors.push(`Unit reset failed: ${e.message}`);
       }
 
-      // Reset components
+      // Reset components to reserved (restore to pre-deal state)
       for (const compId of updatedComponentIds) {
         try {
           await base44.entities.UnitComponent.update(compId, {
-            status: 'available'
+            status: 'reserved'
           });
         } catch (e) {
           rollbackErrors.push(`Component reset failed: ${e.message}`);
         }
       }
 
-      // Log rollback
+      // Log rollback with state restoration details
       await base44.entities.AuditLog.create({
         action: 'DEAL_ROLLBACK',
         performedByUserId: user.id,
@@ -226,6 +226,8 @@ Deno.serve(async (req) => {
           error: error.message,
           reservationId,
           unitId,
+          restoredToReserved: true,
+          restoredComponentCount: updatedComponentIds.length,
           rollbackErrors: rollbackErrors.length > 0 ? rollbackErrors : null
         })
       }).catch(() => {});

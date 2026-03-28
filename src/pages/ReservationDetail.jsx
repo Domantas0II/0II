@@ -218,9 +218,10 @@ export default function ReservationDetail() {
   }
 
   const isOverdue = reservation.status === 'overdue' || (isPast(new Date(reservation.expiresAt)) && reservation.status === 'active');
-  const canRelease = canReleaseReservations(normalizeRole(user?.role));
-  const canExtend = canExtendReservations(normalizeRole(user?.role));
-  const canCreateDeal = ['ADMINISTRATOR', 'SALES_MANAGER'].includes(user?.role);
+  const normalizedRole = normalizeRole(user?.role);
+  const canRelease = canReleaseReservations(normalizedRole);
+  const canExtend = canExtendReservations(normalizedRole);
+  const canCreateDeal = ['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizedRole);
   const signedAgreement = agreements.find(a => a.status === 'signed');
   const draftAgreement = agreements.find(a => a.status === 'draft');
 
