@@ -387,12 +387,13 @@ export const getOverdueAlerts = async (projectIds, userId) => {
       r.status !== 'released' && new Date(r.expiresAt) < now && r.status !== 'converted'
     );
 
-    // Overdue follow-ups (for agent)
+    // Overdue follow-ups (for agent or all if null)
+    const interestsFilter = { projectId: { $in: projectIds } };
+    if (userId) {
+      interestsFilter.assignedManagerUserId = userId;
+    }
     const interests = await base44.entities.ClientProjectInterest.filter(
-      {
-        projectId: { $in: projectIds },
-        assignedManagerUserId: userId
-      },
+      interestsFilter,
       'id',
       200
     );
