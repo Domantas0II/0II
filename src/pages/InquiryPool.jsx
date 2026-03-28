@@ -34,7 +34,8 @@ const STATUS_COLORS = {
 };
 
 export default function InquiryPool() {
-  const { user } = useOutletContext();
+  const context = useOutletContext() || {};
+  const { user } = context;
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ search: '', project: 'all', status: 'all', claimed: 'all' });
   const [duplicateDialog, setDuplicateDialog] = useState(null);
