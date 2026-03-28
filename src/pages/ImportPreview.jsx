@@ -38,13 +38,25 @@ export default function ImportPreview() {
     setCommitting(true);
     try {
       const preview = JSON.parse(session.previewJson || '{}');
-      await base44.functions.invoke('commitImport', {
+      const response = await base44.functions.invoke('commitImport', {
         importSessionId: sessionId,
         validRows: preview.validRows || [],
         importType
       });
-      toast.success('Duomenys sėkmingai importuoti');
-      navigate('/import/history');
+
+      if (response.data?.success) {
+        if (response.data.status === 'committed') {
+          toast.success(`Sėkmingai importuota ${response.data.committedCount} eilutės`);
+        } else if (response.data.status === 'partially_committed') {
+          toast.warning(
+            `Dalinai importuota: ${response.data.committedCount}/${response.data.totalRows} eilučių. ` +
+            'Žiūrėkite klaidų sąrašą.'
+          );
+        }
+        navigate('/import/history');
+      } else {
+        toast.error('Commitimo klaida: ' + (response.data?.error || 'Unknown'));
+      }
     } catch (error) {
       toast.error('Klaida commitinant: ' + error.message);
     } finally {

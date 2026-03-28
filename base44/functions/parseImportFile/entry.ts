@@ -9,8 +9,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { normalizeRole } = await import('./lib/constants.js');
-    const role = normalizeRole(user.role);
+    // Role normalization
+    const roleMap = { 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' };
+    const role = roleMap[user.role] || user.role;
+    
     if (role !== 'ADMINISTRATOR' && role !== 'SALES_MANAGER') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }

@@ -52,34 +52,60 @@ export default function ImportHistory() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {sessions.map(session => (
-            <Card key={session.id} className="hover:shadow-md transition cursor-pointer" onClick={() => navigate(`/import/preview?sessionId=${session.id}&type=${session.importType}`)}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium">{TYPE_LABELS[session.importType] || session.importType}</p>
-                      <Badge className={STATUS_COLORS[session.status]}>
-                        {session.status}
-                      </Badge>
+          {sessions.map(session => {
+            const errors = session.errorsJson ? JSON.parse(session.errorsJson) : [];
+            const isPartiallyCommitted = session.status === 'partially_committed';
+            
+            return (
+              <Card 
+                key={session.id} 
+                className={`hover:shadow-md transition cursor-pointer ${isPartiallyCommitted ? 'border-amber-200' : ''}`}
+                onClick={() => navigate(`/import/preview?sessionId=${session.id}&type=${session.importType}`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{TYPE_LABELS[session.importType] || session.importType}</p>
+                        <Badge className={STATUS_COLORS[session.status]}>
+                          {session.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{session.fileName}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {session.createdByName} · {new Date(session.created_date).toLocaleString('lt-LT')}
+                      </p>
+                      
+                      {/* Show commit errors if any */}
+                      {isPartiallyCommitted && errors.length > 0 && (
+                        <div className="mt-2 text-xs">
+                          <p className="font-medium text-amber-700 mb-1">Commit klaidos:</p>
+                          <div className="space-y-0.5 pl-2 border-l border-amber-300">
+                            {errors.slice(0, 3).map((err, idx) => (
+                              <p key={idx} className="text-amber-600">
+                                {err.rowNumber}: {err.error}
+                              </p>
+                            ))}
+                            {errors.length > 3 && (
+                              <p className="text-amber-600">ir dar {errors.length - 3} klaidų...</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{session.fileName}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {session.createdByName} · {new Date(session.created_date).toLocaleString('lt-LT')}
-                    </p>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{session.rowCount} eilučių</p>
+                      <p className="text-xs text-green-600">{session.validRowCount} valid</p>
+                      <p className="text-xs text-red-600">{session.invalidRowCount} invalid</p>
+                      {session.committedRowCount && (
+                        <p className="text-xs text-blue-600 mt-1">✓ {session.committedRowCount} committed</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{session.rowCount} eilučių</p>
-                    <p className="text-xs text-green-600">{session.validRowCount} valid</p>
-                    <p className="text-xs text-red-600">{session.invalidRowCount} invalid</p>
-                    {session.committedRowCount && (
-                      <p className="text-xs text-blue-600 mt-1">✓ {session.committedRowCount} committed</p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
