@@ -1,0 +1,37 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "ADMIN",
+        "SALES_MANAGER",
+        "SALES_AGENT",
+        "DEVELOPER"
+      ],
+      "description": "Vartotojo globalus vaidmuo sistemoje"
+    },
+    "phoneNumber": {
+      "type": "string",
+      "description": "Telefono numeris"
+    },
+    "accountStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "disabled"
+      ],
+      "default": "active",
+      "description": "Paskyros statusas"
+    },
+    "lastLoginAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio prisijungimo data"
+    }
+  },
+  "required": [
+    "role"
+  ]
+}

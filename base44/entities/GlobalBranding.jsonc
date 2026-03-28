@@ -1,0 +1,30 @@
+{
+  "name": "GlobalBranding",
+  "type": "object",
+  "properties": {
+    "companyName": {
+      "type": "string",
+      "description": "\u012emon\u0117s pavadinimas"
+    },
+    "appName": {
+      "type": "string",
+      "description": "Aplikacijos pavadinimas"
+    },
+    "logoUrl": {
+      "type": "string",
+      "description": "Logotipo URL"
+    },
+    "updatedByUserId": {
+      "type": "string",
+      "description": "Paskutinio atnaujinimo autoriaus ID"
+    },
+    "updatedByName": {
+      "type": "string",
+      "description": "Paskutinio atnaujinimo autoriaus vardas"
+    }
+  },
+  "required": [
+    "companyName",
+    "appName"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "name": "UserInvitation",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Kvie\u010diamo vartotojo el. pa\u0161tas"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "ADMIN",
+        "SALES_MANAGER",
+        "SALES_AGENT",
+        "DEVELOPER"
+      ],
+      "description": "Priskiriamas vaidmuo"
+    },
+    "allProjects": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar suteikti prieig\u0105 prie vis\u0173 projekt\u0173"
+    },
+    "projectCodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Projekt\u0173 kodai (placeholder kol n\u0117ra Project entity)"
+    },
+    "invitedByUserId": {
+      "type": "string",
+      "description": "Kviet\u0117jo vartotojo ID"
+    },
+    "invitedByName": {
+      "type": "string",
+      "description": "Kviet\u0117jo vardas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "expired",
+        "revoked"
+      ],
+      "default": "pending",
+      "description": "Pakvietimo statusas"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pakvietimo galiojimo pabaiga"
+    }
+  },
+  "required": [
+    "email",
+    "role",
+    "invitedByUserId",
+    "expiresAt"
+  ]
+}

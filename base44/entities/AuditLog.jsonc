@@ -1,0 +1,46 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "USER_INVITED",
+        "INVITE_RESENT",
+        "INVITE_REVOKED",
+        "INVITE_ACCEPTED",
+        "ROLE_CHANGED",
+        "PROJECT_ASSIGNED",
+        "PROJECT_REMOVED",
+        "USER_DISABLED",
+        "USER_ENABLED",
+        "BRANDING_UPDATED"
+      ],
+      "description": "Veiksmo tipas"
+    },
+    "performedByUserId": {
+      "type": "string",
+      "description": "Veiksmo atlik\u0117jo ID"
+    },
+    "performedByName": {
+      "type": "string",
+      "description": "Veiksmo atlik\u0117jo vardas"
+    },
+    "targetUserId": {
+      "type": "string",
+      "description": "Tikslo vartotojo ID"
+    },
+    "targetUserEmail": {
+      "type": "string",
+      "description": "Tikslo vartotojo el. pa\u0161tas"
+    },
+    "details": {
+      "type": "string",
+      "description": "Papildomi detali\u0173 JSON"
+    }
+  },
+  "required": [
+    "action",
+    "performedByUserId"
+  ]
+}

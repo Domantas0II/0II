@@ -1,0 +1,45 @@
+{
+  "name": "UserProjectAssignment",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "Vartotojo ID"
+    },
+    "userFullName": {
+      "type": "string",
+      "description": "Vartotojo vardas (denormalizuotas)"
+    },
+    "projectCode": {
+      "type": "string",
+      "description": "Projekto kodas (placeholder kol n\u0117ra Project entity)"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Projekto pavadinimas"
+    },
+    "assignedByUserId": {
+      "type": "string",
+      "description": "Priskyr\u0117jo vartotojo ID"
+    },
+    "assignedByName": {
+      "type": "string",
+      "description": "Priskyr\u0117jo vardas"
+    },
+    "removedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pa\u0161alinimo i\u0161 projekto data (null = aktyvus)"
+    },
+    "allProjects": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar vartotojas turi prieig\u0105 prie vis\u0173 projekt\u0173"
+    }
+  },
+  "required": [
+    "userId",
+    "projectCode",
+    "assignedByUserId"
+  ]
+}
