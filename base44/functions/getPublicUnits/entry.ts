@@ -12,9 +12,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'projectId required' }, { status: 400 });
     }
 
-    // Fetch project (verify it's public)
+    // Fetch project (verify it's public AND published)
     const projects = await base44.entities.Project.filter({ id: projectId });
-    if (!projects || projects.length === 0 || !projects[0].isPublic) {
+    if (!projects || projects.length === 0) {
+      return Response.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    const project = projects[0];
+    if (!project.isPublic || project.publicStatus !== 'published') {
       return Response.json({ error: 'Project not found or not public' }, { status: 404 });
     }
 

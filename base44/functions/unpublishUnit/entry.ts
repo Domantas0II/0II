@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+const normalizeRole = (role) => {
+  const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
+  return map[role] || role;
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,7 +14,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.role !== 'admin') {
+    if (normalizeRole(user.role) !== 'ADMINISTRATOR') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -17,6 +22,12 @@ Deno.serve(async (req) => {
 
     if (!unitId) {
       return Response.json({ error: 'unitId required' }, { status: 400 });
+    }
+
+    // Fetch unit - verify exists
+    const units = await base44.entities.SaleUnit.filter({ id: unitId });
+    if (!units || units.length === 0) {
+      return Response.json({ error: 'Unit not found' }, { status: 404 });
     }
 
     // Update unit
