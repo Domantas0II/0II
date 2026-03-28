@@ -1,0 +1,29 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "fullName": {
+      "type": "string",
+      "description": "Vardas"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefonas"
+    },
+    "email": {
+      "type": "string",
+      "description": "El. pa\u0161tas"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0117"
+    }
+  },
+  "required": [
+    "fullName"
+  ]
+}

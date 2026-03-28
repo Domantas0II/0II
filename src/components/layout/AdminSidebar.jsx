@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { canManageUsers, canManageProjects, normalizeRole } from '@/lib/constants';
+import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { base44 } from '@/api/base44Client';
 
 const menuItems = [
@@ -30,6 +30,12 @@ const menuItems = [
     icon: Package,
     href: '/components',
     requiredRole: (role) => canManageProjects(normalizeRole(role)),
+  },
+  {
+    label: 'Užklausa',
+    icon: Mail,
+    href: '/inquiry',
+    requiredRole: (role) => canAccessInbound(normalizeRole(role)),
   },
   {
     label: 'Nustatymai',

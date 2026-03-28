@@ -1,0 +1,59 @@
+{
+  "name": "ProjectInquiry",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "Objekto ID (optional)"
+    },
+    "fullName": {
+      "type": "string",
+      "description": "Vardas"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefonas"
+    },
+    "email": {
+      "type": "string",
+      "description": "El. pa\u0161tas"
+    },
+    "message": {
+      "type": "string",
+      "description": "\u017dinut\u0117"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "claimed",
+        "contacted",
+        "converted",
+        "rejected",
+        "duplicate"
+      ],
+      "default": "new",
+      "description": "Statumas"
+    },
+    "claimedByUserId": {
+      "type": "string",
+      "description": "Kuris user su\u0117m\u0117"
+    },
+    "claimedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada su\u0117m\u0117"
+    },
+    "convertedClientId": {
+      "type": "string",
+      "description": "Konvertuotas \u012f \u0161i\u0105 client"
+    }
+  },
+  "required": [
+    "projectId"
+  ]
+}

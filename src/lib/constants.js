@@ -45,6 +45,8 @@ export const canCreateProjects = (role) => isAdministrator(role) || normalizeRol
 export const canManageProjects = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
 export const canManageUnits    = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
 export const canViewAdminPages = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+export const canAccessInbound  = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER' || normalizeRole(role) === 'SALES_AGENT';
+export const canManageInquiry  = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
 
 // ─── LEGACY (deprecated) ──────────────────────────────────────────────────────
 // Palikta suderinamumui — naudoti tik helperius aukščiau.

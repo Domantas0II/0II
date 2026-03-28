@@ -1,0 +1,46 @@
+{
+  "name": "ClientProjectInterest",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "assignedManagerUserId": {
+      "type": "string",
+      "description": "Priskirtam vadybininku"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new_interest",
+        "contacted",
+        "considering",
+        "follow_up",
+        "reserved",
+        "completed",
+        "rejected"
+      ],
+      "default": "new_interest",
+      "description": "Statumas"
+    },
+    "lastInteractionAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutin\u0117 s\u0105veika"
+    },
+    "nextFollowUpAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Sekantis follow-up"
+    }
+  },
+  "required": [
+    "projectId",
+    "clientId"
+  ]
+}

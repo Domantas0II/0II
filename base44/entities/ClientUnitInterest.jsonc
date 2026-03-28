@@ -1,0 +1,31 @@
+{
+  "name": "ClientUnitInterest",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "Objekto ID"
+    },
+    "priorityOrder": {
+      "type": "number",
+      "description": "Prioritetas (1 = auk\u0161\u010diausias)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    }
+  },
+  "required": [
+    "projectId",
+    "clientId",
+    "unitId"
+  ]
+}
