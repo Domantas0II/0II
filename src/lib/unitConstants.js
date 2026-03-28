@@ -1,7 +1,7 @@
 export const UNIT_TYPE_LABELS = {
   apartment: 'Butas',
   house: 'Namas',
-  townhouse: 'Rajetonias',
+  townhouse: 'Kotedžas',
 };
 
 export const UNIT_STATUS_LABELS = {

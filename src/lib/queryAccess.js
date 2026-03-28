@@ -46,6 +46,7 @@ export function filterByAccessibleProjects(items, accessibleProjectIds) {
 
 /**
  * Tikrina ar user gali prieiti konkretų projektą.
+ * Remiasi tik realiais UserProjectAssignment laukais: userId, projectId, removedAt
  */
 export async function canAccessProject(user, projectId, base44) {
   const role = normalizeRole(user?.role);
@@ -59,7 +60,6 @@ export async function canAccessProject(user, projectId, base44) {
       removedAt: null,
     });
 
-    if (assignments.some(a => a.allProjects)) return true;
     return assignments.length > 0;
   } catch {
     return false;

@@ -1,7 +1,7 @@
 export const PROJECT_TYPE_LABELS = {
   apartment_project: 'Daugiabučiai',
   house_project: 'Namai',
-  townhouse_project: 'Rajetoniai',
+  townhouse_project: 'Kotedžas',
   mixed_residential: 'Mišrus gyvenamasis',
 };
 
@@ -64,7 +64,7 @@ export const ENERGY_CLASS_LABELS = {
 export const UNIT_TYPE_LABELS = {
   apartment: 'Butas',
   house: 'Namas',
-  townhouse: 'Rajetonias',
+  townhouse: 'Kotedžas',
 };
 
 export const STRUCTURE_MODEL_LABELS = {
