@@ -1,0 +1,86 @@
+{
+  "name": "Reservation",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "bundleId": {
+      "type": "string",
+      "description": "Rezervacijos pluo\u0161to ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "clientProjectInterestId": {
+      "type": "string",
+      "description": "Kliento projekto susidom\u0117jimo ID"
+    },
+    "reservedByUserId": {
+      "type": "string",
+      "description": "Vartotojas, kuris rezervavo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "overdue",
+        "released",
+        "converted"
+      ],
+      "default": "active",
+      "description": "Rezervacijos statusas"
+    },
+    "reservedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada rezervuota"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada baigiasi"
+    },
+    "releasedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada atleista"
+    },
+    "convertedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada konvertuota"
+    },
+    "advanceType": {
+      "type": "string",
+      "enum": [
+        "percent",
+        "fixed_amount"
+      ],
+      "description": "Avanso tipas"
+    },
+    "advanceValue": {
+      "type": "number",
+      "description": "Avanso dydis"
+    },
+    "advanceAmountCalculated": {
+      "type": "number",
+      "description": "Apskai\u010diuotas avanso dydis"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    }
+  },
+  "required": [
+    "projectId",
+    "bundleId",
+    "clientId",
+    "clientProjectInterestId",
+    "reservedByUserId",
+    "reservedAt",
+    "expiresAt"
+  ]
+}

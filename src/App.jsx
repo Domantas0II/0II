@@ -20,6 +20,9 @@ import ComponentsPool from '@/pages/ComponentsPool';
 import InquiryPool from '@/pages/InquiryPool';
 import ClientDetail from '@/pages/ClientDetail';
 import Pipeline from '@/pages/Pipeline';
+import ReservationsList from '@/pages/ReservationsList';
+import CreateReservation from '@/pages/CreateReservation';
+import ReservationDetail from '@/pages/ReservationDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -75,6 +78,9 @@ const AuthenticatedApp = () => {
         <Route path="/inquiry" element={<InquiryPool />} />
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/clients/:id" element={<ClientDetail />} />
+        <Route path="/reservations" element={<ReservationsList />} />
+        <Route path="/reservation-create" element={<CreateReservation />} />
+        <Route path="/reservation/:id" element={<ReservationDetail />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

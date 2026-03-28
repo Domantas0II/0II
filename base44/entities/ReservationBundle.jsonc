@@ -1,0 +1,57 @@
+{
+  "name": "ReservationBundle",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "Pagrindin\u0117s pardavimo vieneto ID"
+    },
+    "componentIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Dedam\u0173j\u0173 ID s\u0105ra\u0161as"
+    },
+    "baseUnitPrice": {
+      "type": "number",
+      "description": "Pagrindin\u0117s vieneto kaina"
+    },
+    "componentsTotalPrice": {
+      "type": "number",
+      "default": 0,
+      "description": "Dedam\u0173j\u0173 bendra kaina"
+    },
+    "finalTotalPrice": {
+      "type": "number",
+      "description": "Bendra suma"
+    },
+    "totalWithVat": {
+      "type": "number",
+      "description": "Suma su PVM"
+    },
+    "totalWithoutVat": {
+      "type": "number",
+      "description": "Suma be PVM"
+    },
+    "vatRate": {
+      "type": "number",
+      "description": "PVM norma %"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016brimo vartotojas"
+    }
+  },
+  "required": [
+    "projectId",
+    "unitId",
+    "baseUnitPrice",
+    "finalTotalPrice",
+    "createdByUserId"
+  ]
+}
