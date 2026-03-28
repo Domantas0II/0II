@@ -10,7 +10,8 @@ import UserRow from '@/components/users/UserRow';
 import { canManageUsers } from '@/lib/constants';
 
 export default function UsersList() {
-  const { user: currentUser } = useOutletContext();
+  const context = useOutletContext() || {};
+  const { user: currentUser } = context;
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ search: '', role: 'all', status: 'all', project: 'all' });
 
