@@ -14,7 +14,10 @@
         "PROJECT_REMOVED",
         "USER_DISABLED",
         "USER_ENABLED",
-        "BRANDING_UPDATED"
+        "BRANDING_UPDATED",
+        "PROJECT_CREATED",
+        "PROJECT_UPDATED",
+        "PROJECT_LIFECYCLE_CHANGED"
       ],
       "description": "Veiksmo tipas"
     },

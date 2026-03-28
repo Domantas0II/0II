@@ -24,10 +24,8 @@ export function calcCompleteness(project, inventory, components, technical, fina
   );
   if (!inventoryOk) blockers.push('inventory');
 
-  // Block 3: Components
-  const componentsOk = !!(components?.componentsEnabled !== undefined);
-  // components is optional — only block if not saved at all
-  const componentsSaved = !!components;
+  // Block 3: Components — saved = has componentsEnabled array (even if empty)
+  const componentsSaved = components && Array.isArray(components.componentsEnabled);
   if (!componentsSaved) blockers.push('components');
 
   // Block 4: Technical
@@ -44,33 +42,21 @@ export function calcCompleteness(project, inventory, components, technical, fina
   );
   if (!financialOk) blockers.push('financial');
 
-  // Block 6: Process
-  const processOk = !!(process);
+  // Block 6: Process — saved = has at least one field set
+  const processOk = !!(process && Object.keys(process).length > 0);
 
   const totalBlocks = 6;
-  const filledBlocks = [baseOk, inventoryOk, componentsSaved, technicalOk, financialOk, processOk].filter(Boolean).length;
+  const filledBlocks = [baseOk, inventoryOk, componentsSaved, technicalOk, financialOk, processOk]
+    .filter(Boolean).length;
   const percent = Math.round((filledBlocks / totalBlocks) * 100);
 
-  const criticalBlockers = blockers.filter(b => ['base', 'inventory', 'financial'].includes(b));
+  const criticalBlockers = blockers.filter(b => ['base', 'inventory', 'components', 'financial'].includes(b));
   const readyForOperations = criticalBlockers.length === 0;
 
   return { percent, blockers, criticalBlockers, readyForOperations };
 }
 
 export function canSetInternalReady(project, inventory, components, financial) {
-  return !!(
-    project?.projectName &&
-    project?.projectCode &&
-    project?.projectType &&
-    project?.projectStage &&
-    project?.city &&
-    project?.district &&
-    project?.address &&
-    inventory?.unitTypesEnabled?.length > 0 &&
-    inventory?.structureModel &&
-    components &&
-    financial?.developerCompanyName &&
-    financial?.developerCompanyCode &&
-    financial?.developerEmail
-  );
+  const { criticalBlockers } = calcCompleteness(project, inventory, components, null, financial, null);
+  return criticalBlockers.length === 0;
 }

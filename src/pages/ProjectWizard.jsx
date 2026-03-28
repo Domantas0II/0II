@@ -89,6 +89,7 @@ export default function ProjectWizard() {
 
   const handleSave = async () => {
     setSaving(true);
+    try {
 
     // 1. Create Project
     const project = await base44.entities.Project.create({
@@ -124,15 +125,17 @@ export default function ProjectWizard() {
 
     // 4. Audit
     await base44.entities.AuditLog.create({
-      action: 'BRANDING_UPDATED',
+      action: 'PROJECT_CREATED',
       performedByUserId: user?.id,
       performedByName: user?.full_name,
-      details: JSON.stringify({ action: 'PROJECT_CREATED', projectName: baseData.projectName, projectCode: baseData.projectCode }),
+      details: JSON.stringify({ projectName: baseData.projectName, projectCode: baseData.projectCode }),
     });
 
     toast.success('Projektas išsaugotas!');
-    setSaving(false);
     navigate(`/projects/${projectId}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
