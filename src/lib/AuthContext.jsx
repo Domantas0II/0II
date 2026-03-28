@@ -15,7 +15,10 @@ export const AuthProvider = ({ children }) => {
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
 
   useEffect(() => {
-    checkAppState();
+    const initAuth = async () => {
+      await checkAppState();
+    };
+    initAuth();
   }, []);
 
   const checkAppState = async () => {
