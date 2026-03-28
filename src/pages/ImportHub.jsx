@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Upload, FileText, Plus } from 'lucide-react';
 import { normalizeRole, canManageProjects } from '@/lib/constants';
 import { useQuery } from '@tanstack/react-query';
-import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 const IMPORT_TYPES = [
   { id: 'units', label: 'Importuoti Objektus', icon: '📦' },
@@ -25,16 +24,9 @@ export default function ImportHub() {
   const role = normalizeRole(user?.role);
   const canAccess = role === 'ADMINISTRATOR' || role === 'SALES_MANAGER';
 
-  // Fetch accessible project IDs
-  const { data: accessibleIds = null } = useQuery({
-    queryKey: ['accessibleProjectIds', user?.id],
-    queryFn: () => getAccessibleProjectIds(user, base44),
-    enabled: !!user?.id && canAccess,
-  });
-
   // Fetch projects: ADMIN gets all, MANAGER gets only assigned
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects', accessibleIds],
+    queryKey: ['projects', user?.id, role],
     queryFn: async () => {
       if (role === 'ADMINISTRATOR') {
         // Admin: fetch all projects
