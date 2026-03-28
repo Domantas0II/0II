@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { canManageBranding } from '@/lib/constants';
 
 export default function BrandingSettings() {
-  const { user: currentUser, branding: existingBranding } = useOutletContext();
+  const { user: currentUser, branding: existingBranding } = useOutletContext() || {};
   const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
