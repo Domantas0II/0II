@@ -14,7 +14,8 @@ import {
 import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function ProjectsList() {
-  const { user } = useOutletContext();
+  const context = useOutletContext() || {};
+  const { user } = context;
 
   // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
