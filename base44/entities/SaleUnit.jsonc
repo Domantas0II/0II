@@ -52,6 +52,10 @@
       "type": "number",
       "description": "Kaina u\u017e m\u00b2 \u20ac"
     },
+    "publicPrice": {
+      "type": "number",
+      "description": "Vie\u0161ai rodoma kaina (override, optional)"
+    },
     "roomsCount": {
       "type": "number",
       "description": "Kambari\u0173 skai\u010dius"
@@ -146,6 +150,17 @@
     "publicComment": {
       "type": "string",
       "description": "Vie\u0161as komentaras"
+    },
+    "publicDescription": {
+      "type": "string",
+      "description": "Vie\u0161ai rodomas apra\u0161as"
+    },
+    "publicImages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vie\u0161ai rodomi paveiksl\u0117liai (URL)"
     },
     "internalNotes": {
       "type": "string",

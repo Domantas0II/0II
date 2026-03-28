@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext, useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { ArrowLeft, Plus, ChevronDown, ChevronUp, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import UnitStatusBadge from '@/components/units/UnitStatusBadge';
 import ComponentRow from '@/components/units/ComponentRow';
 import CreateComponentForm from '@/components/units/CreateComponentForm';
 import AssignComponentModal from '@/components/units/AssignComponentModal';
+import PublishUnitControl from '@/components/publishing/PublishUnitControl';
 import {
   UNIT_TYPE_LABELS, UNIT_STATUS_LABELS,
   WINDOW_DIRECTION_LABELS
@@ -254,6 +256,17 @@ export default function UnitDetail() {
         </CollapsibleBlock>
       )}
 
+      {/* Publishing Control */}
+      {canManage && project && (
+        <PublishUnitControl
+          unit={unit}
+          project={project}
+          onUpdate={() => {
+            queryClient.invalidateQueries({ queryKey: ['unit', id] });
+          }}
+        />
+      )}
+
       {/* Assign from pool */}
       <AssignComponentModal
         open={showAssignComponent}
@@ -275,6 +288,6 @@ export default function UnitDetail() {
           />
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+      </div>
+      );
+      }

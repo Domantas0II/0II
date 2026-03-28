@@ -44,16 +44,27 @@ export default function UnitFilters({ filters, onChange, projects = [] }) {
       </Select>
 
       <Select value={filters.status || 'all'} onValueChange={v => set('status', v)}>
-        <SelectTrigger className="w-full sm:w-[150px] bg-card">
-          <SelectValue placeholder="Statusas" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Visi statusai</SelectItem>
-          {Object.entries(UNIT_STATUS_LABELS).map(([k, v]) => (
-            <SelectItem key={k} value={k}>{v}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
+         <SelectTrigger className="w-full sm:w-[150px] bg-card">
+           <SelectValue placeholder="Statusas" />
+         </SelectTrigger>
+         <SelectContent>
+           <SelectItem value="all">Visi statusai</SelectItem>
+           {Object.entries(UNIT_STATUS_LABELS).map(([k, v]) => (
+             <SelectItem key={k} value={k}>{v}</SelectItem>
+           ))}
+         </SelectContent>
+       </Select>
+
+       <Select value={filters.public || 'all'} onValueChange={v => set('public', v)}>
+         <SelectTrigger className="w-full sm:w-[150px] bg-card">
+           <SelectValue placeholder="Viešumas" />
+         </SelectTrigger>
+         <SelectContent>
+           <SelectItem value="all">Visi</SelectItem>
+           <SelectItem value="true">Tik viešas</SelectItem>
+           <SelectItem value="false">Tik privatus</SelectItem>
+         </SelectContent>
+       </Select>
+      </div>
+      );
+      }

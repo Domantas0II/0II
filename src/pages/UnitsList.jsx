@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Plus, Home, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -91,6 +92,11 @@ export default function UnitsList() {
     if (filters.project !== 'all' && u.projectId !== filters.project) return false;
     if (filters.type !== 'all' && u.type !== filters.type) return false;
     if (filters.status !== 'all' && u.internalStatus !== filters.status) return false;
+    if (filters.public !== 'all') {
+      const isPublic = u.isPublic === true;
+      if (filters.public === 'true' && !isPublic) return false;
+      if (filters.public === 'false' && isPublic) return false;
+    }
     return true;
   });
 

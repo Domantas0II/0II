@@ -18,6 +18,7 @@ import {
 import { UNIT_TYPE_LABELS } from '@/lib/unitConstants';
 import { canSetInternalReady } from '@/lib/projectCompleteness';
 import { canManageProjects } from '@/lib/constants';
+import PublishProjectControl from '@/components/publishing/PublishProjectControl';
 
 function InfoRow({ label, value }) {
   return (
@@ -265,6 +266,16 @@ export default function ProjectDetail() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Publishing Control */}
+      {canManage && project && (
+        <PublishProjectControl
+          project={project}
+          onUpdate={() => {
+            queryClient.invalidateQueries({ queryKey: ['project', id] });
+          }}
+        />
       )}
     </div>
   );

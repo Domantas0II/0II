@@ -63,6 +63,36 @@
       "default": false,
       "description": "Ar projektas aktyvus"
     },
+    "isPublic": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar projektas matomas vie\u0161ai"
+    },
+    "publicStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "published"
+      ],
+      "default": "draft",
+      "description": "Vie\u0161o projekto statusas"
+    },
+    "publicTitle": {
+      "type": "string",
+      "description": "Vie\u0161ai rodomas pavadinimas"
+    },
+    "publicDescription": {
+      "type": "string",
+      "description": "Vie\u0161ai rodomas apra\u0161as"
+    },
+    "publicImages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vie\u0161ai rodomi paveiksl\u0117liai (URL)"
+    },
     "createdByUserId": {
       "type": "string",
       "description": "Suk\u016br\u0117jo vartotojo ID"
