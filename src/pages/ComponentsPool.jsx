@@ -33,7 +33,7 @@ export default function ComponentsPool() {
   const poolComponents = allComponents.filter(c => !c.unitId);
 
   const createComponent = useMutation({
-    mutationFn: (data) => base44.entities.UnitComponent.create(data),
+    mutationFn: (data) => base44.entities.UnitComponent.create({ ...data, unitId: null }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['components-pool'] });
       setShowCreate(false);
