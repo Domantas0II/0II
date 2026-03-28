@@ -39,8 +39,13 @@ export default function ImportHub() {
         });
         if (!assignments || assignments.length === 0) return [];
         const projectIds = assignments.map(a => a.projectId);
-        const allProjects = await base44.entities.Project.filter({});
-        return allProjects.filter(p => projectIds.includes(p.id));
+        // Fetch projects filtered by assigned IDs (multiple queries if needed)
+        const projects = [];
+        for (const id of projectIds) {
+          const result = await base44.entities.Project.filter({ id });
+          if (result?.[0]) projects.push(result[0]);
+        }
+        return projects.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
       }
     },
     enabled: !!user?.id && canAccess
