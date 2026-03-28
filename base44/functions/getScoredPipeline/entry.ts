@@ -15,38 +15,60 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const projectIds = url.searchParams.get('projectIds')?.split(',') || [];
+    const queryProjectIds = url.searchParams.get('projectIds')?.split(',').filter(p => p) || [];
     const role = normalizeRole(user.role);
 
-    // Determine accessible projects
-    let queryProjectIds = projectIds;
-    if (role === 'SALES_MANAGER') {
+    // FIX #1: Consistent filter semantics for all roles
+    let accessibleProjectIds = [];
+
+    if (role === 'ADMINISTRATOR') {
+      // Admin: full access
+      // If projectIds requested, use them; otherwise all
+      accessibleProjectIds = queryProjectIds.length > 0 ? queryProjectIds : null;
+    } else if (role === 'SALES_MANAGER') {
+      // Manager: can only access assigned projects
       const assignments = await base44.entities.UserProjectAssignment.filter({
         userId: user.id,
         removedAt: null
       });
-      queryProjectIds = assignments.map(a => a.projectId);
+      const managerProjects = assignments.map(a => a.projectId);
+
+      // If projectIds requested, intersect with accessible
+      if (queryProjectIds.length > 0) {
+        accessibleProjectIds = queryProjectIds.filter(p => managerProjects.includes(p));
+      } else {
+        accessibleProjectIds = managerProjects;
+      }
     } else if (role === 'SALES_AGENT') {
-      // Agent limited to their assigned interests
+      // Agent: no full pipeline access
       return Response.json({
         success: true,
         pipeline: [],
         message: 'Agents cannot view full pipeline'
       });
+    } else {
+      return Response.json({ error: 'Invalid role' }, { status: 403 });
     }
 
-    // Fetch interests for projects
+    // FIX #2: Clear access semantics
+    // accessibleProjectIds === null means: admin full access (no filter)
+    // accessibleProjectIds === [] means: no access to any project
+    // accessibleProjectIds === [...] means: fetch only these projects
+
     let interests = [];
-    if (queryProjectIds.length > 0) {
-      for (const pid of queryProjectIds) {
+    if (accessibleProjectIds === null) {
+      // Admin full access: fetch all interests
+      interests = await base44.entities.ClientProjectInterest.list('-created_date', 500);
+    } else if (accessibleProjectIds.length > 0) {
+      // Fetch interests for each accessible project
+      for (const pid of accessibleProjectIds) {
         const projectInterests = await base44.entities.ClientProjectInterest.filter({
           projectId: pid
         });
         interests = interests.concat(projectInterests || []);
       }
-    } else {
-      interests = await base44.entities.ClientProjectInterest.list('-created_date', 500);
     }
+    // If accessibleProjectIds is empty array, interests remain []
 
     // FIX #2: Real scoring - generate if missing, don't use fake fallback
     const pipeline = [];

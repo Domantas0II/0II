@@ -27,21 +27,28 @@ Deno.serve(async (req) => {
       }
     }
 
+    // FIX #4: Expired state handling - mark as metric for now, document clearly
+    // Expired scores are tracked but not invalidated in this phase
+    // Future: implement soft-delete or archival mechanism
+    // Current: expired count is observability metric only
+
     // Refresh high-priority interests (last interaction < 7 days)
     const cutoffInteractionDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const activeInterests = await base44.asServiceRole.entities.ClientProjectInterest.list('-lastInteractionAt', 100);
 
     for (const interest of (activeInterests || []).slice(0, 50)) {
       if (interest.lastInteractionAt && new Date(interest.lastInteractionAt) > cutoffInteractionDate) {
-        // Invoke real scoring via generateLeadScores
+        // FIX #3: Reliable result parsing
+        // generateLeadScores returns: { success, scoresGenerated, scores }
         const result = await base44.asServiceRole.functions.invoke('generateLeadScores', {
           projectId: interest.projectId,
           clientId: interest.clientId,
           interestId: interest.id
         });
 
-        if (result?.scoresGenerated > 0) {
-          refreshed += result.scoresGenerated;
+        // Parse response shape correctly
+        if (result?.data?.success && typeof result.data.scoresGenerated === 'number') {
+          refreshed += result.data.scoresGenerated;
         }
       }
     }
@@ -50,7 +57,8 @@ Deno.serve(async (req) => {
       success: true,
       scoresExpired: expired,
       scoresRefreshed: refreshed,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      note: 'Expired scores tracked; invalidation pending future implementation'
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

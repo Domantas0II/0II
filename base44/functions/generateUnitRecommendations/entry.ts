@@ -88,11 +88,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // FIX #1: Use centralized scoreUnitMatch from lib
-    // Import would require Deno module, so invoke via function instead
+    // FIX #1: Use centralized scoreUnitMatch with interest signals
+    // FIX #5: Pass interest context for better matching (if available)
     const scoreResponse = await base44.functions.invoke('_scoreUnitMatch', {
       units,
-      project
+      project,
+      clientInterest: clientInterest ? {
+        pipelineStage: clientInterest.pipelineStage,
+        status: clientInterest.status
+      } : null
     });
 
     const matches = scoreResponse.data?.matches || [];

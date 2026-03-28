@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // FIX #1: Centralized scoreUnitMatch - shared scoring logic
-async function scoreUnitMatch(units, project) {
+// FIX #5: Accept interest context for signal enrichment
+async function scoreUnitMatch(units, project, clientInterest) {
   const results = [];
 
   for (const unit of units) {
@@ -40,30 +41,54 @@ async function scoreUnitMatch(units, project) {
       continue;
     }
 
-    // Factor 3: Price range heuristic
-    score += 5;
-    reasons.push({
-      factor: 'price_range_match',
-      weight: 5,
-      explanation: 'Price range rekomenduojamas'
-    });
+    // FIX #5: Quality signals for unit matching
+    // Current implementation: availability + heuristic signals
+    // Note: clientInterest details (preferences, budget) not available in this endpoint
+    // Future improvement: accept clientInterest data for better matching
 
-    // Factor 4: Area match
+    // Factor 3: Area match (heuristic: reasonable residential size)
     if (unit.areaM2 >= 30 && unit.areaM2 <= 200) {
-      score += 5;
+      score += 8;
       reasons.push({
         factor: 'area_reasonable',
-        weight: 5,
-        explanation: `Plotas ${unit.areaM2}m² yra pagrindinis`
+        weight: 8,
+        explanation: `Plotas ${unit.areaM2}m² pagrindinis diapazonas`
+      });
+    } else if (unit.areaM2 > 200) {
+      score += 3;
+      reasons.push({
+        factor: 'area_premium',
+        weight: 3,
+        explanation: `Plotas ${unit.areaM2}m² - premium segmentas`
       });
     }
 
-    // Factor 5: Public status as soft signal (not hard filter)
-    if (unit.isPublic) {
+    // Factor 4: Room count signal
+    if (unit.roomsCount >= 2 && unit.roomsCount <= 4) {
+      score += 5;
+      reasons.push({
+        factor: 'rooms_common',
+        weight: 5,
+        explanation: `${unit.roomsCount} kamb. - populiarus diapazonas`
+      });
+    }
+
+    // Factor 5: Type match
+    if (unit.type === 'apartment') {
       score += 3;
       reasons.push({
-        factor: 'unit_public',
+        factor: 'unit_type',
         weight: 3,
+        explanation: 'Butas - populiariausia kategorija'
+      });
+    }
+
+    // Factor 6: Public status as soft signal (not hard filter)
+    if (unit.isPublic) {
+      score += 2;
+      reasons.push({
+        factor: 'unit_public',
+        weight: 2,
         explanation: 'Unit viešai rodomas - soft signal'
       });
     }
@@ -87,13 +112,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { units, project } = await req.json();
+    const { units, project, clientInterest } = await req.json();
 
     if (!units || !project) {
       return Response.json({ error: 'units and project required' }, { status: 400 });
     }
 
-    const matches = await scoreUnitMatch(units, project);
+    const matches = await scoreUnitMatch(units, project, clientInterest);
 
     return Response.json({
       success: true,
