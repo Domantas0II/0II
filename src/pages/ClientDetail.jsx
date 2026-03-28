@@ -93,8 +93,12 @@ export default function ClientDetail() {
 
   const { data: activities = [] } = useQuery({
     queryKey: ['activities', clientId],
-    queryFn: () => base44.entities.Activity.filter({ clientId }),
-    enabled: !!clientId,
+    queryFn: async () => {
+      const all = await base44.entities.Activity.filter({ clientId });
+      // Filter out orphan activities (missing or invalid projectId)
+      return all.filter(a => a.projectId && accessibleIds?.includes(a.projectId));
+    },
+    enabled: !!clientId && accessibleIds !== undefined,
   });
 
   const updateInterest = useMutation({
@@ -319,6 +323,7 @@ export default function ClientDetail() {
                 <ActivityRow
                   key={a.id}
                   activity={a}
+                  projectName={projectMap[a.projectId]?.projectName}
                   onMarkDone={markActivityDone.mutate}
                   onCancel={cancelActivity.mutate}
                 />

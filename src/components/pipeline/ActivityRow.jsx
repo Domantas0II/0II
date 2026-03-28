@@ -5,7 +5,7 @@ import { X, CheckCircle2, Circle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_ICONS } from '@/lib/pipelineConstants';
 
-export default function ActivityRow({ activity, onMarkDone, onCancel }) {
+export default function ActivityRow({ activity, projectName, onMarkDone, onCancel }) {
   const isDone = activity.status === 'done';
   const isCancelled = activity.status === 'cancelled';
 
@@ -19,6 +19,11 @@ export default function ActivityRow({ activity, onMarkDone, onCancel }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-medium">{ACTIVITY_TYPE_LABELS[activity.type]}</p>
+            {projectName && (
+              <Badge variant="secondary" className="text-[10px]">
+                {projectName}
+              </Badge>
+            )}
             <Badge variant="outline" className="text-[10px]">
               {ACTIVITY_STATUS_LABELS[activity.status]}
             </Badge>
