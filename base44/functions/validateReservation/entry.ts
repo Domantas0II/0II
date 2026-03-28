@@ -33,6 +33,11 @@ Deno.serve(async (req) => {
       ? await base44.entities.UnitComponent.filter({ id: { $in: componentIds } })
       : [];
 
+    // Validate all components exist and belong to project
+    if (components.length !== componentIds.length) {
+      return Response.json({ error: 'Viena iš dedamųjų nerasta' }, { status: 400 });
+    }
+
     for (const comp of components) {
       if (comp.projectId !== projectId) {
         return Response.json({ error: 'Dedamoji nepriklauso projektui' }, { status: 400 });

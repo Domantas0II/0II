@@ -148,7 +148,7 @@ export default function CreateReservation() {
       });
 
       if (!interests || interests.length === 0) {
-        setValidationError('Klienduinėras nėra susidominutis šiuo projektu');
+        setValidationError('Klientas nėra susidominejęs šiuo projektu');
         return;
       }
 
