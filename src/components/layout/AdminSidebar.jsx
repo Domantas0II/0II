@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, UserPlus, Palette, Shield, ChevronLeft, ChevronRight, Building2, Home } from 'lucide-react';
+import { Users, UserPlus, Palette, Shield, ChevronLeft, ChevronRight, Building2, Home, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/', label: 'Vartotojai', icon: Users, exact: true },
   { path: '/projects', label: 'Projektai', icon: Building2 },
   { path: '/units', label: 'Objektai', icon: Home },
+  { path: '/components', label: 'Dedamųjų pool', icon: Package },
   { path: '/invite', label: 'Pakviesti', icon: UserPlus },
   { path: '/branding', label: 'Branding', icon: Palette },
 ];

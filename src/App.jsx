@@ -16,6 +16,7 @@ import ProjectWizard from '@/pages/ProjectWizard';
 import ProjectDetail from '@/pages/ProjectDetail';
 import UnitsList from '@/pages/UnitsList';
 import UnitDetail from '@/pages/UnitDetail';
+import ComponentsPool from '@/pages/ComponentsPool';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/units" element={<UnitsList />} />
         <Route path="/units/:id" element={<UnitDetail />} />
+        <Route path="/components" element={<ComponentsPool />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -10,8 +10,10 @@ import {
 } from '@/lib/unitConstants';
 import { Loader2 } from 'lucide-react';
 
-export default function CreateComponentForm({ projectId, onSubmit, onCancel, saving }) {
-  const [data, setData] = useState({ projectId, status: 'available', includedInPrice: true });
+// projectId — optional. Jei nepateiktas, rodomas projekto pasirinkimas (pool kūrimas).
+// projects — reikalingas tik kai projectId nėra.
+export default function CreateComponentForm({ projectId, projects = [], onSubmit, onCancel, saving }) {
+  const [data, setData] = useState({ projectId: projectId || '', status: 'available', includedInPrice: true });
   const set = (key, val) => setData(prev => ({ ...prev, [key]: val }));
 
   const handleSubmit = (e) => {
@@ -21,6 +23,18 @@ export default function CreateComponentForm({ projectId, onSubmit, onCancel, sav
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Projektas — tik kai nėra fiksuoto projectId */}
+      {!projectId && (
+        <FieldGroup label="Projektas" required>
+          <Select value={data.projectId || ''} onValueChange={v => set('projectId', v)}>
+            <SelectTrigger><SelectValue placeholder="Pasirinkite projektą..." /></SelectTrigger>
+            <SelectContent>
+              {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </FieldGroup>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <FieldGroup label="Tipas" required>
           <Select value={data.type || ''} onValueChange={v => set('type', v)}>
@@ -94,7 +108,7 @@ export default function CreateComponentForm({ projectId, onSubmit, onCancel, sav
 
       <div className="flex gap-3 justify-end pt-3 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>Atšaukti</Button>
-        <Button type="submit" disabled={saving || !data.type || !data.label}>
+        <Button type="submit" disabled={saving || !data.type || !data.label || !data.projectId}>
           {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
           Sukurti
         </Button>

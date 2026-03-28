@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext, useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronDown, ChevronUp, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import UnitStatusBadge from '@/components/units/UnitStatusBadge';
 import ComponentRow from '@/components/units/ComponentRow';
 import CreateComponentForm from '@/components/units/CreateComponentForm';
+import AssignComponentModal from '@/components/units/AssignComponentModal';
 import {
   UNIT_TYPE_LABELS, UNIT_STATUS_LABELS, CAN_MANAGE_UNITS,
   WINDOW_DIRECTION_LABELS
@@ -50,6 +51,7 @@ export default function UnitDetail() {
   const { id } = useParams();
   const queryClient = useQueryClient();
   const [showAddComponent, setShowAddComponent] = useState(false);
+  const [showAssignComponent, setShowAssignComponent] = useState(false);
 
   const { data: units = [] } = useQuery({
     queryKey: ['units'],
@@ -94,8 +96,10 @@ export default function UnitDetail() {
   };
 
   const handleDetachComponent = (comp) => {
+    // Grąžinti į pool: unitId = null
     updateComponent.mutate({ compId: comp.id, data: { unitId: null } });
-    toast.success('Dedamoji atskirta');
+    queryClient.invalidateQueries({ queryKey: ['components-pool'] });
+    toast.success('Dedamoji grąžinta į pool');
   };
 
   const handleAddComponent = (data) => {
@@ -217,9 +221,14 @@ export default function UnitDetail() {
             ))
           )}
           {canManage && (
-            <Button variant="outline" size="sm" className="gap-2 mt-2" onClick={() => setShowAddComponent(true)}>
-              <Plus className="h-3.5 w-3.5" /> Pridėti dedamąją
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowAssignComponent(true)}>
+                <Link2 className="h-3.5 w-3.5" /> Priskirti iš pool
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowAddComponent(true)}>
+                <Plus className="h-3.5 w-3.5" /> Kurti naują
+              </Button>
+            </div>
           )}
         </div>
       </CollapsibleBlock>
@@ -243,6 +252,13 @@ export default function UnitDetail() {
           </div>
         </CollapsibleBlock>
       )}
+
+      {/* Assign from pool */}
+      <AssignComponentModal
+        open={showAssignComponent}
+        onClose={() => setShowAssignComponent(false)}
+        unit={unit}
+      />
 
       {/* Add component dialog */}
       <Dialog open={showAddComponent} onOpenChange={setShowAddComponent}>
