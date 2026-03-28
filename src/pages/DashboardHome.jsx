@@ -26,14 +26,17 @@ export default function DashboardHome() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      // null = full admin access; [] = no projects; [id, ...] = filtered projects
+      // null = full admin access (fetch all); [] = no projects; [id, ...] = filtered projects
       if (accessibleIds === null) {
         return base44.entities.Project.list('-created_date', 500);
       }
-      if (accessibleIds.length === 0) {
+      if (Array.isArray(accessibleIds) && accessibleIds.length === 0) {
         return [];
       }
-      return base44.entities.Project.filter({ id: { $in: accessibleIds } });
+      if (Array.isArray(accessibleIds)) {
+        return base44.entities.Project.filter({ id: { $in: accessibleIds } });
+      }
+      return [];
     },
     enabled: accessibleIds !== undefined,
   });

@@ -32,42 +32,34 @@ export const getDateRangeFilter = (dateRange) => {
 export const getProjectKpis = async (projectIds) => {
   try {
     // All-time KPI (not filtered by date)
-    const units = await base44.entities.SaleUnit.filter(
-      { projectId: { $in: projectIds } }
-    );
+    // Handle null (full access) and array (filtered projects)
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const units = await base44.entities.SaleUnit.filter(query);
 
     const available = units.filter(u => u.internalStatus === 'available').length;
     const reserved = units.filter(u => u.internalStatus === 'reserved').length;
     const sold = units.filter(u => u.internalStatus === 'sold').length;
 
     // Reservations (all-time)
-    const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const reservations = await base44.entities.Reservation.filter(query);
 
     const overdue = reservations.filter(r =>
       r.status === 'overdue' || (new Date(r.expiresAt) < new Date() && r.status === 'active')
     ).length;
 
     // Inquiries (all-time)
-    const inquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const inquiries = await base44.entities.ProjectInquiry.filter(query);
 
     const newInquiries = inquiries.filter(i => i.status === 'new').length;
     const convertedInquiries = inquiries.filter(i => i.status === 'converted').length;
 
     // Agreements (all-time)
-    const agreements = await base44.entities.Agreement.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const agreements = await base44.entities.Agreement.filter(query);
 
     const signedAgreements = agreements.filter(a => a.status === 'signed').length;
 
     // Deals (all-time)
-    const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const deals = await base44.entities.Deal.filter(query);
 
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
 
@@ -90,9 +82,8 @@ export const getProjectKpis = async (projectIds) => {
 export const getInquiryFunnel = async (projectIds) => {
   try {
     // All-time inquiry funnel (not filtered by date)
-    const inquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const inquiries = await base44.entities.ProjectInquiry.filter(query);
 
     return {
       new: inquiries.filter(i => i.status === 'new').length,
@@ -114,9 +105,8 @@ export const getInquiryFunnel = async (projectIds) => {
 export const getPipelineBreakdown = async (projectIds) => {
   try {
     // All-time pipeline stages (not filtered by date)
-    const interests = await base44.entities.ClientProjectInterest.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const interests = await base44.entities.ClientProjectInterest.filter(query);
 
     return {
       new: interests.filter(i => i.pipelineStage === 'new').length,
@@ -140,9 +130,8 @@ export const getPipelineBreakdown = async (projectIds) => {
 export const getReservationStats = async (projectIds) => {
   try {
     // All-time reservation states (not filtered by date)
-    const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const reservations = await base44.entities.Reservation.filter(query);
 
     const now = new Date();
     return {
@@ -165,9 +154,8 @@ export const getReservationStats = async (projectIds) => {
 export const getDealStats = async (projectIds) => {
   try {
     // All-time deals (not filtered by date)
-    const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const deals = await base44.entities.Deal.filter(query);
 
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
     const avgDealValue = deals.length > 0 ? Math.round(soldValue / deals.length) : 0;
@@ -190,17 +178,12 @@ export const getDealStats = async (projectIds) => {
 export const getAgentPerformance = async (projectIds, userIds) => {
   try {
     // All-time agent performance (not filtered by date)
-    const interests = await base44.entities.ClientProjectInterest.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const interests = await base44.entities.ClientProjectInterest.filter(query);
 
-    const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const reservations = await base44.entities.Reservation.filter(query);
 
-    const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const deals = await base44.entities.Deal.filter(query);
 
     const agentMap = {};
 
@@ -250,23 +233,24 @@ export const getAgentPerformance = async (projectIds, userIds) => {
 export const getAgentPersonalStats = async (projectIds, userId) => {
   try {
     // All-time agent personal stats (not filtered by date)
+    const projectQuery = projectIds === null ? {} : { projectId: { $in: projectIds } };
     const myInterests = await base44.entities.ClientProjectInterest.filter(
       {
-        projectId: { $in: projectIds },
+        ...projectQuery,
         assignedManagerUserId: userId
       }
     );
 
     const myReservations = await base44.entities.Reservation.filter(
       {
-        projectId: { $in: projectIds },
+        ...projectQuery,
         reservedByUserId: userId
       }
     );
 
     const myDeals = await base44.entities.Deal.filter(
       {
-        projectId: { $in: projectIds },
+        ...projectQuery,
         soldByUserId: userId
       }
     );
@@ -300,21 +284,14 @@ export const getAgentPersonalStats = async (projectIds, userId) => {
 export const getDeveloperProjectStats = async (projectIds) => {
   try {
     // All-time developer project stats (not filtered by date)
-    const units = await base44.entities.SaleUnit.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const units = await base44.entities.SaleUnit.filter(query);
 
-    const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const reservations = await base44.entities.Reservation.filter(query);
 
-    const deals = await base44.entities.Deal.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const deals = await base44.entities.Deal.filter(query);
 
-    const inquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const inquiries = await base44.entities.ProjectInquiry.filter(query);
 
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
 
@@ -343,16 +320,15 @@ export const getOverdueAlerts = async (projectIds, userId) => {
     const now = new Date();
 
     // Overdue reservations (live state check)
-    const reservations = await base44.entities.Reservation.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
+    const reservations = await base44.entities.Reservation.filter(query);
 
     const overdueReservations = reservations.filter(r =>
       r.status !== 'released' && new Date(r.expiresAt) < now && r.status !== 'converted'
     );
 
     // Overdue follow-ups (for agent or all if null)
-    const interestsFilter = { projectId: { $in: projectIds } };
+    const interestsFilter = { ...query };
     if (userId) {
       interestsFilter.assignedManagerUserId = userId;
     }
@@ -365,9 +341,7 @@ export const getOverdueAlerts = async (projectIds, userId) => {
     );
 
     // Stale inquiries (new but unclaimed > 7 days)
-    const allInquiries = await base44.entities.ProjectInquiry.filter(
-      { projectId: { $in: projectIds } }
-    );
+    const allInquiries = await base44.entities.ProjectInquiry.filter(query);
 
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const staleInquiries = allInquiries.filter(i =>

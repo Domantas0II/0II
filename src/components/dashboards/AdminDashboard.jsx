@@ -17,40 +17,43 @@ import AlertBanner from '@/components/analytics/AlertBanner';
 import { Users, Building2, Briefcase, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 
 export default function AdminDashboard({ projectIds, projects }) {
+  // Helper: check if projectIds is ready (null = full access, array = filtered)
+  const hasProjectIds = projectIds === null || (Array.isArray(projectIds) && projectIds.length > 0);
+
   const { data: kpis, isLoading: kpisLoading } = useQuery({
     queryKey: ['projectKpis', projectIds],
     queryFn: () => getProjectKpis(projectIds),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: inquiryFunnel, isLoading: funnelLoading } = useQuery({
     queryKey: ['inquiryFunnel', projectIds],
     queryFn: () => getInquiryFunnel(projectIds),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: pipelineBreakdown, isLoading: pipelineLoading } = useQuery({
     queryKey: ['pipelineBreakdown', projectIds],
     queryFn: () => getPipelineBreakdown(projectIds),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: reservationStats } = useQuery({
     queryKey: ['reservationStats', projectIds],
     queryFn: () => getReservationStats(projectIds),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: dealStats } = useQuery({
     queryKey: ['dealStats', projectIds],
     queryFn: () => getDealStats(projectIds),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: alerts } = useQuery({
     queryKey: ['overdueAlerts', projectIds],
     queryFn: () => getOverdueAlerts(projectIds, null),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const alertMessages = [];

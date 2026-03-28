@@ -8,22 +8,25 @@ import AlertBanner from '@/components/analytics/AlertBanner';
 import { Briefcase, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 
 export default function ManagerDashboard({ projectIds, projects }) {
+  // Helper: check if projectIds is ready (null = full access, array = filtered)
+  const hasProjectIds = projectIds === null || (Array.isArray(projectIds) && projectIds.length > 0);
+
   const { data: kpis, isLoading: kpisLoading } = useQuery({
     queryKey: ['projectKpis', projectIds],
     queryFn: () => getProjectKpis(projectIds),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: alerts } = useQuery({
     queryKey: ['overdueAlerts', projectIds],
     queryFn: () => getOverdueAlerts(projectIds, null),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['agentUsers'],
     queryFn: () => base44.entities.User.list('-created_date', 100),
-    enabled: projectIds?.length > 0,
+    enabled: hasProjectIds,
   });
 
   const alertMessages = [];
