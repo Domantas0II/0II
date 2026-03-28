@@ -357,9 +357,7 @@ export const getOverdueAlerts = async (projectIds, userId) => {
       interestsFilter.assignedManagerUserId = userId;
     }
     const interests = await base44.entities.ClientProjectInterest.filter(
-      interestsFilter,
-      'id',
-      200
+      interestsFilter
     );
 
     const overdueFollowUps = interests.filter(i =>
