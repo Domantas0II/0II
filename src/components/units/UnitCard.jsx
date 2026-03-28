@@ -7,13 +7,14 @@ import {
   DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import UnitStatusBadge from './UnitStatusBadge';
-import { UNIT_TYPE_LABELS, UNIT_STATUS_LABELS, CAN_MANAGE_UNITS } from '@/lib/unitConstants';
+import { UNIT_TYPE_LABELS, UNIT_STATUS_LABELS } from '@/lib/unitConstants';
+import { canManageUnits } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 const TYPE_ICONS = { apartment: '🏢', house: '🏡', townhouse: '🏘️' };
 
 export default function UnitCard({ unit, projectName, currentUser, onStatusChange }) {
-  const canManage = CAN_MANAGE_UNITS.includes(currentUser?.role);
+  const canManage = canManageUnits(currentUser?.role);
 
   return (
     <div className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border hover:border-primary/20 hover:shadow-sm transition-all duration-200">

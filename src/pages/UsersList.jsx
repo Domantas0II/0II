@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import UsersFilters from '@/components/users/UsersFilters';
 import UserRow from '@/components/users/UserRow';
-import { CAN_MANAGE_USERS } from '@/lib/constants';
+import { canManageUsers } from '@/lib/constants';
 
 export default function UsersList() {
   const { user: currentUser } = useOutletContext();
@@ -143,7 +143,7 @@ export default function UsersList() {
       })
     : [];
 
-  const canManage = CAN_MANAGE_USERS.includes(currentUser?.role);
+  const canManage = canManageUsers(currentUser?.role);
 
   return (
     <div className="space-y-6">

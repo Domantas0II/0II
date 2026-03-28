@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { CAN_MANAGE_BRANDING } from '@/lib/constants';
+import { canManageBranding } from '@/lib/constants';
 
 export default function BrandingSettings() {
   const { user: currentUser, branding: existingBranding } = useOutletContext();
@@ -32,7 +32,7 @@ export default function BrandingSettings() {
     }
   }, [existingBranding]);
 
-  const canManage = CAN_MANAGE_BRANDING.includes(currentUser?.role);
+  const canManage = canManageBranding(currentUser?.role);
 
   if (!canManage) {
     return (

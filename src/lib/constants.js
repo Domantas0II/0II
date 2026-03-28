@@ -24,14 +24,33 @@ export const ROLE_OPTIONS = [
   { value: 'PROJECT_DEVELOPER', label: 'Vystytojas' },
 ];
 
+// ─── NORMALIZE ────────────────────────────────────────────────────────────────
+// Visada naudoti prieš bet kokį permission checkę.
+
+export const normalizeRole = (role) => {
+  const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
+  return map[role] || role;
+};
+
 // ─── PERMISSION HELPERS ───────────────────────────────────────────────────────
-// ADMINISTRATOR visada turi pilną prieigą — bypass visi kiti checks.
+// ADMINISTRATOR visada turi absoliučią prieigą visur — apeina visus kitus checks.
+// Visada perduoti rolę per normalizeRole() prieš naudojant šiuos helperius.
 
-export const isAdmin = (role) => role === 'ADMINISTRATOR';
+export const isAdministrator = (role) => normalizeRole(role) === 'ADMINISTRATOR';
 
-export const CAN_MANAGE_USERS = ['ADMINISTRATOR', 'SALES_MANAGER'];
+export const canManageUsers    = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+export const canInviteUsers    = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+export const canManageBranding = (role) => isAdministrator(role);
+export const canCreateProjects = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+export const canManageProjects = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+export const canManageUnits    = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+export const canViewAdminPages = (role) => isAdministrator(role) || normalizeRole(role) === 'SALES_MANAGER';
+
+// ─── LEGACY (deprecated) ──────────────────────────────────────────────────────
+// Palikta suderinamumui — naudoti tik helperius aukščiau.
+export const CAN_MANAGE_USERS  = ['ADMINISTRATOR', 'SALES_MANAGER'];
 export const CAN_MANAGE_BRANDING = ['ADMINISTRATOR'];
-export const CAN_VIEW_USERS = ['ADMINISTRATOR', 'SALES_MANAGER'];
+export const CAN_VIEW_USERS    = ['ADMINISTRATOR', 'SALES_MANAGER'];
 
 // ─── STATUS LABELS ────────────────────────────────────────────────────────────
 

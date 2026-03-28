@@ -14,9 +14,10 @@ import ComponentRow from '@/components/units/ComponentRow';
 import CreateComponentForm from '@/components/units/CreateComponentForm';
 import AssignComponentModal from '@/components/units/AssignComponentModal';
 import {
-  UNIT_TYPE_LABELS, UNIT_STATUS_LABELS, CAN_MANAGE_UNITS,
+  UNIT_TYPE_LABELS, UNIT_STATUS_LABELS,
   WINDOW_DIRECTION_LABELS
 } from '@/lib/unitConstants';
+import { canManageUnits } from '@/lib/constants';
 import {
   INSTALLATION_STATUS_LABELS, ENERGY_CLASS_LABELS
 } from '@/lib/projectConstants';
@@ -111,7 +112,7 @@ export default function UnitDetail() {
     createComponent.mutate({ ...data, unitId: id });
   };
 
-  const canManage = CAN_MANAGE_UNITS.includes(user?.role);
+  const canManage = canManageUnits(user?.role);
 
   if (!unit) {
     return (

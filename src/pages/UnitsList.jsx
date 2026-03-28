@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import UnitCard from '@/components/units/UnitCard';
 import UnitFilters from '@/components/units/UnitFilters';
 import CreateUnitForm from '@/components/units/CreateUnitForm';
-import { CAN_MANAGE_UNITS } from '@/lib/unitConstants';
+import { canManageUnits } from '@/lib/constants';
 
 export default function UnitsList() {
   const { user } = useOutletContext();
@@ -63,7 +63,7 @@ export default function UnitsList() {
     return true;
   });
 
-  const canManage = CAN_MANAGE_UNITS.includes(user?.role);
+  const canManage = canManageUnits(user?.role);
 
   return (
     <div className="space-y-6">

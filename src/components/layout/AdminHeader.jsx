@@ -9,12 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ROLE_LABELS } from '@/lib/constants';
-
-const normalizeRole = (role) => {
-  const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
-  return map[role] || role;
-};
+import { ROLE_LABELS, normalizeRole } from '@/lib/constants';
 
 const getRoleLabel = (role) => ROLE_LABELS[role] || role;
 
@@ -56,11 +51,7 @@ export default function AdminHeader({ user, onMobileMenuToggle }) {
             <Badge variant="secondary" className="mt-1.5 text-[10px]">
               {roleLabel}
             </Badge>
-            {normalizedRole === 'ADMINISTRATOR' && (
-              <p className="text-[10px] text-muted-foreground mt-1 font-mono">
-                raw: {rawRole} → {normalizedRole}
-              </p>
-            )}
+
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-destructive">

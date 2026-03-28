@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
-import { ROLE_OPTIONS, PLACEHOLDER_PROJECTS, ROLE_LABELS, CAN_MANAGE_USERS } from '@/lib/constants';
+import { ROLE_OPTIONS, PLACEHOLDER_PROJECTS, ROLE_LABELS, canInviteUsers } from '@/lib/constants';
 import RoleBadge from '@/components/users/RoleBadge';
 
 export default function InviteUser() {
@@ -40,7 +40,7 @@ export default function InviteUser() {
     queryFn: () => base44.entities.UserInvitation.list(),
   });
 
-  const canManage = CAN_MANAGE_USERS.includes(currentUser?.role);
+  const canManage = canInviteUsers(currentUser?.role);
   if (!canManage) {
     return (
       <div className="text-center py-20 text-muted-foreground">

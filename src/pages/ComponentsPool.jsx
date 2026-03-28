@@ -11,7 +11,8 @@ import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 import ComponentRow from '@/components/units/ComponentRow';
 import CreateComponentForm from '@/components/units/CreateComponentForm';
-import { CAN_MANAGE_UNITS, COMPONENT_TYPE_LABELS, COMPONENT_STATUS_LABELS } from '@/lib/unitConstants';
+import { COMPONENT_TYPE_LABELS, COMPONENT_STATUS_LABELS } from '@/lib/unitConstants';
+import { canManageUnits } from '@/lib/constants';
 
 export default function ComponentsPool() {
   const { user } = useOutletContext();
@@ -51,7 +52,7 @@ export default function ComponentsPool() {
     return true;
   });
 
-  const canManage = CAN_MANAGE_UNITS.includes(user?.role);
+  const canManage = canManageUnits(user?.role);
 
   const set = (key, val) => setFilters(prev => ({ ...prev, [key]: val }));
 

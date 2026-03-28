@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import RoleBadge from '@/components/users/RoleBadge';
 import UserStatusBadge from '@/components/users/UserStatusBadge';
-import { ROLE_OPTIONS, CAN_MANAGE_USERS, PLACEHOLDER_PROJECTS } from '@/lib/constants';
+import { ROLE_OPTIONS, canManageUsers, PLACEHOLDER_PROJECTS } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,7 +125,7 @@ export default function UserDetail() {
     toast.success('Projektas pašalintas');
   };
 
-  const canManage = CAN_MANAGE_USERS.includes(currentUser?.role);
+  const canManage = canManageUsers(currentUser?.role);
 
   if (!targetUser) {
     return (

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import { canCreateProjects } from '@/lib/constants';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, FolderOpen, Building2 } from 'lucide-react';
@@ -11,8 +12,6 @@ import {
   LIFECYCLE_LABELS, LIFECYCLE_COLORS
 } from '@/lib/projectConstants';
 
-const CAN_CREATE = ['ADMINISTRATOR', 'SALES_MANAGER'];
-
 export default function ProjectsList() {
   const { user } = useOutletContext();
 
@@ -21,7 +20,7 @@ export default function ProjectsList() {
     queryFn: () => base44.entities.Project.list('-created_date'),
   });
 
-  const canCreate = CAN_CREATE.includes(user?.role);
+  const canCreate = canCreateProjects(user?.role);
 
   return (
     <div className="space-y-6">

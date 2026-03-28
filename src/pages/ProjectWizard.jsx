@@ -14,9 +14,10 @@ import StepFinancial from '@/components/projects/steps/StepFinancial';
 import StepProcess from '@/components/projects/steps/StepProcess';
 import StepReview from '@/components/projects/steps/StepReview';
 import { WIZARD_STEPS } from '@/lib/projectConstants';
+import { canCreateProjects } from '@/lib/constants';
 import { calcCompleteness, canSetInternalReady } from '@/lib/projectCompleteness';
 
-const CAN_CREATE = ['ADMINISTRATOR', 'SALES_MANAGER'];
+
 
 const STEP_TITLES = {
   base: 'Projekto bazė',
@@ -43,7 +44,7 @@ export default function ProjectWizard() {
   const [financialData, setFinancialData] = useState({});
   const [processData, setProcessData] = useState({});
 
-  if (!CAN_CREATE.includes(user?.role)) {
+  if (!canCreateProjects(user?.role)) {
     return (
       <div className="text-center py-20 text-muted-foreground">
         <Shield className="h-12 w-12 mx-auto mb-3 opacity-30" />

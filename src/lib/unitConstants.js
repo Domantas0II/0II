@@ -57,4 +57,4 @@ export const LAND_TYPE_LABELS = {
   shared_part: 'Bendra dalis',
 };
 
-export const CAN_MANAGE_UNITS = ['ADMINISTRATOR', 'SALES_MANAGER'];
+// Deprecated — naudoti canManageUnits() iš lib/constants.js
