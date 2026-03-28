@@ -16,7 +16,7 @@ import StepReview from '@/components/projects/steps/StepReview';
 import { WIZARD_STEPS } from '@/lib/projectConstants';
 import { calcCompleteness, canSetInternalReady } from '@/lib/projectCompleteness';
 
-const CAN_CREATE = ['ADMIN', 'SALES_MANAGER'];
+const CAN_CREATE = ['ADMINISTRATOR', 'SALES_MANAGER'];
 
 const STEP_TITLES = {
   base: 'Projekto bazė',

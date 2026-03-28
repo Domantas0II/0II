@@ -11,7 +11,7 @@ import {
   LIFECYCLE_LABELS, LIFECYCLE_COLORS
 } from '@/lib/projectConstants';
 
-const CAN_CREATE = ['ADMIN', 'SALES_MANAGER'];
+const CAN_CREATE = ['ADMINISTRATOR', 'SALES_MANAGER'];
 
 export default function ProjectsList() {
   const { user } = useOutletContext();
