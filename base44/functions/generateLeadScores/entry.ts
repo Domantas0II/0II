@@ -25,38 +25,78 @@ async function getSettingValue(key, defaultValue = null, base44) {
  * Future: Load weights from DB per-call for real-time adjustment
  */
 
-// Scoring functions (inlined to avoid import issues in Deno)
-async function scoreInquiryPriority(inquiry) {
+// DEFAULT scoring weights (used as fallback if SystemSetting not found)
+const DEFAULT_WEIGHTS = {
+  inquiry: {
+    freshness_hot: 25,    // < 2h
+    freshness_warm: 15,   // < 24h
+    freshness_cold: -10,  // > 24h
+    unclaimed: 20,
+    has_message: 10
+  },
+  client: {
+    per_active_interest: 10,
+    recent_activity_today: 15,
+    recent_activity_week: 8,
+    no_activity: -15,
+    per_overdue_task: 20
+  },
+  reservation: {
+    recent_interaction: 15,
+    stale_interaction: -15,
+    stage: { new: 5, contacted: 10, consultation: 15, visit: 25, negotiation: 40, reserved: 80, won: 95 }
+  },
+  deal: {
+    reservation_active: 30,
+    reservation_converted: 90,
+    agreement_signed: 40,
+    agreement_draft: 15,
+    per_advance_payment: 15
+  },
+  followup: {
+    task_overdue: 35,
+    due_very_soon: 30,   // < 2h
+    due_soon: 20,         // < 24h
+    interactive_task: 10,
+    priority: { low: 0, medium: 5, high: 15, critical: 25 }
+  }
+};
+
+function toBand(score) {
+  return score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
+}
+
+// Scoring functions accept weights param — falls back to DEFAULT_WEIGHTS if not provided
+function scoreInquiryPriority(inquiry, weights) {
+  const w = { ...DEFAULT_WEIGHTS.inquiry, ...(weights?.inquiry || {}) };
   const now = new Date();
-  const createdDate = new Date(inquiry.created_date);
-  const ageHours = (now - createdDate) / (1000 * 60 * 60);
-  
+  const ageHours = (now - new Date(inquiry.created_date)) / (1000 * 60 * 60);
+
   let score = 50;
   const reasons = [];
 
   if (ageHours < 2) {
-    score += 25;
-    reasons.push({ factor: 'inquiry_freshness', weight: 25, explanation: 'Inquiry sugeneruota per paskutines 2 valandas' });
+    score += w.freshness_hot;
+    reasons.push({ factor: 'inquiry_freshness', weight: w.freshness_hot, explanation: 'Inquiry sugeneruota per paskutines 2 valandas' });
   } else if (ageHours < 24) {
-    score += 15;
-    reasons.push({ factor: 'inquiry_freshness', weight: 15, explanation: 'Inquiry sugeneruota šiandien' });
+    score += w.freshness_warm;
+    reasons.push({ factor: 'inquiry_freshness', weight: w.freshness_warm, explanation: 'Inquiry sugeneruota šiandien' });
   } else {
-    score -= 10;
-    reasons.push({ factor: 'inquiry_age', weight: -10, explanation: 'Inquiry gera jei senesne nei 24h' });
+    score += w.freshness_cold;
+    reasons.push({ factor: 'inquiry_age', weight: w.freshness_cold, explanation: 'Inquiry senesnė nei 24h' });
   }
 
   if (inquiry.status === 'new') {
-    score += 20;
-    reasons.push({ factor: 'unclaimed_inquiry', weight: 20, explanation: 'Inquiry dar nepriskirtai (new status)' });
+    score += w.unclaimed;
+    reasons.push({ factor: 'unclaimed_inquiry', weight: w.unclaimed, explanation: 'Inquiry dar nepriskirtai (new status)' });
   }
 
   if (inquiry.message && inquiry.message.length > 10) {
-    score += 10;
-    reasons.push({ factor: 'inquiry_has_message', weight: 10, explanation: 'Inquiry turi detalią žinutę' });
+    score += w.has_message;
+    reasons.push({ factor: 'inquiry_has_message', weight: w.has_message, explanation: 'Inquiry turi detalią žinutę' });
   }
 
-  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
-
+  const band = toBand(score);
   return {
     scoreValue: Math.min(100, score),
     band,
@@ -66,51 +106,42 @@ async function scoreInquiryPriority(inquiry) {
   };
 }
 
-async function scoreClientPriority(client, interests, tasks, activities) {
+function scoreClientPriority(client, interests, tasks, activities, weights) {
+  const w = { ...DEFAULT_WEIGHTS.client, ...(weights?.client || {}) };
   let score = 50;
   const reasons = [];
 
-  const activeInterests = (interests || []).filter(i => 
+  const activeInterests = (interests || []).filter(i =>
     ['contacted', 'considering', 'follow_up', 'reserved'].includes(i.status)
   );
-  score += activeInterests.length * 10;
   if (activeInterests.length > 0) {
-    reasons.push({
-      factor: 'active_interests',
-      weight: activeInterests.length * 10,
-      explanation: `${activeInterests.length} aktyvios susidominimo(s)`
-    });
+    const pts = activeInterests.length * w.per_active_interest;
+    score += pts;
+    reasons.push({ factor: 'active_interests', weight: pts, explanation: `${activeInterests.length} aktyvios susidominimo(s)` });
   }
 
   if (activities && activities.length > 0) {
-    const latestActivity = activities[0];
-    const activityDate = new Date(latestActivity.completedAt || latestActivity.scheduledAt);
-    const ageHours = (new Date() - activityDate) / (1000 * 60 * 60);
-    
+    const ageHours = (new Date() - new Date(activities[0].completedAt || activities[0].scheduledAt)) / (1000 * 60 * 60);
     if (ageHours < 24) {
-      score += 15;
-      reasons.push({ factor: 'recent_activity', weight: 15, explanation: 'Šiandien buvo kontaktas' });
+      score += w.recent_activity_today;
+      reasons.push({ factor: 'recent_activity', weight: w.recent_activity_today, explanation: 'Šiandien buvo kontaktas' });
     } else if (ageHours < 7 * 24) {
-      score += 8;
-      reasons.push({ factor: 'recent_activity', weight: 8, explanation: 'Per paskutines 7 dienas buvo kontaktas' });
+      score += w.recent_activity_week;
+      reasons.push({ factor: 'recent_activity', weight: w.recent_activity_week, explanation: 'Per paskutines 7 dienas buvo kontaktas' });
     }
   } else {
-    score -= 15;
-    reasons.push({ factor: 'no_activity', weight: -15, explanation: 'Nėra jokios veiklos su klientu' });
+    score += w.no_activity;
+    reasons.push({ factor: 'no_activity', weight: w.no_activity, explanation: 'Nėra jokios veiklos su klientu' });
   }
 
   const overdueTasks = (tasks || []).filter(t => t.status === 'overdue');
   if (overdueTasks.length > 0) {
-    score += overdueTasks.length * 20;
-    reasons.push({
-      factor: 'overdue_tasks',
-      weight: overdueTasks.length * 20,
-      explanation: `${overdueTasks.length} vėluojanti(os) užduoti(s)`
-    });
+    const pts = overdueTasks.length * w.per_overdue_task;
+    score += pts;
+    reasons.push({ factor: 'overdue_tasks', weight: pts, explanation: `${overdueTasks.length} vėluojanti(os) užduoti(s)` });
   }
 
-  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
-
+  const band = toBand(score);
   return {
     scoreValue: Math.min(100, score),
     band,
@@ -120,36 +151,28 @@ async function scoreClientPriority(client, interests, tasks, activities) {
   };
 }
 
-async function scoreReservationProbability(interest, activities, units) {
+function scoreReservationProbability(interest, activities, units, weights) {
+  const w = { ...DEFAULT_WEIGHTS.reservation, ...(weights?.reservation || {}) };
+  const stageWeights = { ...DEFAULT_WEIGHTS.reservation.stage, ...(weights?.reservation?.stage || {}) };
   let score = 40;
   const reasons = [];
 
-  const stageWeights = {
-    new: 5, contacted: 10, consultation: 15, visit: 25, negotiation: 40, reserved: 80, won: 95
-  };
   const stageWeight = stageWeights[interest.pipelineStage] || 5;
   score += stageWeight;
-  reasons.push({
-    factor: 'pipeline_stage',
-    weight: stageWeight,
-    explanation: `Pipeline stadija: ${interest.pipelineStage}`
-  });
+  reasons.push({ factor: 'pipeline_stage', weight: stageWeight, explanation: `Pipeline stadija: ${interest.pipelineStage}` });
 
   if (interest.lastInteractionAt) {
-    const interactionDate = new Date(interest.lastInteractionAt);
-    const ageHours = (new Date() - interactionDate) / (1000 * 60 * 60);
-    
+    const ageHours = (new Date() - new Date(interest.lastInteractionAt)) / (1000 * 60 * 60);
     if (ageHours < 24) {
-      score += 15;
-      reasons.push({ factor: 'recent_interaction', weight: 15, explanation: 'Kontaktas per paskutines 24h' });
+      score += w.recent_interaction;
+      reasons.push({ factor: 'recent_interaction', weight: w.recent_interaction, explanation: 'Kontaktas per paskutines 24h' });
     } else if (ageHours > 7 * 24) {
-      score -= 15;
-      reasons.push({ factor: 'stale_interest', weight: -15, explanation: 'Kontaktas buvo daugiau nei 7 dienos atgal' });
+      score += w.stale_interaction;
+      reasons.push({ factor: 'stale_interest', weight: w.stale_interaction, explanation: 'Kontaktas buvo daugiau nei 7 dienos atgal' });
     }
   }
 
-  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
-
+  const band = toBand(score);
   return {
     scoreValue: Math.min(100, score),
     band,
@@ -159,34 +182,35 @@ async function scoreReservationProbability(interest, activities, units) {
   };
 }
 
-async function scoreDealProbability(reservation, agreement, payments) {
+function scoreDealProbability(reservation, agreement, payments, weights) {
+  const w = { ...DEFAULT_WEIGHTS.deal, ...(weights?.deal || {}) };
   let score = 20;
   const reasons = [];
 
   if (reservation.status === 'active') {
-    score += 30;
-    reasons.push({ factor: 'reservation_active', weight: 30, explanation: 'Rezervacija yra aktyvi' });
+    score += w.reservation_active;
+    reasons.push({ factor: 'reservation_active', weight: w.reservation_active, explanation: 'Rezervacija yra aktyvi' });
   } else if (reservation.status === 'converted') {
-    score += 90;
-    reasons.push({ factor: 'reservation_converted', weight: 90, explanation: 'Rezervacija jau konvertuota į sutartį' });
+    score += w.reservation_converted;
+    reasons.push({ factor: 'reservation_converted', weight: w.reservation_converted, explanation: 'Rezervacija jau konvertuota į sutartį' });
   }
 
-  if (agreement && agreement.status === 'signed') {
-    score += 40;
-    reasons.push({ factor: 'agreement_signed', weight: 40, explanation: 'Sutartis pasirašyta' });
-  } else if (agreement && agreement.status === 'draft') {
-    score += 15;
-    reasons.push({ factor: 'agreement_draft', weight: 15, explanation: 'Sutartis paruošta, laukia parašo' });
+  if (agreement?.status === 'signed') {
+    score += w.agreement_signed;
+    reasons.push({ factor: 'agreement_signed', weight: w.agreement_signed, explanation: 'Sutartis pasirašyta' });
+  } else if (agreement?.status === 'draft') {
+    score += w.agreement_draft;
+    reasons.push({ factor: 'agreement_draft', weight: w.agreement_draft, explanation: 'Sutartis paruošta, laukia parašo' });
   }
 
   const advancePayments = (payments || []).filter(p => p.paymentType === 'advance' && p.status === 'recorded');
   if (advancePayments.length > 0) {
-    score += advancePayments.length * 15;
-    reasons.push({ factor: 'advance_payments', weight: advancePayments.length * 15, explanation: `${advancePayments.length} avanso mokėjimai zregistruoti` });
+    const pts = advancePayments.length * w.per_advance_payment;
+    score += pts;
+    reasons.push({ factor: 'advance_payments', weight: pts, explanation: `${advancePayments.length} avanso mokėjimai registruoti` });
   }
 
-  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
-
+  const band = toBand(score);
   return {
     scoreValue: Math.min(100, score),
     band,
@@ -196,41 +220,36 @@ async function scoreDealProbability(reservation, agreement, payments) {
   };
 }
 
-async function scoreFollowupUrgency(task, interest) {
+function scoreFollowupUrgency(task, interest, weights) {
+  const w = { ...DEFAULT_WEIGHTS.followup, ...(weights?.followup || {}) };
+  const priorityWeights = { ...DEFAULT_WEIGHTS.followup.priority, ...(weights?.followup?.priority || {}) };
   let score = 40;
   const reasons = [];
 
   if (task.status === 'overdue') {
-    score += 35;
-    reasons.push({ factor: 'task_overdue', weight: 35, explanation: 'Užduotis jau vėluoja' });
+    score += w.task_overdue;
+    reasons.push({ factor: 'task_overdue', weight: w.task_overdue, explanation: 'Užduotis jau vėluoja' });
   } else {
-    const dueDate = new Date(task.dueAt);
-    const hoursUntilDue = (dueDate - new Date()) / (1000 * 60 * 60);
-    
+    const hoursUntilDue = (new Date(task.dueAt) - new Date()) / (1000 * 60 * 60);
     if (hoursUntilDue < 2) {
-      score += 30;
-      reasons.push({ factor: 'due_very_soon', weight: 30, explanation: 'Terminas per 2 valandas' });
+      score += w.due_very_soon;
+      reasons.push({ factor: 'due_very_soon', weight: w.due_very_soon, explanation: 'Terminas per 2 valandas' });
     } else if (hoursUntilDue < 24) {
-      score += 20;
-      reasons.push({ factor: 'due_soon', weight: 20, explanation: 'Terminas per 24 valandas' });
+      score += w.due_soon;
+      reasons.push({ factor: 'due_soon', weight: w.due_soon, explanation: 'Terminas per 24 valandas' });
     }
   }
 
-  const priorityWeights = { low: 0, medium: 5, high: 15, critical: 25 };
-  score += priorityWeights[task.priority] || 0;
-  reasons.push({
-    factor: 'task_priority',
-    weight: priorityWeights[task.priority] || 0,
-    explanation: `Prioritetas: ${task.priority}`
-  });
+  const pWeight = priorityWeights[task.priority] || 0;
+  score += pWeight;
+  reasons.push({ factor: 'task_priority', weight: pWeight, explanation: `Prioritetas: ${task.priority}` });
 
   if (task.type === 'call' || task.type === 'meeting') {
-    score += 10;
-    reasons.push({ factor: 'interactive_task', weight: 10, explanation: 'Būtinas tiesioginis kontaktas' });
+    score += w.interactive_task;
+    reasons.push({ factor: 'interactive_task', weight: w.interactive_task, explanation: 'Būtinas tiesioginis kontaktas' });
   }
 
-  const band = score >= 80 ? 'critical' : score >= 60 ? 'high' : score >= 40 ? 'medium' : 'low';
-
+  const band = toBand(score);
   return {
     scoreValue: Math.min(100, score),
     band,
@@ -252,9 +271,9 @@ Deno.serve(async (req) => {
     const { projectId, clientId, inquiryId, interestId } = await req.json();
     const role = normalizeRole(user.role);
 
-    // GOVERNANCE: Pre-load scoring weights from SystemSetting (optional optimization)
-    // Individual scoring functions will use these if available
+    // GOVERNANCE: Load scoring weights from SystemSetting — all scoring functions use these
     const scoringWeights = await getSettingValue('scoring.weights', null, base44);
+    // Falls back to DEFAULT_WEIGHTS inside each scoring function if null
 
     // FIX #1: Agent access control - enable with scope validation
     // SALES_AGENT can score, but only within their visible scope
@@ -323,7 +342,7 @@ Deno.serve(async (req) => {
       const inquiries = await base44.entities.ProjectInquiry.filter({ id: inquiryId });
       if (inquiries && inquiries.length > 0) {
         const inquiry = inquiries[0];
-        const scoreData = await scoreInquiryPriority(inquiry);
+        const scoreData = scoreInquiryPriority(inquiry, scoringWeights);
         
         const leadscore = await base44.entities.LeadScore.create({
           projectId: inquiry.projectId,
@@ -357,7 +376,7 @@ Deno.serve(async (req) => {
         const tasks = await base44.entities.Task.filter({ clientId });
         const activities = await base44.entities.Activity.filter({ clientId });
 
-        const scoreData = await scoreClientPriority(client, interests, tasks, activities);
+        const scoreData = scoreClientPriority(client, interests, tasks, activities, scoringWeights);
         
         const leadscore = await base44.entities.LeadScore.create({
           projectId,
@@ -399,7 +418,7 @@ Deno.serve(async (req) => {
           internalStatus: 'available'
         });
 
-        const scoreData = await scoreReservationProbability(interest, activities, units);
+        const scoreData = scoreReservationProbability(interest, activities, units, scoringWeights);
         
         const leadscore = await base44.entities.LeadScore.create({
           projectId: interest.projectId,
@@ -431,7 +450,7 @@ Deno.serve(async (req) => {
       });
 
       for (const task of (tasks || []).slice(0, 3)) {
-        const scoreData = await scoreFollowupUrgency(task, null);
+        const scoreData = scoreFollowupUrgency(task, null, scoringWeights);
         
         const leadscore = await base44.entities.LeadScore.create({
           projectId,

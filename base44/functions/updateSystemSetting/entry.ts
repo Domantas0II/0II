@@ -76,6 +76,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Invalidate cache (consistent with updateSystemLimit, updateFeatureFlag)
+    await base44.functions.invoke('invalidateSettingsCache', {});
+
     return Response.json({
       success: true,
       setting

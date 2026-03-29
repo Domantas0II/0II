@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+async function getSystemLimit(key, defaultValue, base44) {
+  try {
+    const limits = await base44.asServiceRole.entities.SystemLimit.filter({ key });
+    if (limits && limits.length > 0) return limits[0].value;
+  } catch (e) {}
+  return defaultValue;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -23,6 +31,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Project not found or not public' }, { status: 404 });
     }
 
+    // GOVERNANCE: Read limit from SystemLimit
+    const limit = await getSystemLimit('portal.publicUnitsLimit', 100, base44);
+
     // Fetch public units
     const units = await base44.entities.SaleUnit.filter(
       {
@@ -31,7 +42,7 @@ Deno.serve(async (req) => {
         internalStatus: 'available'
       },
       'label',
-      100
+      limit
     );
 
     // Filter out internal fields
