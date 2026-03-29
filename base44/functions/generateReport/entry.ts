@@ -113,7 +113,7 @@ async function generateFinanceReport(base44, projectIds, filters) {
   };
 }
 
-async function generatePipelineReport(base44, projectIds, filters) {
+async function generatePipelineReport(base44, projectIds, filters, role) {
   const { dateFrom, dateTo } = filters;
 
   let inquiries = [], interests = [], reservations = [], deals = [];
@@ -164,7 +164,7 @@ async function generatePipelineReport(base44, projectIds, filters) {
     },
     rows: interests.slice(0, 2000).map(i => ({
       interestId: i.id,
-      clientId: i.clientId,
+      ...(role !== 'PROJECT_DEVELOPER' ? { clientId: i.clientId } : {}),
       projectId: i.projectId,
       pipelineStage: i.pipelineStage,
       status: i.status,
@@ -228,8 +228,11 @@ Deno.serve(async (req) => {
     const allowedRoles = ['ADMINISTRATOR', 'SALES_MANAGER', 'SALES_AGENT', 'PROJECT_DEVELOPER'];
     if (!allowedRoles.includes(role)) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-    const { reportDefinitionId, filters: overrideFilters } = await req.json();
+    const { reportDefinitionId, filters: overrideFilters, _systemMode } = await req.json();
     if (!reportDefinitionId) return Response.json({ error: 'reportDefinitionId required' }, { status: 400 });
+
+    // _systemMode: called by runScheduledReport (no user session) — skip user auth checks
+    const isSystemMode = _systemMode === true;
 
     const defs = await base44.asServiceRole.entities.ReportDefinition.filter({ id: reportDefinitionId });
     if (!defs?.length) return Response.json({ error: 'ReportDefinition not found' }, { status: 404 });
@@ -239,18 +242,26 @@ Deno.serve(async (req) => {
     const filters = { ...config, ...(overrideFilters || {}) };
 
     // Resolve accessible project IDs
-    const projectIds = await getAccessibleProjectIds(user, role, base44, filters.projectIds);
-    if (!projectIds.length) return Response.json({ error: 'No accessible projects' }, { status: 403 });
-
-    // PROJECT_DEVELOPER: only pipeline report allowed (no client/financial data)
-    if (role === 'PROJECT_DEVELOPER' && !['pipeline', 'sales'].includes(def.type)) {
-      return Response.json({ error: 'PROJECT_DEVELOPER can only access pipeline and sales summary reports' }, { status: 403 });
+    let projectIds;
+    if (isSystemMode) {
+      // System mode: use all projects from config, or all projects
+      const allProjects = await base44.asServiceRole.entities.Project.list('-created_date', 500);
+      projectIds = filters.projectIds?.length
+        ? filters.projectIds
+        : (allProjects || []).map(p => p.id);
+    } else {
+      projectIds = await getAccessibleProjectIds(user, role, base44, filters.projectIds);
+      if (!projectIds.length) return Response.json({ error: 'No accessible projects' }, { status: 403 });
+      // PROJECT_DEVELOPER: only pipeline report allowed (no client/financial data)
+      if (role === 'PROJECT_DEVELOPER' && !['pipeline', 'sales'].includes(def.type)) {
+        return Response.json({ error: 'PROJECT_DEVELOPER can only access pipeline and sales summary reports' }, { status: 403 });
+      }
     }
 
     let result;
     if (def.type === 'sales')             result = await generateSalesReport(base44, projectIds, filters);
     else if (def.type === 'finance')      result = await generateFinanceReport(base44, projectIds, filters);
-    else if (def.type === 'pipeline')     result = await generatePipelineReport(base44, projectIds, filters);
+    else if (def.type === 'pipeline')     result = await generatePipelineReport(base44, projectIds, filters, isSystemMode ? 'SYSTEM' : role);
     else if (def.type === 'agent_performance') result = await generateAgentPerformanceReport(base44, projectIds, filters, role, user);
     else return Response.json({ error: `Unknown report type: ${def.type}` }, { status: 400 });
 
@@ -269,8 +280,8 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.AuditLog.create({
       action: 'REPORT_GENERATED',
-      performedByUserId: user.id,
-      performedByName: user.full_name,
+      performedByUserId: isSystemMode ? 'system' : user.id,
+      performedByName: isSystemMode ? 'System (scheduled)' : user.full_name,
       details: JSON.stringify({ reportDefinitionId, type: def.type, rowCount: result.rows?.length || 0 })
     });
 

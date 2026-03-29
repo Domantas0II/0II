@@ -44,7 +44,8 @@ Deno.serve(async (req) => {
       // Invoke generateReport via the system user context
       const genRes = await base44.asServiceRole.functions.invoke('generateReport', {
         reportDefinitionId: schedule.reportDefinitionId,
-        filters: config
+        filters: config,
+        _systemMode: true
       });
 
       result = genRes?.data?.result;
