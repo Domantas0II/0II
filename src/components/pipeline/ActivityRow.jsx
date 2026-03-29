@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, CheckCircle2, Circle } from 'lucide-react';
+import { X, Circle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_ICONS } from '@/lib/pipelineConstants';
 

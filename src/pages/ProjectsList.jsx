@@ -11,7 +11,7 @@ import {
   PROJECT_TYPE_LABELS, PROJECT_STAGE_LABELS,
   LIFECYCLE_LABELS, LIFECYCLE_COLORS
 } from '@/lib/projectConstants';
-import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import { getAccessibleProjectIds } from '@/lib/queryAccess';
 
 export default function ProjectsList() {
   const context = useOutletContext() || {};

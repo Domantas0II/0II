@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Clock, AlertCircle } from 'lucide-react';
-import { format, isPast } from 'date-fns';
+import { format } from 'date-fns';
 import { ACTIVITY_TYPE_ICONS } from '@/lib/pipelineConstants';
 
 export default function PipelineCard({ interest, project, unit, lastActivity, isOverdue }) {

@@ -2,17 +2,16 @@ import { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Search, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { format, isPast } from 'date-fns';
+import { format } from 'date-fns';
 import { canAccessInbound, normalizeRole } from '@/lib/constants';
-import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import { getAccessibleProjectIds } from '@/lib/queryAccess';
 import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_COLORS, canReleaseReservations, canExtendReservations } from '@/lib/reservationConstants';
 
 export default function ReservationsList() {
@@ -22,9 +21,6 @@ export default function ReservationsList() {
   const [filters, setFilters] = useState({ search: '', project: 'all', status: 'all' });
 
   const canAccess = canAccessInbound(normalizeRole(user?.role));
-  if (!canAccess) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
-  }
 
   // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
@@ -89,6 +85,10 @@ export default function ReservationsList() {
       toast.error(error.message || 'Nepavyko atleisti');
     },
   });
+
+  if (!canAccess) {
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
+  }
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const bundleMap = Object.fromEntries(bundles.map(b => [b.id, b]));

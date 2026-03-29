@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { FileUp } from 'lucide-react';
 import FileCard from './FileCard';
 import FileUploadForm from './FileUploadForm';

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2, Clock, AlertCircle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+
 
 const STATUS_COLORS = {
   pending: 'bg-blue-50 border-blue-200',
@@ -183,7 +183,6 @@ export default function MyTasks() {
         ) : (
           tasks.map(task => {
             const isOverdue = task.status === 'overdue' || (new Date(task.dueAt) < new Date() && task.status !== 'completed');
-            const timeLeft = formatDistanceToNow(new Date(task.dueAt), { addSuffix: true });
 
             return (
               <Card
