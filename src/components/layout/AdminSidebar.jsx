@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2 } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -85,6 +85,12 @@ const menuItems = [
     icon: BarChart2,
     href: '/reports',
     requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER', 'SALES_AGENT'].includes(normalizeRole(role)),
+  },
+  {
+    label: 'Integracijos',
+    icon: Plug,
+    href: '/integrations',
+    requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',
   },
   {
     label: 'Nustatymai',

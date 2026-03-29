@@ -1,0 +1,44 @@
+{
+  "name": "WebhookEndpoint",
+  "type": "object",
+  "properties": {
+    "integrationId": {
+      "type": "string",
+      "description": "Integration ID"
+    },
+    "url": {
+      "type": "string",
+      "description": "Destination URL"
+    },
+    "secret": {
+      "type": "string",
+      "description": "HMAC signing secret"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "retryPolicyJson": {
+      "type": "string",
+      "description": "JSON: { maxAttempts, backoffMs }"
+    },
+    "eventTypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Subscribed event types"
+    },
+    "createdByUserId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "url",
+    "isActive"
+  ]
+}

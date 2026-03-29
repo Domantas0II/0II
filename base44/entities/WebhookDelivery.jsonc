@@ -1,0 +1,51 @@
+{
+  "name": "WebhookDelivery",
+  "type": "object",
+  "properties": {
+    "endpointId": {
+      "type": "string",
+      "description": "WebhookEndpoint ID"
+    },
+    "eventType": {
+      "type": "string"
+    },
+    "payloadJson": {
+      "type": "string",
+      "description": "Sent payload"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "success",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "attemptCount": {
+      "type": "number",
+      "default": 0
+    },
+    "lastAttemptAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "responseStatus": {
+      "type": "number",
+      "description": "HTTP response code"
+    },
+    "responseBody": {
+      "type": "string",
+      "description": "Response body (truncated)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "endpointId",
+    "eventType",
+    "status"
+  ]
+}

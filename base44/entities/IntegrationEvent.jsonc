@@ -1,0 +1,43 @@
+{
+  "name": "IntegrationEvent",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "description": "DEAL_CREATED, RESERVATION_CREATED, etc."
+    },
+    "entityType": {
+      "type": "string",
+      "description": "Deal, Reservation, etc."
+    },
+    "entityId": {
+      "type": "string"
+    },
+    "payloadJson": {
+      "type": "string",
+      "description": "Minimal non-sensitive payload"
+    },
+    "processed": {
+      "type": "boolean",
+      "default": false
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "inbound_webhook"
+      ],
+      "default": "internal"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "eventType",
+    "entityType",
+    "entityId",
+    "payloadJson"
+  ]
+}

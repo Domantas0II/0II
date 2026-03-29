@@ -177,10 +177,17 @@ Deno.serve(async (req) => {
       }
 
       // === MODULE 17: AUTO-GENERATE COMMISSION ===
-      // Non-blocking: commission failure does not roll back deal
       base44.functions.invoke('calculateCommission', { dealId: deal.id }).catch((e) => {
         console.warn('Commission auto-generation failed (non-blocking):', e?.message);
       });
+
+      // === MODULE 19: EVENT BUS ===
+      base44.asServiceRole.functions.invoke('dispatchEvent', {
+        eventType: 'DEAL_CREATED',
+        entityType: 'Deal',
+        entityId: deal.id,
+        payload: { dealId: deal.id, projectId, unitId, soldAt, totalAmount }
+      }).catch(() => {});
 
       return Response.json({ success: true, dealId: deal.id });
 

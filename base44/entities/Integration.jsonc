@@ -1,0 +1,56 @@
+{
+  "name": "Integration",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Integracijos pavadinimas"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "webhook",
+        "api",
+        "partner",
+        "internal"
+      ],
+      "description": "Tipas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "baseUrl": {
+      "type": "string",
+      "description": "Bazinis URL"
+    },
+    "authType": {
+      "type": "string",
+      "enum": [
+        "none",
+        "api_key",
+        "bearer"
+      ],
+      "default": "none"
+    },
+    "configJson": {
+      "type": "string",
+      "description": "JSON konfig\u016bracija"
+    },
+    "createdByUserId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

@@ -48,6 +48,14 @@ Deno.serve(async (req) => {
       details: JSON.stringify({ commissionId, dealId: commission.dealId, managerAmount: commission.managerCommissionAmount })
     });
 
+    // === MODULE 19: EVENT BUS ===
+    base44.asServiceRole.functions.invoke('dispatchEvent', {
+      eventType: 'COMMISSION_RECEIVED',
+      entityType: 'Commission',
+      entityId: commissionId,
+      payload: { commissionId, dealId: commission.dealId, projectId: commission.projectId, companyAmount: commission.companyCommissionAmount }
+    }).catch(() => {});
+
     return Response.json({ success: true, commission: updated });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

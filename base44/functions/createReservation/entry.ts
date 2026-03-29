@@ -430,6 +430,14 @@ Deno.serve(async (req) => {
         // Audit log failure should not block reservation
       }
 
+      // === MODULE 19: EVENT BUS ===
+      base44.asServiceRole.functions.invoke('dispatchEvent', {
+        eventType: 'RESERVATION_CREATED',
+        entityType: 'Reservation',
+        entityId: createdReservationId,
+        payload: { reservationId: createdReservationId, projectId, bundleId, clientId, expiresAt }
+      }).catch(() => {});
+
       return Response.json({
         success: true,
         reservationId: createdReservationId

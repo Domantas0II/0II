@@ -115,6 +115,14 @@ Deno.serve(async (req) => {
       })
     });
 
+    // === MODULE 19: EVENT BUS ===
+    base44.asServiceRole.functions.invoke('dispatchEvent', {
+      eventType: 'PARTNER_LEAD_CREATED',
+      entityType: 'PartnerLead',
+      entityId: lead.id,
+      payload: { leadId: lead.id, partnerId: tokenRecord.partnerId, projectId }
+    }).catch(() => {});
+
     return Response.json({
       success: true,
       leadId: lead.id,

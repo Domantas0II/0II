@@ -1,0 +1,47 @@
+{
+  "name": "ApiKey",
+  "type": "object",
+  "properties": {
+    "keyHash": {
+      "type": "string",
+      "description": "SHA-256 hash of the key (never plaintext)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Apib\u016bdinimas"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "partner",
+        "public"
+      ],
+      "default": "internal"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lastUsedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdByUserId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "keyHash",
+    "label",
+    "scope"
+  ]
+}

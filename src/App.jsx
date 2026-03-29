@@ -52,6 +52,11 @@ import ReportsList from '@/pages/ReportsList';
 import ReportBuilder from '@/pages/ReportBuilder';
 import ReportDetail from '@/pages/ReportDetail';
 import ScheduledReports from '@/pages/ScheduledReports';
+import IntegrationsList from '@/pages/IntegrationsList';
+import IntegrationDetail from '@/pages/IntegrationDetail';
+import WebhookEndpoints from '@/pages/WebhookEndpoints';
+import ApiKeys from '@/pages/ApiKeys';
+import WebhookLogs from '@/pages/WebhookLogs';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -140,6 +145,11 @@ const AuthenticatedApp = () => {
         <Route path="/reports/new" element={<ReportBuilder />} />
         <Route path="/reports/:id" element={<ReportDetail />} />
         <Route path="/scheduled-reports" element={<ScheduledReports />} />
+        <Route path="/integrations" element={<IntegrationsList />} />
+        <Route path="/integrations/:id" element={<IntegrationDetail />} />
+        <Route path="/webhook-endpoints" element={<WebhookEndpoints />} />
+        <Route path="/api-keys" element={<ApiKeys />} />
+        <Route path="/webhook-logs" element={<WebhookLogs />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />
