@@ -1,0 +1,33 @@
+{
+  "name": "PayoutItem",
+  "type": "object",
+  "properties": {
+    "payoutId": {
+      "type": "string",
+      "description": "Payout ID"
+    },
+    "commissionId": {
+      "type": "string",
+      "description": "Commission ID"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Suma su PVM"
+    },
+    "vatAmount": {
+      "type": "number",
+      "description": "PVM suma"
+    },
+    "amountWithoutVat": {
+      "type": "number",
+      "description": "Suma be PVM"
+    }
+  },
+  "required": [
+    "payoutId",
+    "commissionId",
+    "amount",
+    "vatAmount",
+    "amountWithoutVat"
+  ]
+}

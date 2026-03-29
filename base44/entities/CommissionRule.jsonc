@@ -1,0 +1,54 @@
+{
+  "name": "CommissionRule",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (null = global rule)"
+    },
+    "appliesTo": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "partner",
+        "agency"
+      ],
+      "description": "Kam taikoma komisini\u0173 taisykl\u0117"
+    },
+    "calculationType": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed"
+      ],
+      "description": "Skai\u010diavimo tipas"
+    },
+    "value": {
+      "type": "number",
+      "description": "Procentas arba fiksuota suma"
+    },
+    "vatMode": {
+      "type": "string",
+      "enum": [
+        "with_vat",
+        "without_vat"
+      ],
+      "description": "PVM re\u017eimas"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Ar taisykl\u0117 aktyvi"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0117jo ID"
+    }
+  },
+  "required": [
+    "appliesTo",
+    "calculationType",
+    "value",
+    "vatMode"
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "name": "Commission",
+  "type": "object",
+  "properties": {
+    "dealId": {
+      "type": "string",
+      "description": "Deal ID"
+    },
+    "userId": {
+      "type": "string",
+      "description": "Agento arba partnerio user ID"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "partner"
+      ],
+      "description": "Vaidmuo"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Bendra suma (su PVM)"
+    },
+    "amountWithoutVat": {
+      "type": "number",
+      "description": "Suma be PVM"
+    },
+    "vatAmount": {
+      "type": "number",
+      "description": "PVM suma"
+    },
+    "vatRate": {
+      "type": "number",
+      "description": "PVM norma %"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "paid"
+      ],
+      "default": "pending",
+      "description": "Komisini\u0173 statusas"
+    },
+    "commissionRuleId": {
+      "type": "string",
+      "description": "Taikytos taisykl\u0117s ID"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (denormalizuotas)"
+    },
+    "calculatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada paskai\u010diuota"
+    },
+    "approvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada patvirtinta"
+    },
+    "approvedByUserId": {
+      "type": "string",
+      "description": "Kas patvirtino"
+    },
+    "rejectedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada atmesta"
+    },
+    "rejectedByUserId": {
+      "type": "string",
+      "description": "Kas atmet\u0117"
+    },
+    "rejectionReason": {
+      "type": "string",
+      "description": "Atmetimo prie\u017eastis"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada i\u0161mok\u0117ta"
+    },
+    "payoutId": {
+      "type": "string",
+      "description": "Payout ID (jei priskirta)"
+    }
+  },
+  "required": [
+    "dealId",
+    "userId",
+    "role",
+    "amount",
+    "amountWithoutVat",
+    "vatAmount",
+    "status",
+    "calculatedAt"
+  ]
+}

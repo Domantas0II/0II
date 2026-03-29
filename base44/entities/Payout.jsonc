@@ -1,0 +1,77 @@
+{
+  "name": "Payout",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "Gav\u0117jo user ID"
+    },
+    "userName": {
+      "type": "string",
+      "description": "Gav\u0117jo vardas (denormalizuotas)"
+    },
+    "totalAmount": {
+      "type": "number",
+      "description": "Bendra suma su PVM"
+    },
+    "totalVat": {
+      "type": "number",
+      "description": "Bendra PVM suma"
+    },
+    "totalWithoutVat": {
+      "type": "number",
+      "description": "Bendra suma be PVM"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "paid"
+      ],
+      "default": "draft",
+      "description": "Payout statusas"
+    },
+    "periodStart": {
+      "type": "string",
+      "format": "date",
+      "description": "Periodo prad\u017eia"
+    },
+    "periodEnd": {
+      "type": "string",
+      "format": "date",
+      "description": "Periodo pabaiga"
+    },
+    "itemCount": {
+      "type": "number",
+      "description": "Komisini\u0173 skai\u010dius"
+    },
+    "approvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada patvirtinta"
+    },
+    "approvedByUserId": {
+      "type": "string",
+      "description": "Kas patvirtino"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada i\u0161mok\u0117ta"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Kas suk\u016br\u0117"
+    }
+  },
+  "required": [
+    "userId",
+    "totalAmount",
+    "totalVat",
+    "totalWithoutVat",
+    "status",
+    "periodStart",
+    "periodEnd"
+  ]
+}

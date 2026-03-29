@@ -174,6 +174,12 @@ Deno.serve(async (req) => {
         }).catch(() => {});
       }
 
+      // === MODULE 17: AUTO-GENERATE COMMISSION ===
+      // Non-blocking: commission failure does not roll back deal
+      base44.functions.invoke('calculateCommission', { dealId: deal.id }).catch((e) => {
+        console.warn('Commission auto-generation failed (non-blocking):', e?.message);
+      });
+
       return Response.json({ success: true, dealId: deal.id });
 
     } catch (error) {

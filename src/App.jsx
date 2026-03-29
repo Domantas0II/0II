@@ -42,6 +42,10 @@ import ManagerInsights from '@/pages/ManagerInsights';
 import CustomerPortal from '@/pages/CustomerPortal';
 import PartnerPortal from '@/pages/PartnerPortal';
 import SystemSettings from '@/pages/SystemSettings';
+import CommissionsList from '@/pages/CommissionsList';
+import CommissionDetail from '@/pages/CommissionDetail';
+import PayoutsList from '@/pages/PayoutsList';
+import PayoutDetail from '@/pages/PayoutDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -118,6 +122,10 @@ const AuthenticatedApp = () => {
         <Route path="/priority-queue" element={<PriorityQueue />} />
         <Route path="/manager-insights" element={<ManagerInsights />} />
         <Route path="/system-settings" element={<SystemSettings />} />
+        <Route path="/commissions" element={<CommissionsList />} />
+        <Route path="/commissions/:id" element={<CommissionDetail />} />
+        <Route path="/payouts" element={<PayoutsList />} />
+        <Route path="/payouts/:id" element={<PayoutDetail />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />
