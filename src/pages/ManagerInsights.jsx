@@ -13,14 +13,7 @@ export default function ManagerInsights() {
   const role = normalizeRole(user?.role);
   const [selectedProject, setSelectedProject] = useState('');
 
-  // Check access
-  if (role !== 'ADMINISTRATOR' && role !== 'SALES_MANAGER') {
-    return (
-      <div className="text-center py-20 text-muted-foreground">
-        <p>Šiam puslapiui reikalingas vadybininko arba administratoriaus statusas</p>
-      </div>
-    );
-  }
+  const canView = role === 'ADMINISTRATOR' || role === 'SALES_MANAGER';
 
   const { data: projectsList = [] } = useQuery({
     queryKey: ['projects', user?.id, role],
@@ -80,8 +73,16 @@ export default function ManagerInsights() {
         atRiskReservations: atRisk
       };
     },
-    enabled: !!selectedProject
+    enabled: !!selectedProject && canView
   });
+
+  if (!canView) {
+    return (
+      <div className="text-center py-20 text-muted-foreground">
+        <p>Šiam puslapiui reikalingas vadybininko arba administratoriaus statusas</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

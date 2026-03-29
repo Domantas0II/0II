@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { normalizeRole } from '@/lib/constants';
-import { AlertCircle, Phone, CheckCircle2, Clock, Calendar, Home } from 'lucide-react';
+import { Phone, CheckCircle2, Clock, Calendar, Home, AlertCircle } from 'lucide-react';
 
 const BAND_COLORS = {
   critical: 'bg-red-100 border-red-500 text-red-900',

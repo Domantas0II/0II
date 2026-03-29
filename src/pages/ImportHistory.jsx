@@ -1,11 +1,11 @@
 import React from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, AlertCircle, Clock, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const STATUS_COLORS = {
   uploaded: 'bg-gray-100 text-gray-800',
@@ -25,7 +25,6 @@ const TYPE_LABELS = {
 };
 
 export default function ImportHistory() {
-  const { user } = useOutletContext();
   const navigate = useNavigate();
 
   const { data: sessions = [], isLoading } = useQuery({

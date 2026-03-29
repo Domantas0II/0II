@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, FileText, Plus } from 'lucide-react';
-import { normalizeRole, canManageProjects } from '@/lib/constants';
+import { normalizeRole } from '@/lib/constants';
 import { useQuery } from '@tanstack/react-query';
 
 const IMPORT_TYPES = [
@@ -18,8 +18,8 @@ const IMPORT_TYPES = [
 export default function ImportHub() {
   const { user } = useOutletContext();
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedType, setSelectedType] = React.useState(null);
+  const [selectedProject, setSelectedProject] = React.useState(null);
 
   const role = normalizeRole(user?.role);
   const canAccess = role === 'ADMINISTRATOR' || role === 'SALES_MANAGER';

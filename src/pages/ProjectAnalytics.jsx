@@ -6,11 +6,10 @@ import {
   getProjectKpis,
   getInquiryFunnel,
   getPipelineBreakdown,
-  getReservationStats,
   getDealStats
 } from '@/lib/analyticsHelpers';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import KPICard from '@/components/analytics/KPICard';
 import FunnelChart from '@/components/analytics/FunnelChart';
 import StatusChart from '@/components/analytics/StatusChart';

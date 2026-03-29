@@ -41,9 +41,6 @@ export default function InquiryPool() {
   const [duplicateDialog, setDuplicateDialog] = useState(null);
 
   const canAccess = canAccessInbound(normalizeRole(user?.role));
-  if (!canAccess) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie šio modulio</div>;
-  }
 
   // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
@@ -165,6 +162,10 @@ export default function InquiryPool() {
       convertInquiry.mutate(inquiry);
     }
   };
+
+  if (!canAccess) {
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie šio modulio</div>;
+  }
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const unitMap = Object.fromEntries(units.map(u => [u.id, u]));

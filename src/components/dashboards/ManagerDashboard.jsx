@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectKpis, getOverdueAlerts } from '@/lib/analyticsHelpers';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import KPICard from '@/components/analytics/KPICard';
 import AlertBanner from '@/components/analytics/AlertBanner';

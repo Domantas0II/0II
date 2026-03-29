@@ -8,17 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
 import { canAccessInbound, normalizeRole } from '@/lib/constants';
-import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import { getAccessibleProjectIds } from '@/lib/queryAccess';
 
 export default function CreateReservation() {
   const context = useOutletContext() || {};
   const { user } = context;
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     clientId: '',
     projectId: '',

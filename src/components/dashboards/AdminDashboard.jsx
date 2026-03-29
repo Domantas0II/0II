@@ -8,7 +8,6 @@ import {
   getDealStats,
   getOverdueAlerts
 } from '@/lib/analyticsHelpers';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import KPICard from '@/components/analytics/KPICard';
 import FunnelChart from '@/components/analytics/FunnelChart';

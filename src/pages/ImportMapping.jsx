@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
-import Papa from 'papaparse';
+
 
 const COLUMN_HINTS = {
   units: ['label', 'type', 'areaM2', 'price', 'roomsCount', 'bathroomsCount', 'floor', 'buildingName'],
@@ -17,7 +17,6 @@ const COLUMN_HINTS = {
 };
 
 export default function ImportMapping() {
-  const { user } = useOutletContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 

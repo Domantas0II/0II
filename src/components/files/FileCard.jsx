@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileIcon, Copy, Trash2, Archive, History } from 'lucide-react';
+import { Copy, Archive, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 

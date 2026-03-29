@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAgentPersonalStats, getOverdueAlerts } from '@/lib/analyticsHelpers';
-import { base44 } from '@/api/base44Client';
 import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

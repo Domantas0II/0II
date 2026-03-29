@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,6 @@ import { AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ImportPreview() {
-  const { user } = useOutletContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [committing, setCommitting] = useState(false);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Palette, Upload, Save, Shield } from 'lucide-react';
+import { Palette, Upload, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,7 +37,6 @@ export default function BrandingSettings() {
   if (!canManage) {
     return (
       <div className="text-center py-20 text-muted-foreground">
-        <Shield className="h-12 w-12 mx-auto mb-3 opacity-30" />
         <p>Tik administratoriai gali keisti branding nustatymus</p>
       </div>
     );
