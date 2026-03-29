@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -24,7 +24,7 @@ const PRIORITY_COLORS = {
   critical: 'bg-red-100 text-red-700'
 };
 
-function TaskCard({ task, onStatusChange, onReassign }) {
+function TaskCard({ task, onStatusChange }) {
   const now = new Date();
   const due = new Date(task.dueAt);
   const hoursLeft = Math.floor((due - now) / 3600000);
