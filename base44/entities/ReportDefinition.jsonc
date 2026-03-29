@@ -1,0 +1,41 @@
+{
+  "name": "ReportDefinition",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Ataskaitos pavadinimas"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "finance",
+        "pipeline",
+        "agent_performance",
+        "custom"
+      ],
+      "description": "Ataskaitos tipas"
+    },
+    "configJson": {
+      "type": "string",
+      "description": "JSON: { projectIds, agentIds, dateFrom, dateTo, fields, groupBy }"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "createdByUserId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "createdByUserId"
+  ]
+}

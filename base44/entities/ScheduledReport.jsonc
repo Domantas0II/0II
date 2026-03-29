@@ -1,0 +1,51 @@
+{
+  "name": "ScheduledReport",
+  "type": "object",
+  "properties": {
+    "reportDefinitionId": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Apra\u0161omasis pavadinimas"
+    },
+    "scheduleType": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "description": "Da\u017enumas"
+    },
+    "scheduleConfigJson": {
+      "type": "string",
+      "description": "JSON: { dayOfWeek (0-6), dayOfMonth (1-31), timeHour }"
+    },
+    "recipientsJson": {
+      "type": "string",
+      "description": "JSON: [{ type: 'email'|'userId', value: '...' }]"
+    },
+    "lastRunAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nextRunAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "createdByUserId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "reportDefinitionId",
+    "name",
+    "scheduleType",
+    "createdByUserId"
+  ]
+}

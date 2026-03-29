@@ -48,6 +48,10 @@ import CommissionRulesList from '@/pages/CommissionRulesList';
 import CommissionRuleForm from '@/pages/CommissionRuleForm';
 import PayoutsList from '@/pages/PayoutsList';
 import PayoutDetail from '@/pages/PayoutDetail';
+import ReportsList from '@/pages/ReportsList';
+import ReportBuilder from '@/pages/ReportBuilder';
+import ReportDetail from '@/pages/ReportDetail';
+import ScheduledReports from '@/pages/ScheduledReports';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -132,6 +136,10 @@ const AuthenticatedApp = () => {
         <Route path="/commission-rules/:id/edit" element={<CommissionRuleForm />} />
         <Route path="/payouts" element={<PayoutsList />} />
         <Route path="/payouts/:id" element={<PayoutDetail />} />
+        <Route path="/reports" element={<ReportsList />} />
+        <Route path="/reports/new" element={<ReportBuilder />} />
+        <Route path="/reports/:id" element={<ReportDetail />} />
+        <Route path="/scheduled-reports" element={<ScheduledReports />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />

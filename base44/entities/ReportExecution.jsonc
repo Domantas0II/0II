@@ -1,0 +1,65 @@
+{
+  "name": "ReportExecution",
+  "type": "object",
+  "properties": {
+    "reportDefinitionId": {
+      "type": "string",
+      "description": "ReportDefinition ID"
+    },
+    "executedByUserId": {
+      "type": "string"
+    },
+    "executedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "reportType": {
+      "type": "string",
+      "description": "Denormalizuotas tipas"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "json",
+        "csv",
+        "xlsx",
+        "pdf"
+      ],
+      "default": "json"
+    },
+    "resultFileAssetId": {
+      "type": "string",
+      "description": "FileAsset ID su eksporto failu"
+    },
+    "resultJson": {
+      "type": "string",
+      "description": "JSON rezultatas (tik json format)"
+    },
+    "errorMessage": {
+      "type": "string"
+    },
+    "filtersApplied": {
+      "type": "string",
+      "description": "JSON: kokie filtrai buvo taikyti"
+    },
+    "rowCount": {
+      "type": "number",
+      "description": "Gr\u0105\u017eint\u0173 eilu\u010di\u0173 skai\u010dius"
+    }
+  },
+  "required": [
+    "reportDefinitionId",
+    "executedByUserId",
+    "executedAt",
+    "status"
+  ]
+}
