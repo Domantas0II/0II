@@ -18,15 +18,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'userId, periodStart, periodEnd required' }, { status: 400 });
     }
 
-    // Fetch all approved commissions for user, not yet assigned to a payout
+    // Fetch approved + payable commissions for user, not yet assigned to a payout
     const allApproved = await base44.asServiceRole.entities.Commission.filter({
       userId,
       status: 'approved'
     });
 
-    // Filter: not yet in a payout, within period
+    // Filter: approved + managerPayoutStatus=payable + not yet in payout + within period
     const eligible = (allApproved || []).filter(c => {
       if (c.payoutId) return false;
+      if (c.managerPayoutStatus !== 'payable') return false;
       const calcDate = new Date(c.calculatedAt);
       return calcDate >= new Date(periodStart) && calcDate <= new Date(periodEnd);
     });

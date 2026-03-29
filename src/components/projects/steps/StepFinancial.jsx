@@ -60,22 +60,54 @@ export default function StepFinancial({ data, onChange }) {
       </div>
 
       <div className="p-3 rounded-lg bg-muted/40 border space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Komisiniai</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Komisinių skaičiavimas</p>
         <div className="grid grid-cols-2 gap-3">
-          <FieldGroup label="Numatytasis komisinis (%)">
-            <Input type="number" min={0} max={100} placeholder="0" value={data.commissionPercentDefault || ''} onChange={e => set('commissionPercentDefault', parseFloat(e.target.value) || '')} />
+          <FieldGroup label="Bendras komisinis % nuo pardavimo">
+            <Input type="number" min={0} max={100} step={0.1} placeholder="pvz. 3.0" value={data.commissionCalculationPercent || ''} onChange={e => set('commissionCalculationPercent', parseFloat(e.target.value) || '')} />
           </FieldGroup>
-          <FieldGroup label="PVM režimas">
-            <Select value={data.commissionVatMode || ''} onValueChange={v => set('commissionVatMode', v)}>
-              <SelectTrigger><SelectValue placeholder="Pasirinkite..." /></SelectTrigger>
+          <FieldGroup label="Split bazė">
+            <Select value={data.commissionSplitBase || 'without_vat'} onValueChange={v => set('commissionSplitBase', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Object.entries(COMMISSION_VAT_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
-                ))}
+                <SelectItem value="without_vat">Be PVM</SelectItem>
+                <SelectItem value="with_vat">Su PVM</SelectItem>
               </SelectContent>
             </Select>
           </FieldGroup>
+          <FieldGroup label="Įmonės dalis (%)">
+            <Input type="number" min={0} max={100} placeholder="70" value={data.companyCommissionSharePercent ?? 70} onChange={e => {
+              const company = parseFloat(e.target.value) || 0;
+              set('companyCommissionSharePercent', company);
+              set('managerCommissionSharePercent', Math.round((100 - company) * 100) / 100);
+            }} />
+          </FieldGroup>
+          <FieldGroup label="Vadybininko dalis (%)">
+            <Input type="number" min={0} max={100} placeholder="30" value={data.managerCommissionSharePercent ?? 30} onChange={e => {
+              const manager = parseFloat(e.target.value) || 0;
+              set('managerCommissionSharePercent', manager);
+              set('companyCommissionSharePercent', Math.round((100 - manager) * 100) / 100);
+            }} />
+          </FieldGroup>
         </div>
+        {/* Validation hint */}
+        {(data.companyCommissionSharePercent != null || data.managerCommissionSharePercent != null) && (
+          (() => {
+            const sum = (data.companyCommissionSharePercent ?? 70) + (data.managerCommissionSharePercent ?? 30);
+            return sum !== 100 ? (
+              <p className="text-xs text-destructive">Įmonės + vadybininko dalys turi sudaryti 100% (dabar: {sum}%)</p>
+            ) : (
+              <p className="text-xs text-green-600">✓ Dalys sudaro 100%</p>
+            );
+          })()
+        )}
+        {data.commissionCalculationPercent > 0 && (
+          <div className="bg-background border rounded p-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Peržiūra (nuo €100,000 pardavimo):</p>
+            <p>Bendras komisinis: <strong>€{(100000 * (data.commissionCalculationPercent || 0) / 100).toLocaleString('lt-LT', { minimumFractionDigits: 2 })}</strong></p>
+            <p>Įmonei: <strong>€{(100000 * (data.commissionCalculationPercent || 0) / 100 * (data.companyCommissionSharePercent ?? 70) / 100).toLocaleString('lt-LT', { minimumFractionDigits: 2 })}</strong></p>
+            <p>Vadybininkui: <strong>€{(100000 * (data.commissionCalculationPercent || 0) / 100 * (data.managerCommissionSharePercent ?? 30) / 100).toLocaleString('lt-LT', { minimumFractionDigits: 2 })}</strong></p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -30,6 +30,19 @@
       "type": "string",
       "format": "date-time",
       "description": "Paskutinis prisijungimas"
+    },
+    "isVatPayer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar vadybininkas yra PVM mok\u0117tojas"
+    },
+    "vatRate": {
+      "type": "number",
+      "description": "PVM norma % (pvz. 21), jei isVatPayer = true"
     }
-  }
+  },
+  "required": [
+    "phoneNumber",
+    "lastLoginAt"
+  ]
 }

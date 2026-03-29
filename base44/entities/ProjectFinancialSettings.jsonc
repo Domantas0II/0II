@@ -48,7 +48,7 @@
     },
     "commissionPercentDefault": {
       "type": "number",
-      "description": "Numatytasis komisinis %"
+      "description": "Numatytasis komisinis % (legacy)"
     },
     "commissionVatMode": {
       "type": "string",
@@ -56,7 +56,30 @@
         "with_vat",
         "without_vat"
       ],
-      "description": "Komisinio PVM re\u017eimas"
+      "description": "Komisinio PVM re\u017eimas (legacy)"
+    },
+    "commissionCalculationPercent": {
+      "type": "number",
+      "description": "Bendras komisinio procentas nuo pardavimo baz\u0117s"
+    },
+    "companyCommissionSharePercent": {
+      "type": "number",
+      "default": 70,
+      "description": "\u012emon\u0117s komisinio dalis %"
+    },
+    "managerCommissionSharePercent": {
+      "type": "number",
+      "default": 30,
+      "description": "Vadybininko komisinio dalis %"
+    },
+    "commissionSplitBase": {
+      "type": "string",
+      "enum": [
+        "without_vat",
+        "with_vat"
+      ],
+      "default": "without_vat",
+      "description": "Komisinio split baz\u0117"
     }
   },
   "required": [

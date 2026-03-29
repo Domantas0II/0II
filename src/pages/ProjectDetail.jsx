@@ -242,8 +242,18 @@ export default function ProjectDetail() {
             {financial ? (
               <>
                 <InfoRow label="Įmonė" value={financial.developerCompanyName} />
-                <InfoRow label="Komisinis" value={financial.commissionPercentDefault ? `${financial.commissionPercentDefault}%` : undefined} />
                 <InfoRow label="Avansas" value={financial.advanceRequired && financial.advanceValue ? `${financial.advanceValue}${financial.advanceType === 'percent' ? '%' : '€'}` : 'Nereikalingas'} />
+                {financial.commissionCalculationPercent != null && (
+                  <>
+                    <div className="pt-2 border-t">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Komisiniai</p>
+                      <InfoRow label="Bendras komisinis %" value={`${financial.commissionCalculationPercent}%`} />
+                      <InfoRow label="Įmonės dalis" value={`${financial.companyCommissionSharePercent ?? 70}%`} />
+                      <InfoRow label="Vadybininko dalis" value={`${financial.managerCommissionSharePercent ?? 30}%`} />
+                      <InfoRow label="Split bazė" value={financial.commissionSplitBase === 'with_vat' ? 'Su PVM' : 'Be PVM'} />
+                    </div>
+                  </>
+                )}
               </>
             ) : <p className="text-sm text-muted-foreground">Nepildyta</p>}
           </CardContent>

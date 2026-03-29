@@ -129,6 +129,7 @@ const AuthenticatedApp = () => {
         <Route path="/commission-rules" element={<CommissionRulesList />} />
         <Route path="/commission-rules/new" element={<CommissionRuleForm />} />
         <Route path="/commission-rules/:id" element={<CommissionRuleForm />} />
+        <Route path="/commission-rules/:id/edit" element={<CommissionRuleForm />} />
         <Route path="/payouts" element={<PayoutsList />} />
         <Route path="/payouts/:id" element={<PayoutDetail />} />
       </Route>
