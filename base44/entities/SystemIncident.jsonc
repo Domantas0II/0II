@@ -1,0 +1,67 @@
+{
+  "name": "SystemIncident",
+  "type": "object",
+  "properties": {
+    "incidentType": {
+      "type": "string",
+      "description": "CRITICAL_HEALTH_CHECK, WEBHOOK_FAILURES, SLA_BREACH_SPIKE, IMPORT_FAILURES, PAYOUT_INCONSISTENCY"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "investigating",
+        "resolved"
+      ],
+      "default": "open"
+    },
+    "relatedEntityType": {
+      "type": "string"
+    },
+    "relatedEntityId": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "assignedToUserId": {
+      "type": "string"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Investigation notes"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "acknowledgedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedByUserId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "incidentType",
+    "severity",
+    "status",
+    "description",
+    "createdAt"
+  ]
+}

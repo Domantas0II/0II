@@ -1,0 +1,36 @@
+{
+  "name": "SystemHealthCheck",
+  "type": "object",
+  "properties": {
+    "checkName": {
+      "type": "string",
+      "description": "Health check pavadinimas"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "warning",
+        "critical"
+      ],
+      "default": "ok"
+    },
+    "message": {
+      "type": "string",
+      "description": "Trumpas rezultato apra\u0161as"
+    },
+    "detailsJson": {
+      "type": "string",
+      "description": "JSON: detal\u016bs duomenys"
+    },
+    "checkedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "checkName",
+    "status",
+    "checkedAt"
+  ]
+}

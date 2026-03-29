@@ -1,0 +1,33 @@
+{
+  "name": "SystemTestRun",
+  "type": "object",
+  "properties": {
+    "testName": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "default": "passed"
+    },
+    "resultJson": {
+      "type": "string",
+      "description": "JSON: { passed, failed, details[] }"
+    },
+    "durationMs": {
+      "type": "number"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "testName",
+    "status",
+    "createdAt"
+  ]
+}

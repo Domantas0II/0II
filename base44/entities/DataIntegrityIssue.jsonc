@@ -1,0 +1,52 @@
+{
+  "name": "DataIntegrityIssue",
+  "type": "object",
+  "properties": {
+    "issueType": {
+      "type": "string",
+      "description": "RESERVATION_UNIT_MISMATCH, DEAL_NO_COMMISSION, etc."
+    },
+    "entityType": {
+      "type": "string"
+    },
+    "entityId": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "detectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved": {
+      "type": "boolean",
+      "default": false
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedByUserId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "issueType",
+    "entityType",
+    "entityId",
+    "description",
+    "severity",
+    "detectedAt"
+  ]
+}

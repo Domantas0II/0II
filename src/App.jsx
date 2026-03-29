@@ -57,6 +57,11 @@ import IntegrationDetail from '@/pages/IntegrationDetail';
 import WebhookEndpoints from '@/pages/WebhookEndpoints';
 import ApiKeys from '@/pages/ApiKeys';
 import WebhookLogs from '@/pages/WebhookLogs';
+import SystemHealthDashboard from '@/pages/SystemHealthDashboard';
+import IncidentsList from '@/pages/IncidentsList';
+import IncidentDetail from '@/pages/IncidentDetail';
+import DataIntegrityPage from '@/pages/DataIntegrityPage';
+import SystemTestsPage from '@/pages/SystemTestsPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -150,6 +155,11 @@ const AuthenticatedApp = () => {
         <Route path="/webhook-endpoints" element={<WebhookEndpoints />} />
         <Route path="/api-keys" element={<ApiKeys />} />
         <Route path="/webhook-logs" element={<WebhookLogs />} />
+        <Route path="/system-health" element={<SystemHealthDashboard />} />
+        <Route path="/incidents" element={<IncidentsList />} />
+        <Route path="/incidents/:id" element={<IncidentDetail />} />
+        <Route path="/data-integrity" element={<DataIntegrityPage />} />
+        <Route path="/system-tests" element={<SystemTestsPage />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />
