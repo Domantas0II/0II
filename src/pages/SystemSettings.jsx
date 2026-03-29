@@ -57,42 +57,41 @@ export default function SystemSettings() {
     }, '-created_date', 50)
   });
 
-  // Mutations
+  // Mutations via governance functions
   const updateSetting = useMutation({
-    mutationFn: ({ id, key, valueJson, description }) =>
-      base44.entities.SystemSetting.update(id, { valueJson, description }),
+    mutationFn: ({ key, valueJson, description, category }) =>
+      base44.functions.invoke('updateSystemSetting', { key, valueJson, description, category }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
-      base44.functions.invoke('invalidateSettingsCache', {});
       toast.success('Nustatymas atnaujintas');
       setEditingKey(null);
-    }
-  });
-
-  const createSetting = useMutation({
-    mutationFn: ({ key, valueJson, description, category }) =>
-      base44.entities.SystemSetting.create({ key, valueJson, description, category }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
-      toast.success('Nustatymas sukurtas');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || 'Klaida');
     }
   });
 
   const updateFlag = useMutation({
-    mutationFn: ({ id, ...data }) => base44.entities.FeatureFlag.update(id, data),
+    mutationFn: ({ key, isEnabled, rolloutType, allowedRoles, percentage, description }) =>
+      base44.functions.invoke('updateFeatureFlag', { key, isEnabled, rolloutType, allowedRoles, percentage, description }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['featureFlags'] });
-      base44.functions.invoke('invalidateSettingsCache', {});
       toast.success('Feature flag atnaujintas');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || 'Klaida');
     }
   });
 
   const updateLimit = useMutation({
-    mutationFn: ({ id, value }) => base44.entities.SystemLimit.update(id, { value }),
+    mutationFn: ({ key, value, unit }) =>
+      base44.functions.invoke('updateSystemLimit', { key, value, unit }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['systemLimits'] });
-      base44.functions.invoke('invalidateSettingsCache', {});
       toast.success('Limitas atnaujintas');
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || 'Klaida');
     }
   });
 
@@ -101,10 +100,10 @@ export default function SystemSettings() {
       // Validate JSON
       JSON.parse(editValue);
       updateSetting.mutate({
-        id: setting.id,
         key: setting.key,
         valueJson: editValue,
-        description: setting.description
+        description: setting.description,
+        category: setting.category
       });
     } catch (e) {
       toast.error('Negalioja JSON');
@@ -218,8 +217,16 @@ export default function SystemSettings() {
                     <Switch
                       checked={flag.isEnabled}
                       onCheckedChange={(value) =>
-                        updateFlag.mutate({ id: flag.id, isEnabled: value })
+                        updateFlag.mutate({
+                          key: flag.key,
+                          isEnabled: value,
+                          rolloutType: flag.rolloutType,
+                          allowedRoles: flag.allowedRoles,
+                          percentage: flag.percentage,
+                          description: flag.description
+                        })
                       }
+                      disabled={updateFlag.isPending}
                     />
                     <Badge variant={flag.isEnabled ? 'default' : 'secondary'}>
                       {flag.isEnabled ? 'ON' : 'OFF'}
@@ -239,21 +246,29 @@ export default function SystemSettings() {
                   </div>
                 )}
                 {flag.rolloutType === 'percentage' && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Percentage:</span>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={flag.percentage || 0}
-                      onChange={(e) =>
-                        updateFlag.mutate({ id: flag.id, percentage: parseInt(e.target.value) })
-                      }
-                      className="w-20"
-                    />
-                    <span>%</span>
-                  </div>
-                )}
+                   <div className="flex items-center gap-2">
+                     <span className="text-muted-foreground">Percentage:</span>
+                     <Input
+                       type="number"
+                       min="0"
+                       max="100"
+                       value={flag.percentage || 0}
+                       onChange={(e) =>
+                         updateFlag.mutate({
+                           key: flag.key,
+                           isEnabled: flag.isEnabled,
+                           rolloutType: flag.rolloutType,
+                           allowedRoles: flag.allowedRoles,
+                           percentage: parseInt(e.target.value),
+                           description: flag.description
+                         })
+                       }
+                       className="w-20"
+                       disabled={updateFlag.isPending}
+                     />
+                     <span>%</span>
+                   </div>
+                 )}
               </CardContent>
             </Card>
           ))}
@@ -268,16 +283,18 @@ export default function SystemSettings() {
                 <CardDescription>{limit.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex items-center gap-3">
-                <Input
-                  type="number"
-                  value={limit.value}
-                  onChange={(e) =>
-                    updateLimit.mutate({ id: limit.id, value: parseInt(e.target.value) })
-                  }
-                  className="w-24"
-                />
-                <Badge variant="outline">{limit.unit}</Badge>
-              </CardContent>
+                 <Input
+                   type="number"
+                   value={limit.value}
+                   onChange={(e) =>
+                     updateLimit.mutate({ key: limit.key, value: parseInt(e.target.value), unit: limit.unit })
+                   }
+                   className="w-24"
+                   disabled={updateLimit.isPending}
+                 />
+                 <Badge variant="outline">{limit.unit}</Badge>
+                 {updateLimit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+               </CardContent>
             </Card>
           ))}
         </TabsContent>

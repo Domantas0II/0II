@@ -1,5 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// Role normalization and system limits helper
+const normalizeRole = (role) => {
+  const map = { 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' };
+  return map[role] || role;
+};
+
+async function getSystemLimit(key, defaultValue = null, base44) {
+  try {
+    const limits = await base44.asServiceRole.entities.SystemLimit.filter({ key });
+    if (limits && limits.length > 0) {
+      return limits[0].value;
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch limit ${key}:`, error.message);
+  }
+  return defaultValue;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -10,8 +28,7 @@ Deno.serve(async (req) => {
     }
 
     // Role normalization
-    const roleMap = { 'admin': 'ADMINISTRATOR', 'user': 'SALES_AGENT' };
-    const role = roleMap[user.role] || user.role;
+    const role = normalizeRole(user.role);
     
     if (role !== 'ADMINISTRATOR' && role !== 'SALES_MANAGER') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -22,6 +39,14 @@ Deno.serve(async (req) => {
     if (!importType || !projectId || !Array.isArray(rows) || !mapping) {
       return Response.json({ 
         error: 'Missing: importType, projectId, rows, mapping' 
+      }, { status: 400 });
+    }
+
+    // GOVERNANCE FIX: Check import.maxRowsPerImport from SystemLimit
+    const maxRows = await getSystemLimit('import.maxRows', 1000, base44);
+    if (rows.length > maxRows) {
+      return Response.json({
+        error: `Import exceeds max rows limit (${maxRows}). Submitted: ${rows.length}`
       }, { status: 400 });
     }
 

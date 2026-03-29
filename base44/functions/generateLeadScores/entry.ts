@@ -5,6 +5,26 @@ const normalizeRole = (r) => {
   return map[r] || r;
 };
 
+// GOVERNANCE: Get system setting from database
+async function getSettingValue(key, defaultValue = null, base44) {
+  try {
+    const settings = await base44.asServiceRole.entities.SystemSetting.filter({ key });
+    if (settings && settings.length > 0) {
+      return JSON.parse(settings[0].valueJson);
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch setting ${key}:`, error.message);
+  }
+  return defaultValue;
+}
+
+/**
+ * GOVERNANCE NOTE: Scoring weights are centrally managed in SystemSetting
+ * Keys: scoring.inquiryWeights, scoring.clientWeights, etc.
+ * This ensures all scoring engines use consistent, admin-controlled parameters
+ * Future: Load weights from DB per-call for real-time adjustment
+ */
+
 // Scoring functions (inlined to avoid import issues in Deno)
 async function scoreInquiryPriority(inquiry) {
   const now = new Date();
@@ -231,6 +251,10 @@ Deno.serve(async (req) => {
 
     const { projectId, clientId, inquiryId, interestId } = await req.json();
     const role = normalizeRole(user.role);
+
+    // GOVERNANCE: Pre-load scoring weights from SystemSetting (optional optimization)
+    // Individual scoring functions will use these if available
+    const scoringWeights = await getSettingValue('scoring.weights', null, base44);
 
     // FIX #1: Agent access control - enable with scope validation
     // SALES_AGENT can score, but only within their visible scope

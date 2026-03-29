@@ -1,12 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// FIX #5: Role normalization (shared pattern across task functions)
-// This pattern is intentionally copy-pasted into createTask, getTasks, reassignTask, slaOverdueCheck
-// to avoid import dependencies. Ensure all maintain identical mapping.
+// Role normalization and system settings helpers (copied to avoid import deps)
 const normalizeRole = (role) => {
   const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
   return map[role] || role;
 };
+
+// GOVERNANCE: Get system setting from database
+async function getSettingValue(key, defaultValue = null, base44) {
+  try {
+    const settings = await base44.asServiceRole.entities.SystemSetting.filter({ key });
+    if (settings && settings.length > 0) {
+      return JSON.parse(settings[0].valueJson);
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch setting ${key}:`, error.message);
+  }
+  return defaultValue;
+}
 
 Deno.serve(async (req) => {
   try {
@@ -46,13 +57,13 @@ Deno.serve(async (req) => {
 
       // 2. ESCALATION LOGIC
       if (task.status === 'overdue' || dueTime < now) {
-        // Fetch SLA config for project
-        const slaConfigs = await base44.asServiceRole.entities.SLAConfig.filter({
-          projectId: task.projectId
-        });
-        const slaConfig = slaConfigs?.[0] || {
-          escalationAfterMinutes: 60,
-          escalationMaxLevel: 2
+        // GOVERNANCE FIX: Use SystemSetting for SLA parameters (centralized)
+        const escalationAfterMinutes = await getSettingValue('sla.escalationAfterMinutes', 60, base44);
+        const escalationMaxLevel = await getSettingValue('sla.maxEscalationLevel', 2, base44);
+        
+        const slaConfig = {
+          escalationAfterMinutes,
+          escalationMaxLevel
         };
 
         // IDEMPOTENCY: Check if we've already escalated recently (within 5 min)
