@@ -36,10 +36,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No eligible approved commissions found for this period' }, { status: 400 });
     }
 
-    // Calculate totals
-    const totalAmount = eligible.reduce((sum, c) => sum + c.amount, 0);
-    const totalVat = eligible.reduce((sum, c) => sum + c.vatAmount, 0);
-    const totalWithoutVat = eligible.reduce((sum, c) => sum + c.amountWithoutVat, 0);
+    // Calculate totals using correct Commission field names
+    const totalAmount = eligible.reduce((sum, c) => sum + (c.managerCommissionAmountWithVat ?? c.managerCommissionAmount ?? 0), 0);
+    const totalVat = eligible.reduce((sum, c) => sum + (c.managerCommissionVatAmount ?? 0), 0);
+    const totalWithoutVat = eligible.reduce((sum, c) => sum + (c.managerCommissionAmountWithoutVat ?? c.managerCommissionAmount ?? 0), 0);
 
     // Fetch user name
     const users = await base44.asServiceRole.entities.User.filter({ id: userId });
@@ -64,9 +64,9 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.PayoutItem.create({
         payoutId: payout.id,
         commissionId: c.id,
-        amount: c.amount,
-        vatAmount: c.vatAmount,
-        amountWithoutVat: c.amountWithoutVat
+        amount: c.managerCommissionAmountWithVat ?? c.managerCommissionAmount ?? 0,
+        vatAmount: c.managerCommissionVatAmount ?? 0,
+        amountWithoutVat: c.managerCommissionAmountWithoutVat ?? c.managerCommissionAmount ?? 0
       })
     );
     const updatePromises = eligible.map(c =>

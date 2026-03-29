@@ -10,7 +10,9 @@ Deno.serve(async (req) => {
     }
 
     // === ROLE CHECK ===
-    if (!['ADMINISTRATOR', 'SALES_MANAGER'].includes(user.role)) {
+    const normalizeRole = (r) => ({ admin: 'ADMINISTRATOR', user: 'SALES_AGENT' }[r] || r);
+    const userRole = normalizeRole(user.role);
+    if (!['ADMINISTRATOR', 'SALES_MANAGER'].includes(userRole)) {
       return Response.json({ error: 'Tik administratoriai ir vadybininkai gali kurti pardavimus' }, { status: 403 });
     }
 
