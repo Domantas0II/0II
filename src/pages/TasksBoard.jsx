@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, AlertCircle, Zap, ChevronRight } from 'lucide-react';
+import { Clock, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { normalizeRole } from '@/lib/constants';
 
@@ -104,13 +104,6 @@ export default function TasksBoard() {
 
   // Access control
   const canView = role === 'SALES_MANAGER' || role === 'ADMINISTRATOR';
-  if (!canView) {
-    return (
-      <div className="text-center py-10 text-muted-foreground">
-        Tik vadybininkai ir administratoriai gali naudoti Kanban lentą
-      </div>
-    );
-  }
 
   // Fetch projects
   const { data: projects = [] } = useQuery({
@@ -167,6 +160,14 @@ export default function TasksBoard() {
   COLUMNS.forEach(col => {
     tasksByStatus[col.id] = tasks.filter(t => t.status === col.id);
   });
+
+  if (!canView) {
+    return (
+      <div className="text-center py-10 text-muted-foreground">
+        Tik vadybininkai ir administratoriai gali naudoti Kanban lentą
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

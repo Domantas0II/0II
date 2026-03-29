@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, TrendingDown, Clock, Zap } from 'lucide-react';
+import { AlertCircle, Clock, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { normalizeRole } from '@/lib/constants';
 
@@ -18,13 +18,6 @@ export default function SLADashboard() {
 
   // Access control
   const canView = role === 'SALES_MANAGER' || role === 'ADMINISTRATOR';
-  if (!canView) {
-    return (
-      <div className="text-center py-10 text-muted-foreground">
-        Tik vadybininkai ir administratoriai gali peržiūrėti SLA ataskaitą
-      </div>
-    );
-  }
 
   // Fetch projects
   const { data: projects = [] } = useQuery({
@@ -97,6 +90,14 @@ export default function SLADashboard() {
       return new Date(a.dueAt) - new Date(b.dueAt);
     })
     .slice(0, 5);
+
+  if (!canView) {
+    return (
+      <div className="text-center py-10 text-muted-foreground">
+        Tik vadybininkai ir administratoriai gali peržiūrėti SLA ataskaitą
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

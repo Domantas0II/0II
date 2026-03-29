@@ -44,9 +44,6 @@ export default function ClientDetail() {
   const [selectedUnitId, setSelectedUnitId] = useState('');
 
   const canAccess = canAccessInbound(normalizeRole(user?.role));
-  if (!canAccess) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
-  }
 
   // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
@@ -177,6 +174,10 @@ export default function ClientDetail() {
   const unitMap = Object.fromEntries(units.map(u => [u.id, u]));
   const assignedUnitIds = new Set(unitInterests.map(ui => ui.unitId));
   const availableUnits = units.filter(u => !assignedUnitIds.has(u.id));
+
+  if (!canAccess) {
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
+  }
 
   if (!client) {
     return (

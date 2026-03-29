@@ -27,39 +27,33 @@ export default function SystemSettings() {
     base44.auth.me().then(setCurrentUser);
   }, []);
 
-  if (currentUser && normalizeRole(currentUser.role) !== 'ADMINISTRATOR') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Lock className="h-12 w-12 mx-auto mb-4 text-destructive opacity-50" />
-          <h1 className="text-xl font-bold">Prieiga uždrausta</h1>
-          <p className="text-sm text-muted-foreground mt-2">Tik administratoriai gali keisti sistemos nustatymus</p>
-        </div>
-      </div>
-    );
-  }
+  const isAdmin = currentUser ? normalizeRole(currentUser.role) === 'ADMINISTRATOR' : null;
 
-  // Fetch data
+  // Fetch data — always call hooks, use enabled flag
   const { data: settings = [] } = useQuery({
     queryKey: ['systemSettings'],
-    queryFn: () => base44.entities.SystemSetting.list('-updated_date')
+    queryFn: () => base44.entities.SystemSetting.list('-updated_date'),
+    enabled: isAdmin === true,
   });
 
   const { data: flags = [] } = useQuery({
     queryKey: ['featureFlags'],
-    queryFn: () => base44.entities.FeatureFlag.list('-updated_date')
+    queryFn: () => base44.entities.FeatureFlag.list('-updated_date'),
+    enabled: isAdmin === true,
   });
 
   const { data: limits = [] } = useQuery({
     queryKey: ['systemLimits'],
-    queryFn: () => base44.entities.SystemLimit.list('-updated_date')
+    queryFn: () => base44.entities.SystemLimit.list('-updated_date'),
+    enabled: isAdmin === true,
   });
 
   const { data: auditLogs = [] } = useQuery({
     queryKey: ['settingsAuditLogs'],
     queryFn: () => base44.entities.AuditLog.filter({
       action: { $in: ['SYSTEM_SETTING_UPDATED', 'SYSTEM_SETTING_CREATED', 'FEATURE_FLAG_UPDATED', 'FEATURE_FLAG_CREATED'] }
-    }, '-created_date', 50)
+    }, '-created_date', 50),
+    enabled: isAdmin === true,
   });
 
   // Mutations via governance functions
@@ -114,6 +108,19 @@ export default function SystemSettings() {
       toast.error('Negalioja JSON');
     }
   };
+
+  // Show access denied after all hooks
+  if (currentUser && isAdmin === false) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Lock className="h-12 w-12 mx-auto mb-4 text-destructive opacity-50" />
+          <h1 className="text-xl font-bold">Prieiga uždrausta</h1>
+          <p className="text-sm text-muted-foreground mt-2">Tik administratoriai gali keisti sistemos nustatymus</p>
+        </div>
+      </div>
+    );
+  }
 
   // Group settings by category
   const settingsByCategory = {

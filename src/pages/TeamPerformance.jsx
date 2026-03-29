@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -15,11 +15,7 @@ export default function TeamPerformance() {
   const context = useOutletContext() || {};
   const { user } = context;
   const normalizedRole = normalizeRole(user?.role);
-
-  // Only ADMIN and SALES_MANAGER can access
-  if (!['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizedRole)) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
-  }
+  const canAccess = ['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizedRole);
 
   // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
@@ -49,6 +45,10 @@ export default function TeamPerformance() {
 
   // Sort by sold value
   const sortedAgents = agentPerformance?.sort((a, b) => b.soldValue - a.soldValue) || [];
+
+  if (!canAccess) {
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
+  }
 
   return (
     <div className="space-y-6">

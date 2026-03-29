@@ -30,9 +30,6 @@ export default function CreateReservation() {
   const [validationError, setValidationError] = useState('');
 
   const canAccess = canAccessInbound(normalizeRole(user?.role));
-  if (!canAccess) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
-  }
 
   // Fetch data
   const { data: accessibleIds = null } = useQuery({
@@ -175,6 +172,10 @@ export default function CreateReservation() {
 
   const selectedClient = clients.find(c => c.id === form.clientId);
   const selectedProject = projects.find(p => p.id === form.projectId);
+
+  if (!canAccess) {
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos</div>;
+  }
 
   return (
     <div className="space-y-6">

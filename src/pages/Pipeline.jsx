@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import { getAccessibleProjectIds } from '@/lib/queryAccess';
 import { canViewPipeline, filterPipelineByRole } from '@/lib/pipelineAccess';
 import { normalizeRole } from '@/lib/constants';
 import { PIPELINE_STAGES } from '@/lib/pipelineConstants';
@@ -16,9 +16,6 @@ export default function Pipeline() {
   const queryClient = useQueryClient();
 
   const canAccess = canViewPipeline(normalizeRole(user?.role));
-  if (!canAccess) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie pipeline</div>;
-  }
 
   // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
@@ -142,12 +139,15 @@ export default function Pipeline() {
   }));
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
-  const unitMap = Object.fromEntries(units.map(u => [u.id, u]));
 
   const overdueCount = enrichedInterests.filter(i => {
     if (!i.nextFollowUpAt) return false;
     return new Date(i.nextFollowUpAt) <= new Date() && !i.nextActivity;
   }).length;
+
+  if (!canAccess) {
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie pipeline</div>;
+  }
 
   return (
     <div className="space-y-6">
