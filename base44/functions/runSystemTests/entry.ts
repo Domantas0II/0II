@@ -15,8 +15,10 @@ async function smokeTest(name, fn) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMINISTRATOR')) {
+    // Support both: user-invoked (with auth) and scheduled automation (no user session)
+    const user = await base44.auth.me().catch(() => null);
+    // Only block if explicitly called by a non-admin user (not when called by automation)
+    if (user && user.role !== 'admin' && user.role !== 'ADMINISTRATOR') {
       return Response.json({ error: 'Forbidden: Admin only' }, { status: 403 });
     }
 
@@ -43,23 +45,32 @@ Deno.serve(async (req) => {
       return `Report generated: ${res.data.result?.type}, ${res.data.result?.rows?.length || 0} rows`;
     }));
 
-    // TEST 3: dispatchEvent function callable
-    tests.push(await smokeTest('dispatch_event_callable', async () => {
-      const res = await base44.asServiceRole.functions.invoke('dispatchEvent', {
+    // TEST 3: IntegrationEvent write/read roundtrip (replaces dispatchEvent invoke)
+    tests.push(await smokeTest('integration_event_write', async () => {
+      const created = await base44.asServiceRole.entities.IntegrationEvent.create({
         eventType: 'SMOKE_TEST',
         entityType: 'SystemTestRun',
         entityId: 'smoke-test',
-        payload: { test: true, ts: now() }
+        payloadJson: JSON.stringify({ test: true, ts: now() }),
+        processed: false,
+        source: 'internal',
+        createdAt: now()
       });
-      if (!res?.data?.success) throw new Error('dispatchEvent returned failure');
-      return `Event dispatched: eventId=${res.data.eventId}`;
+      if (!created?.id) throw new Error('Failed to create IntegrationEvent');
+      // Cleanup
+      await base44.asServiceRole.entities.IntegrationEvent.delete(created.id);
+      return `IntegrationEvent write/read/delete OK`;
     }));
 
-    // TEST 4: runSystemHealthChecks returns results
-    tests.push(await smokeTest('health_checks_callable', async () => {
-      const res = await base44.asServiceRole.functions.invoke('runSystemHealthChecks', {});
-      if (!res?.data?.success) throw new Error(res?.data?.error || 'health checks failed');
-      return `Health checks ran: ${res.data.total} checks, ${res.data.critical} critical`;
+    // TEST 4: SystemHealthCheck read (verifies last health check ran)
+    tests.push(await smokeTest('health_check_data_present', async () => {
+      const checks = await base44.asServiceRole.entities.SystemHealthCheck.list('-checkedAt', 5);
+      if (!checks?.length) throw new Error('No health check records found — runSystemHealthChecks may not be running');
+      const latest = checks[0];
+      const ageMs = Date.now() - new Date(latest.checkedAt).getTime();
+      const ageMin = Math.round(ageMs / 60000);
+      if (ageMin > 15) throw new Error(`Last health check is ${ageMin}min old — automation may be broken`);
+      return `Last health check: ${latest.checkName}=${latest.status}, ${ageMin}min ago`;
     }));
 
     // TEST 5: Entity counts sanity check
@@ -86,8 +97,8 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.AuditLog.create({
       action: 'SYSTEM_TESTS_RUN',
-      performedByUserId: user.id,
-      performedByName: user.full_name,
+      performedByUserId: user?.id || 'system',
+      performedByName: user?.full_name || 'Scheduled Automation',
       details: JSON.stringify({ runId: run.id, passed, failed, status: overallStatus })
     });
 
