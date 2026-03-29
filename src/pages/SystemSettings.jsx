@@ -11,6 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Settings, Lock } from 'lucide-react';
 
+const normalizeRole = (role) => {
+  const map = { admin: 'ADMINISTRATOR', user: 'SALES_AGENT' };
+  return map[role] || role;
+};
+
 export default function SystemSettings() {
   const queryClient = useQueryClient();
   const [editingKey, setEditingKey] = useState(null);
@@ -22,7 +27,7 @@ export default function SystemSettings() {
     base44.auth.me().then(setCurrentUser);
   }, []);
 
-  if (currentUser && currentUser.role !== 'admin') {
+  if (currentUser && normalizeRole(currentUser.role) !== 'ADMINISTRATOR') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -293,7 +298,7 @@ export default function SystemSettings() {
                    disabled={updateLimit.isPending}
                  />
                  <Badge variant="outline">{limit.unit}</Badge>
-                 {updateLimit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                 {updateLimit.isPending && <span className="text-xs text-muted-foreground">Saugoma...</span>}
                </CardContent>
             </Card>
           ))}
