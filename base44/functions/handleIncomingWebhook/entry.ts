@@ -35,10 +35,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const { endpointId } = await req.json().catch(() => ({}));
-    // Body was consumed — read from URL param fallback or re-read
-    // Actually parse all from body properly:
-    const bodyText = await req.clone().text().catch(() => '{}');
+    // Read body ONCE as text first, then parse — avoids stream-consumed bug
+    const bodyText = await req.text().catch(() => '{}');
     let body;
     try { body = JSON.parse(bodyText); } catch { body = {}; }
 
@@ -47,8 +45,13 @@ Deno.serve(async (req) => {
 
     if (!epId) return Response.json({ error: 'endpointId required' }, { status: 400 });
 
-    // Load endpoint
-    const endpoints = await base44.asServiceRole.entities.WebhookEndpoint.filter({ id: epId });
+    // Load endpoint — catch "Object not found" type errors gracefully
+    let endpoints;
+    try {
+      endpoints = await base44.asServiceRole.entities.WebhookEndpoint.filter({ id: epId });
+    } catch {
+      endpoints = [];
+    }
     if (!endpoints?.length) {
       await base44.asServiceRole.entities.AuditLog.create({
         action: 'WEBHOOK_REJECTED',

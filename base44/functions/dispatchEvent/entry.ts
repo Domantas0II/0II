@@ -75,7 +75,17 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const { eventType, entityType, entityId, payload } = await req.json();
+    // Auth: allow internal system calls (asServiceRole) OR authenticated users
+    // External callers without a session are rejected to prevent event injection
+    const body = await req.json();
+    const { eventType, entityType, entityId, payload } = body;
+
+    // Only allow authenticated users or service-role internal calls
+    // (service-role calls come with a system token automatically via createClientFromRequest)
+    const isAuthenticated = await base44.auth.isAuthenticated().catch(() => false);
+    if (!isAuthenticated) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     if (!eventType || !entityType || !entityId) {
       return Response.json({ error: 'eventType, entityType, entityId required' }, { status: 400 });
     }
