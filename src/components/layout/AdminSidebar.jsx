@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug, ShieldCheck } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug, ShieldCheck, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -96,6 +96,12 @@ const menuItems = [
     label: 'System Health',
     icon: ShieldCheck,
     href: '/system-health',
+    requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',
+  },
+  {
+    label: 'Release Checklist',
+    icon: Rocket,
+    href: '/release-checklist',
     requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',
   },
   {

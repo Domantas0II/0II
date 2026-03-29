@@ -62,6 +62,10 @@ import IncidentsList from '@/pages/IncidentsList';
 import IncidentDetail from '@/pages/IncidentDetail';
 import DataIntegrityPage from '@/pages/DataIntegrityPage';
 import SystemTestsPage from '@/pages/SystemTestsPage';
+import SystemAuditDashboard from '@/pages/SystemAuditDashboard';
+import ReleaseChecklistPage from '@/pages/ReleaseChecklistPage';
+import SecurityAuditPage from '@/pages/SecurityAuditPage';
+import PerformanceAuditPage from '@/pages/PerformanceAuditPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -160,6 +164,10 @@ const AuthenticatedApp = () => {
         <Route path="/incidents/:id" element={<IncidentDetail />} />
         <Route path="/data-integrity" element={<DataIntegrityPage />} />
         <Route path="/system-tests" element={<SystemTestsPage />} />
+        <Route path="/system-audit" element={<SystemAuditDashboard />} />
+        <Route path="/release-checklist" element={<ReleaseChecklistPage />} />
+        <Route path="/security-audit" element={<SecurityAuditPage />} />
+        <Route path="/performance-audit" element={<PerformanceAuditPage />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />
