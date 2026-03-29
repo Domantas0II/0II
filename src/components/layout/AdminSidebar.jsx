@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -67,6 +67,12 @@ const menuItems = [
     icon: BadgeDollarSign,
     href: '/commissions',
     requiredRole: (role) => canAccessInbound(normalizeRole(role)),
+  },
+  {
+    label: 'Komisinių taisyklės',
+    icon: ScrollText,
+    href: '/commission-rules',
+    requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizeRole(role)),
   },
   {
     label: 'Payout',

@@ -51,6 +51,13 @@ export default function CommissionDetail() {
   });
   const deal = deals[0];
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['project-for-commission', commission?.projectId],
+    queryFn: () => base44.entities.Project.filter({ id: commission.projectId }),
+    enabled: !!commission?.projectId
+  });
+  const project = projects[0];
+
   const approveMutation = useMutation({
     mutationFn: () => base44.functions.invoke('approveCommission', { commissionId: id }),
     onSuccess: () => {
@@ -102,10 +109,11 @@ export default function CommissionDetail() {
         <CardHeader><CardTitle>Deal informacija</CardTitle></CardHeader>
         <CardContent>
           <InfoRow label="Deal ID" value={`#${commission.dealId?.slice(-6)}`} />
-          {deal && <>
-            <InfoRow label="Deal suma" value={`€${deal.totalAmount?.toLocaleString('lt-LT')}`} />
-            <InfoRow label="Projektas" value={deal.projectId} />
-          </>}
+          {deal && <InfoRow label="Deal suma" value={`€${deal.totalAmount?.toLocaleString('lt-LT')}`} />}
+          <InfoRow
+            label="Projektas"
+            value={project ? project.projectName : (commission.projectId ? `ID: ${commission.projectId.slice(-6)}` : '—')}
+          />
           <InfoRow label="Paskaičiuota" value={new Date(commission.calculatedAt).toLocaleDateString('lt-LT')} />
           {commission.approvedAt && <InfoRow label="Patvirtinta" value={new Date(commission.approvedAt).toLocaleDateString('lt-LT')} />}
           {commission.paidAt && <InfoRow label="Išmokėta" value={new Date(commission.paidAt).toLocaleDateString('lt-LT')} />}

@@ -44,6 +44,8 @@ import PartnerPortal from '@/pages/PartnerPortal';
 import SystemSettings from '@/pages/SystemSettings';
 import CommissionsList from '@/pages/CommissionsList';
 import CommissionDetail from '@/pages/CommissionDetail';
+import CommissionRulesList from '@/pages/CommissionRulesList';
+import CommissionRuleForm from '@/pages/CommissionRuleForm';
 import PayoutsList from '@/pages/PayoutsList';
 import PayoutDetail from '@/pages/PayoutDetail';
 
@@ -124,6 +126,9 @@ const AuthenticatedApp = () => {
         <Route path="/system-settings" element={<SystemSettings />} />
         <Route path="/commissions" element={<CommissionsList />} />
         <Route path="/commissions/:id" element={<CommissionDetail />} />
+        <Route path="/commission-rules" element={<CommissionRulesList />} />
+        <Route path="/commission-rules/new" element={<CommissionRuleForm />} />
+        <Route path="/commission-rules/:id" element={<CommissionRuleForm />} />
         <Route path="/payouts" element={<PayoutsList />} />
         <Route path="/payouts/:id" element={<PayoutDetail />} />
       </Route>
