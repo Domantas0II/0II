@@ -58,7 +58,7 @@ export default function StageChangeModal({ open, onClose, onSave, interest, savi
 
           <div>
             <label className="text-sm font-medium mb-1.5 block">
-              Komentaras
+              Komentaras <span className="text-muted-foreground font-normal">(neprivalomas)</span>
             </label>
             <Textarea
               placeholder="Priežastis arba pastaba..."

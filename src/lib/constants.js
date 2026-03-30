@@ -57,8 +57,35 @@ export const CAN_VIEW_USERS    = ['ADMINISTRATOR', 'SALES_MANAGER'];
 // ─── STATUS LABELS ────────────────────────────────────────────────────────────
 
 export const STATUS_LABELS = {
-  active: 'Aktyvus',
-  disabled: 'Išjungtas',
+  // User account
+  active:    'Aktyvus',
+  disabled:  'Išjungtas',
+  // Reservation
+  reserved:   'Rezervuota',
+  released:   'Atšaukta',
+  converted:  'Konvertuota',
+  overdue:    'Vėluoja',
+  // Commission
+  pending:    'Laukiama',
+  approved:   'Patvirtinta',
+  rejected:   'Atmesta',
+  paid:       'Apmokėta',
+  // Payout
+  draft:      'Juodraštis',
+  // Interest / CPI
+  new_interest:  'Naujas',
+  contacted:     'Susisiekta',
+  considering:   'Svarsto',
+  follow_up:     'Follow-up',
+  completed:     'Baigta',
+  // Deals / agreements
+  signed:     'Pasirašyta',
+  cancelled:  'Atšaukta',
+  // Sale unit
+  available:          'Laisvas',
+  withheld:           'Sulaikytas',
+  developer_reserved: 'Vystytojas',
+  sold:               'Parduotas',
 };
 
 export const INVITE_STATUS_LABELS = {

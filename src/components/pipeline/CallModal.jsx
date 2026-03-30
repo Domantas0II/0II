@@ -48,10 +48,10 @@ export default function CallModal({ open, onClose, onSave, interest, saving }) {
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Comment — mandatory */}
+          {/* Comment — optional */}
           <div>
             <label className="text-sm font-medium mb-1.5 block">
-              Komentaras
+              Komentaras <span className="text-muted-foreground font-normal">(neprivalomas)</span>
             </label>
             <Textarea
               placeholder="Kas aptarta, kliento reakcija, kitas žingsnis..."

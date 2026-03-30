@@ -147,18 +147,19 @@ export default function Pipeline() {
   const isSaving = updateInterest.isPending || createActivity.isPending;
 
   const handleCall = async (interest, { comment, newStage }) => {
-    // 1. Save activity first
-    await createActivity.mutateAsync({
+    // 1. Save activity (comment optional)
+    const activityData = {
       clientId: interest.clientId,
       projectId: interest.projectId,
       interestId: interest.id,
       type: 'call',
       status: 'done',
-      notes: comment,
       completedAt: new Date().toISOString(),
       scheduledAt: new Date().toISOString(),
       createdByUserId: user?.id,
-    });
+    };
+    if (comment) activityData.notes = comment;
+    await createActivity.mutateAsync(activityData);
 
     // 2. If stage change requested — update stage
     if (newStage) {
@@ -181,18 +182,19 @@ export default function Pipeline() {
   };
 
   const handleStageChange = async (interest, { newStage, comment }) => {
-    // Save audit activity
-    await createActivity.mutateAsync({
+    // Save audit activity (comment optional)
+    const activityData = {
       clientId: interest.clientId,
       projectId: interest.projectId,
       interestId: interest.id,
       type: 'other',
       status: 'done',
-      notes: `Etapas pakeistas → ${comment}`,
       completedAt: new Date().toISOString(),
       scheduledAt: new Date().toISOString(),
       createdByUserId: user?.id,
-    });
+    };
+    if (comment) activityData.notes = `Etapas pakeistas → ${comment}`;
+    await createActivity.mutateAsync(activityData);
 
     // Update stage only after activity saved
     await updateInterest.mutateAsync({
