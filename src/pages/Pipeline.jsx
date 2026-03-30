@@ -2,22 +2,31 @@ import React from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { AlertCircle, Users, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
 import { getAccessibleProjectIds } from '@/lib/queryAccess';
 import { canViewPipeline, filterPipelineByRole } from '@/lib/pipelineAccess';
 import { normalizeRole } from '@/lib/constants';
-import { PIPELINE_STAGES } from '@/lib/pipelineConstants';
+import { PIPELINE_STAGES, normalizePipelineStage, STAGE_OVERDUE_THRESHOLD_DAYS } from '@/lib/pipelineConstants';
+import { differenceInDays } from 'date-fns';
 import PipelineColumn from '@/components/pipeline/PipelineColumn';
+
+function isInterestOverdue(interest) {
+  const now = new Date();
+  if (interest.nextFollowUpAt && new Date(interest.nextFollowUpAt) < now) return true;
+  const threshold = STAGE_OVERDUE_THRESHOLD_DAYS[interest.pipelineStage] || 7;
+  const stageDate = interest.stageUpdatedAt || interest.created_date;
+  if (stageDate && differenceInDays(now, new Date(stageDate)) > threshold) return true;
+  return false;
+}
 
 export default function Pipeline() {
   const { user } = useOutletContext() || {};
   const queryClient = useQueryClient();
-
   const canAccess = canViewPipeline(normalizeRole(user?.role));
 
-  // Fetch accessible project IDs
   const { data: accessibleIds = null } = useQuery({
     queryKey: ['accessibleProjectIds', user?.id],
     queryFn: () => getAccessibleProjectIds(user, base44),
@@ -27,44 +36,46 @@ export default function Pipeline() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', accessibleIds],
     queryFn: async () => {
-      if (accessibleIds === null) {
-        return await base44.entities.Project.list('-created_date', 50);
-      }
-      return await base44.entities.Project.filter({ 
-        id: { $in: accessibleIds } 
-      });
+      if (accessibleIds === null) return base44.entities.Project.list('-created_date', 50);
+      return base44.entities.Project.filter({ id: { $in: accessibleIds } });
     },
     enabled: accessibleIds !== undefined,
   });
 
-  const { data: interests = [] } = useQuery({
+  const { data: rawInterests = [] } = useQuery({
     queryKey: ['pipelineInterests', user?.id, accessibleIds],
     queryFn: async () => {
       if (accessibleIds === null) {
-        const all = await base44.entities.ClientProjectInterest.list('-created_date', 50);
+        const all = await base44.entities.ClientProjectInterest.list('-created_date', 200);
         return filterPipelineByRole(all, user);
       }
-      const filtered = await base44.entities.ClientProjectInterest.filter({ 
-        projectId: { $in: accessibleIds } 
-      });
+      const filtered = await base44.entities.ClientProjectInterest.filter({ projectId: { $in: accessibleIds } });
       return filterPipelineByRole(filtered, user);
     },
     enabled: accessibleIds !== undefined && !!user?.id,
   });
 
+  // Normalize legacy stage keys
+  const normalizedInterests = rawInterests.map(i => ({
+    ...i,
+    pipelineStage: normalizePipelineStage(i.pipelineStage || 'new_contact'),
+  }));
+
   const { data: clients = [] } = useQuery({
-    queryKey: ['pipelineClients', interests.length],
+    queryKey: ['pipelineClients', normalizedInterests.length],
     queryFn: async () => {
-      // PERFORMANCE: Load only clients that appear in current pipeline interests
-      // Instead of full client list, fetch just the ones we need
-      if (interests.length === 0) return [];
-      const clientIds = [...new Set(interests.map(i => i.clientId).filter(Boolean))];
+      if (normalizedInterests.length === 0) return [];
+      const clientIds = [...new Set(normalizedInterests.map(i => i.clientId).filter(Boolean))];
       if (clientIds.length === 0) return [];
-      return await base44.entities.Client.filter({
-        id: { $in: clientIds }
-      });
+      return base44.entities.Client.filter({ id: { $in: clientIds } });
     },
-    enabled: interests.length > 0,
+    enabled: normalizedInterests.length > 0,
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users-pipeline'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: normalizedInterests.length > 0,
   });
 
   const { data: units = [] } = useQuery({
@@ -77,80 +88,126 @@ export default function Pipeline() {
   });
 
   const { data: activities = [] } = useQuery({
-    queryKey: ['activities', user?.id, accessibleIds],
+    queryKey: ['pipelineActivities', user?.id, accessibleIds],
     queryFn: async () => {
-      // PERFORMANCE: Query activities smartly based on access level
-      // - null accessibleIds = ADMINISTRATOR, use limit to avoid full scan
-      // - Otherwise filter by accessible projectIds server-side
-      let activities;
+      let all;
       if (accessibleIds === null) {
-        // Admin: limit to recent 500 activities (avoids unbounded full scan)
-        activities = await base44.entities.Activity.list('-scheduledAt', 500);
+        all = await base44.entities.Activity.list('-created_date', 500);
       } else if (accessibleIds.length === 0) {
-        return []; // No projects = no activities
+        return [];
       } else {
-        // Filter activities by accessible projects server-side
-        activities = await base44.entities.Activity.filter({
-          projectId: { $in: accessibleIds },
-          status: { $ne: 'cancelled' }
-        });
+        all = await base44.entities.Activity.filter({ projectId: { $in: accessibleIds }, status: { $ne: 'cancelled' } });
       }
-      
-      // Get last activity per client (not cancelled)
+      // Last completed/done activity per client
       const lastByClient = {};
-      activities
-        .filter(a => a.projectId && a.status !== 'cancelled')
-        .forEach(a => {
-          if (!lastByClient[a.clientId] || new Date(a.scheduledAt) > new Date(lastByClient[a.clientId].scheduledAt)) {
-            lastByClient[a.clientId] = a;
-          }
-        });
+      all.filter(a => a.status !== 'cancelled').forEach(a => {
+        const key = a.clientId;
+        if (!lastByClient[key] || new Date(a.created_date) > new Date(lastByClient[key].created_date)) {
+          lastByClient[key] = a;
+        }
+      });
       return Object.values(lastByClient);
     },
     enabled: accessibleIds !== undefined && !!user?.id,
   });
 
-  const updateInterestStage = useMutation({
-    mutationFn: (data) =>
-      base44.entities.ClientProjectInterest.update(data.id, {
-        pipelineStage: data.stage,
-        stageUpdatedAt: new Date().toISOString(),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pipelineInterests'] });
-      toast.success('Stadija atnaujinta');
-    },
-    onError: () => toast.error('Nepavyko atnaujinti'),
-  });
+  // Enrich interests
+  const clientMap = Object.fromEntries(clients.map(c => [c.id, c]));
+  const userMap = Object.fromEntries(users.map(u => [u.id, u]));
 
-  const handleDrop = async (e, stage) => {
-    e.preventDefault();
-    const interestId = e.dataTransfer.getData('interestId');
-    if (!interestId) return;
-
-    updateInterestStage.mutate({ id: interestId, stage });
-  };
-
-  // Enrich interests with client data and unit
-  const enrichedInterests = interests.map(i => ({
+  const enrichedInterests = normalizedInterests.map(i => ({
     ...i,
-    fullName: clients.find(c => c.id === i.clientId)?.fullName || 'Unknown',
-    unitId: i.unitId,
+    fullName: clientMap[i.clientId]?.fullName || '—',
+    managerName: userMap[i.assignedManagerUserId]?.full_name || null,
   }));
 
-  const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
+  // Mutations
+  const updateInterest = useMutation({
+    mutationFn: (data) => base44.entities.ClientProjectInterest.update(data.id, data.updates),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pipelineInterests'] }),
+  });
 
-  const overdueCount = enrichedInterests.filter(i => {
-    if (!i.nextFollowUpAt) return false;
-    return new Date(i.nextFollowUpAt) <= new Date() && !i.nextActivity;
-  }).length;
+  const createActivity = useMutation({
+    mutationFn: (data) => base44.entities.Activity.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pipelineActivities'] }),
+  });
+
+  const isSaving = updateInterest.isPending || createActivity.isPending;
+
+  const handleCall = async (interest, { comment, newStage }) => {
+    // 1. Save activity first
+    await createActivity.mutateAsync({
+      clientId: interest.clientId,
+      projectId: interest.projectId,
+      interestId: interest.id,
+      type: 'call',
+      status: 'done',
+      notes: comment,
+      completedAt: new Date().toISOString(),
+      scheduledAt: new Date().toISOString(),
+      createdByUserId: user?.id,
+    });
+
+    // 2. If stage change requested — update stage
+    if (newStage) {
+      await updateInterest.mutateAsync({
+        id: interest.id,
+        updates: {
+          pipelineStage: newStage,
+          stageUpdatedAt: new Date().toISOString(),
+          lastInteractionAt: new Date().toISOString(),
+        },
+      });
+      toast.success('Skambutis išsaugotas, etapas pakeistas');
+    } else {
+      await updateInterest.mutateAsync({
+        id: interest.id,
+        updates: { lastInteractionAt: new Date().toISOString() },
+      });
+      toast.success('Skambutis išsaugotas');
+    }
+  };
+
+  const handleStageChange = async (interest, { newStage, comment }) => {
+    // Save audit activity
+    await createActivity.mutateAsync({
+      clientId: interest.clientId,
+      projectId: interest.projectId,
+      interestId: interest.id,
+      type: 'other',
+      status: 'done',
+      notes: `Etapas pakeistas → ${comment}`,
+      completedAt: new Date().toISOString(),
+      scheduledAt: new Date().toISOString(),
+      createdByUserId: user?.id,
+    });
+
+    // Update stage only after activity saved
+    await updateInterest.mutateAsync({
+      id: interest.id,
+      updates: {
+        pipelineStage: newStage,
+        stageUpdatedAt: new Date().toISOString(),
+        lastInteractionAt: new Date().toISOString(),
+      },
+    });
+    toast.success('Etapas pakeistas');
+  };
+
+  // Summary stats
+  const overdueCount = enrichedInterests.filter(isInterestOverdue).length;
+  const activeStages = ['new_contact', 'no_answer_1', 'no_answer_2', 'no_answer_3', 'proposal_sent', 'consultation_booked', 'viewing_booked', 'waiting_response', 'follow_up', 'negotiation'];
+  const activeCount = enrichedInterests.filter(i => activeStages.includes(i.pipelineStage)).length;
+  const newCount = enrichedInterests.filter(i => i.pipelineStage === 'new_contact').length;
+  const reservationCount = enrichedInterests.filter(i => i.pipelineStage === 'reservation').length;
 
   if (!canAccess) {
-    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie pipeline</div>;
+    return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie pardavimų kanalo</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Pardavimų kanalas</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
@@ -158,27 +215,76 @@ export default function Pipeline() {
         </p>
       </div>
 
+      {/* Operational summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="p-3 flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+              <Users className="h-4 w-4 text-blue-700" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Nauji</p>
+              <p className="text-lg font-bold">{newCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-green-700" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Aktyvūs</p>
+              <p className="text-lg font-bold">{activeCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 flex items-center gap-2">
+            <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${overdueCount > 0 ? 'bg-red-100' : 'bg-slate-100'}`}>
+              <Clock className={`h-4 w-4 ${overdueCount > 0 ? 'text-red-700' : 'text-slate-500'}`} />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Vėluoja</p>
+              <p className={`text-lg font-bold ${overdueCount > 0 ? 'text-red-600' : ''}`}>{overdueCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <CheckCircle className="h-4 w-4 text-emerald-700" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Rezervacijos</p>
+              <p className="text-lg font-bold">{reservationCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {overdueCount > 0 && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertCircle className="h-4 w-4 text-amber-700" />
-          <AlertDescription className="text-amber-700">
-            {overdueCount} klientam reikalingas follow-up
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-700" />
+          <AlertDescription className="text-red-700">
+            {overdueCount === 1 ? '1 klientas reikalauja dėmesio' : `${overdueCount} klientai reikalauja dėmesio`} — vėluoja follow-up arba etapas per senas
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Kanban board */}
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      {/* Kanban board — horizontal scroll */}
+      <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1">
         {PIPELINE_STAGES.map(stage => (
           <PipelineColumn
             key={stage}
             stage={stage}
             interests={enrichedInterests}
-            projects={Object.values(projectMap)}
+            projects={projects}
             units={units}
             activities={activities}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
+            onCall={handleCall}
+            onStageChange={handleStageChange}
+            saving={isSaving}
           />
         ))}
       </div>
