@@ -14,10 +14,6 @@ export default function CallModal({ open, onClose, onSave, interest, saving }) {
   const [error, setError] = useState('');
 
   const handleSave = () => {
-    if (!comment.trim()) {
-      setError('Komentaras yra privalomas');
-      return;
-    }
     if (changeStage && !newStage) {
       setError('Pasirinkite naują etapą');
       return;
@@ -55,13 +51,13 @@ export default function CallModal({ open, onClose, onSave, interest, saving }) {
           {/* Comment — mandatory */}
           <div>
             <label className="text-sm font-medium mb-1.5 block">
-              Komentaras <span className="text-destructive">*</span>
+              Komentaras
             </label>
             <Textarea
               placeholder="Kas aptarta, kliento reakcija, kitas žingsnis..."
               value={comment}
               onChange={e => { setComment(e.target.value); setError(''); }}
-              className={`h-24 text-sm ${error && !comment.trim() ? 'border-destructive' : ''}`}
+              className="h-24 text-sm"
               autoFocus
             />
           </div>
