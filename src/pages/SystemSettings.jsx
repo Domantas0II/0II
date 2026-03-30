@@ -148,6 +148,7 @@ export default function SystemSettings() {
           <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="portal">Portal</TabsTrigger>
           <TabsTrigger value="files">Failai</TabsTrigger>
+          <TabsTrigger value="analytics">Analitika</TabsTrigger>
           <TabsTrigger value="flags">Feature Flags</TabsTrigger>
           <TabsTrigger value="limits">Limitai</TabsTrigger>
           <TabsTrigger value="audit">Audit Log</TabsTrigger>
@@ -155,7 +156,7 @@ export default function SystemSettings() {
 
         {/* Settings tabs */}
         {['crm', 'sla', 'scoring', 'import', 'public_portal', 'file_management', 'analytics'].map((cat) => (
-          <TabsContent key={cat} value={cat === 'public_portal' ? 'portal' : cat === 'file_management' ? 'files' : cat} className="space-y-4">
+          <TabsContent key={cat} value={cat === 'public_portal' ? 'portal' : cat === 'file_management' ? 'files' : cat === 'analytics' ? 'analytics' : cat} className="space-y-4">
             {settingsByCategory[cat]?.map(setting => (
               <Card key={setting.id}>
                 <CardHeader>

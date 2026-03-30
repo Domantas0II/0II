@@ -142,7 +142,7 @@ export default function UserDetail() {
   return (
     <div className="space-y-6">
       <Button variant="ghost" asChild className="gap-2 -ml-3">
-        <Link to="/"><ArrowLeft className="h-4 w-4" /> Vartotojai</Link>
+        <Link to="/users"><ArrowLeft className="h-4 w-4" /> Vartotojai</Link>
       </Button>
 
       {/* User Info Card */}

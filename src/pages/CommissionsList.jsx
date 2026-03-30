@@ -65,7 +65,7 @@ export default function CommissionsList() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Komisiniai</h1>
         {canManage && (
-          <Link to="/payouts"><Button variant="outline">Payout sąrašas</Button></Link>
+          <Link to="/payouts"><Button variant="outline">Išmokų sąrašas</Button></Link>
         )}
       </div>
 

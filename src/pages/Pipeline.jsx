@@ -152,7 +152,7 @@ export default function Pipeline() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Sales Pipeline</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Pardavimų kanalas</h1>
         <p className="text-sm text-muted-foreground mt-0.5">{enrichedInterests.length} klientai</p>
       </div>
 

@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 
 const STATUS_LABELS = {
   new: 'Naujas',
-  claimed: 'Suėmtas',
+  claimed: 'Perimtas',
   contacted: 'Susisiekta',
   converted: 'Konvertuotas',
   rejected: 'Atmestas',
@@ -87,12 +87,12 @@ export default function InquiryPool() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inquiries'] });
-      toast.success('Inquiry suėmtas');
+      toast.success('Užklausa perimta');
     },
   });
 
   const convertInquiry = useMutation({
-    mutationFn: async (inquiry, useExistingClient = false, existingClientId = null) => {
+    mutationFn: async ({ inquiry, useExistingClient = false, existingClientId = null }) => {
       // 0. Validate inquiry data
       try {
         await validateProjectInquiry(inquiry);
@@ -101,7 +101,7 @@ export default function InquiryPool() {
       }
 
       // 0.5. Check access to project
-      if (!accessibleIds.includes(inquiry.projectId)) {
+      if (accessibleIds !== null && !accessibleIds.includes(inquiry.projectId)) {
         throw new Error('Neturite prieigos prie šio projekto');
       }
 
@@ -146,7 +146,7 @@ export default function InquiryPool() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inquiries'] });
       setDuplicateDialog(null);
-      toast.success('Konvertuota į kliento');
+      toast.success('Konvertuota į klientą');
     },
     onError: (error) => {
       toast.error(error.message || 'Konversija nepavyko');
@@ -159,7 +159,7 @@ export default function InquiryPool() {
     if (duplicate) {
       setDuplicateDialog({ inquiry, duplicate });
     } else {
-      convertInquiry.mutate(inquiry);
+      convertInquiry.mutate({ inquiry });
     }
   };
 
@@ -183,7 +183,9 @@ export default function InquiryPool() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Užklausų baseinas</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} užklausa</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {filtered.length === 1 ? '1 užklausa' : filtered.length >= 2 && filtered.length <= 9 ? `${filtered.length} užklausos` : `${filtered.length} užklausų`}
+        </p>
       </div>
 
       {/* Filters */}
@@ -221,8 +223,8 @@ export default function InquiryPool() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Visi</SelectItem>
-            <SelectItem value="claimed">Suėmti</SelectItem>
-            <SelectItem value="unclaimed">Nesuėmti</SelectItem>
+            <SelectItem value="claimed">Perimti</SelectItem>
+            <SelectItem value="unclaimed">Neperimti</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -257,7 +259,7 @@ export default function InquiryPool() {
                 <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground mt-1">
                   <span>{projectMap[inquiry.projectId]?.projectName || inquiry.projectId}</span>
                   {inquiry.unitId && <span>· {unitMap[inquiry.unitId]?.label || inquiry.unitId}</span>}
-                  {inquiry.claimedByUserId && <span className="flex items-center gap-1"><User className="h-3 w-3" /> Suėmtas</span>}
+                  {inquiry.claimedByUserId && <span className="flex items-center gap-1"><User className="h-3 w-3" /> Perimtas</span>}
                 </div>
               </div>
 
@@ -270,7 +272,7 @@ export default function InquiryPool() {
                     onClick={() => claimInquiry.mutate(inquiry.id)}
                     disabled={claimInquiry.isPending}
                   >
-                    Suėmti
+                    Perimti
                   </Button>
                 )}
                 {(inquiry.claimedByUserId === user?.id || inquiry.status === 'claimed') && inquiry.status !== 'converted' && (
@@ -293,7 +295,7 @@ export default function InquiryPool() {
       <Dialog open={!!duplicateDialog} onOpenChange={() => setDuplicateDialog(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Dublikatinis klientas</DialogTitle>
+            <DialogTitle>Klientas jau egzistuoja</DialogTitle>
           </DialogHeader>
           {duplicateDialog && (
             <div className="space-y-4">
@@ -311,7 +313,7 @@ export default function InquiryPool() {
               <div className="space-y-2">
                 <Button
                   className="w-full"
-                  onClick={() => convertInquiry.mutate(duplicateDialog.inquiry, true, duplicateDialog.duplicate.id)}
+                  onClick={() => convertInquiry.mutate({ inquiry: duplicateDialog.inquiry, useExistingClient: true, existingClientId: duplicateDialog.duplicate.id })}
                   disabled={convertInquiry.isPending}
                 >
                   Naudoti esamą
@@ -319,7 +321,7 @@ export default function InquiryPool() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => convertInquiry.mutate(duplicateDialog.inquiry, false)}
+                  onClick={() => convertInquiry.mutate({ inquiry: duplicateDialog.inquiry, useExistingClient: false })}
                   disabled={convertInquiry.isPending}
                 >
                   Kurti naują

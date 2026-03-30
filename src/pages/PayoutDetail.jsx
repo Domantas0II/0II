@@ -58,7 +58,7 @@ export default function PayoutDetail() {
       const all = await Promise.all(commIds.map(cid => base44.entities.Commission.filter({ id: cid })));
       return all.flat();
     },
-    enabled: items.length > 0
+    enabled: !!id
   });
 
   const commMap = Object.fromEntries(allCommissions.map(c => [c.id, c]));
@@ -68,7 +68,7 @@ export default function PayoutDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payout', id] });
       queryClient.invalidateQueries({ queryKey: ['payouts'] });
-      toast.success('Payout patvirtintas');
+      toast.success('Išmoka patvirtinta');
     },
     onError: (e) => toast.error(e?.response?.data?.error || 'Klaida')
   });
@@ -79,13 +79,13 @@ export default function PayoutDetail() {
       queryClient.invalidateQueries({ queryKey: ['payout', id] });
       queryClient.invalidateQueries({ queryKey: ['payouts'] });
       queryClient.invalidateQueries({ queryKey: ['commissions'] });
-      toast.success('Payout pažymėtas kaip išmokėtas');
+      toast.success('Išmoka pažymėta kaip sumokėta');
     },
     onError: (e) => toast.error(e?.response?.data?.error || 'Klaida')
   });
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Kraunama...</div>;
-  if (!payout) return <div className="p-8 text-center text-muted-foreground">Payout nerastas</div>;
+  if (!payout) return <div className="p-8 text-center text-muted-foreground">Išmoka nerasta</div>;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -93,7 +93,7 @@ export default function PayoutDetail() {
         <Link to="/payouts">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
-        <h1 className="text-2xl font-bold">Payout #{id?.slice(-6)}</h1>
+        <h1 className="text-2xl font-bold">Išmoka #{id?.slice(-6)}</h1>
         <Badge className={PAYOUT_STATUS_STYLES[payout.status]}>{PAYOUT_STATUS_LABELS[payout.status]}</Badge>
       </div>
 

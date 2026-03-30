@@ -94,11 +94,11 @@ export default function SystemHealthDashboard() {
         {isAdmin && (
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => detectMutation.mutate()} disabled={detectMutation.isPending} className="gap-2">
-              <Activity className="h-4 w-4" />Detect Incidents
+              <Activity className="h-4 w-4" />Aptikti incidentus
             </Button>
             <Button onClick={() => runHealthMutation.mutate()} disabled={runHealthMutation.isPending} className="gap-2">
               <RefreshCw className={`h-4 w-4 ${runHealthMutation.isPending ? 'animate-spin' : ''}`} />
-              Run Health Checks
+              Vykdyti patikrinimą
             </Button>
           </div>
         )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug, ShieldCheck, Rocket } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug, ShieldCheck, Rocket, FileText, CreditCard, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -9,7 +9,7 @@ import { base44 } from '@/api/base44Client';
 
 const menuItems = [
   {
-    label: 'Kontrolė',
+    label: 'Suvestinė',
     icon: LayoutDashboard,
     href: '/dashboard',
     requiredRole: () => true,
@@ -33,19 +33,19 @@ const menuItems = [
     requiredRole: (role) => canManageProjects(normalizeRole(role)),
   },
   {
-    label: 'Komponentų baseinas',
+    label: 'Priklausiniai',
     icon: Package,
     href: '/components',
     requiredRole: (role) => canManageProjects(normalizeRole(role)),
   },
   {
-    label: 'Užklausa',
+    label: 'Užklausos',
     icon: Mail,
     href: '/inquiry',
     requiredRole: (role) => canAccessInbound(normalizeRole(role)),
   },
   {
-    label: 'Pipeline',
+    label: 'Pardavimų kanalas',
     icon: Kanban,
     href: '/pipeline',
     requiredRole: (role) => canViewPipeline(normalizeRole(role)),
@@ -57,7 +57,25 @@ const menuItems = [
     requiredRole: (role) => canAccessInbound(normalizeRole(role)),
   },
   {
-    label: 'Import & Bulk',
+    label: 'Sutartys',
+    icon: FileText,
+    href: '/agreements',
+    requiredRole: (role) => canAccessInbound(normalizeRole(role)),
+  },
+  {
+    label: 'Mokėjimai',
+    icon: CreditCard,
+    href: '/payments',
+    requiredRole: (role) => canAccessInbound(normalizeRole(role)),
+  },
+  {
+    label: 'Sandoriai',
+    icon: Handshake,
+    href: '/deals',
+    requiredRole: (role) => canAccessInbound(normalizeRole(role)),
+  },
+  {
+    label: 'Importas',
     icon: Upload,
     href: '/import',
     requiredRole: (role) => canManageProjects(normalizeRole(role)),
@@ -75,7 +93,7 @@ const menuItems = [
     requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizeRole(role)),
   },
   {
-    label: 'Payout',
+    label: 'Išmokos',
     icon: Wallet,
     href: '/payouts',
     requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizeRole(role)),
@@ -93,13 +111,13 @@ const menuItems = [
     requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',
   },
   {
-    label: 'System Health',
+    label: 'Sistemos sveikata',
     icon: ShieldCheck,
     href: '/system-health',
     requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',
   },
   {
-    label: 'Release Checklist',
+    label: 'Paleidimo kontrolinis sąrašas',
     icon: Rocket,
     href: '/release-checklist',
     requiredRole: (role) => normalizeRole(role) === 'ADMINISTRATOR',

@@ -107,7 +107,9 @@ export default function ReservationsList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Rezervacijos</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} rezervacija</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {filtered.length === 1 ? '1 rezervacija' : filtered.length >= 2 && filtered.length <= 9 ? `${filtered.length} rezervacijos` : `${filtered.length} rezervacijų`}
+          </p>
         </div>
         <Button asChild className="gap-2">
           <Link to="/reservation-create">
@@ -221,7 +223,7 @@ export default function ReservationsList() {
                           onClick={() => releaseReservation.mutate(reservation.id)}
                           disabled={releaseReservation.isPending}
                         >
-                          Atleisti
+                          Atšaukti
                         </Button>
                       )}
                       <Button

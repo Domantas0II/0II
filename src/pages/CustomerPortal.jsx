@@ -76,12 +76,22 @@ export default function CustomerPortal() {
     );
   }
 
+  const AGREEMENT_TYPE_LABELS = {
+    reservation: 'Rezervacijos sutartis',
+    preliminary: 'Preliminari sutartis',
+  };
+
+  const PAYMENT_STATUS_LABELS = {
+    recorded: 'Užregistruotas',
+    cancelled: 'Atšauktas',
+  };
+
   const getStatusBadge = (status) => {
     const config = {
       active: { color: 'bg-green-100 text-green-800', label: 'Aktyvi' },
-      released: { color: 'bg-gray-100 text-gray-800', label: 'Atleista' },
+      released: { color: 'bg-gray-100 text-gray-800', label: 'Atšaukta' },
       converted: { color: 'bg-blue-100 text-blue-800', label: 'Konvertuota' },
-      overdue: { color: 'bg-red-100 text-red-800', label: 'Pasibaigusi' }
+      overdue: { color: 'bg-red-100 text-red-800', label: 'Vėluojanti' }
     };
     return config[status] || config.active;
   };
@@ -91,24 +101,25 @@ export default function CustomerPortal() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Mano Portalis</h1>
+          <h1 className="text-3xl font-bold">Mano kabinetas</h1>
           <p className="text-muted-foreground">Sveiki, {data.client?.fullName}</p>
         </div>
 
         {/* Client Info */}
         <Card>
           <CardHeader>
-            <CardTitle>Kontaktinė Informacija</CardTitle>
+            <CardTitle>Kontaktinė informacija</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div>
-              <span className="text-muted-foreground">El. Paštas:</span>
+              <span className="text-muted-foreground">El. paštas:</span>
               <p>{data.client?.email}</p>
             </div>
             {data.client?.phone && (
               <div>
                 <span className="text-muted-foreground">Telefonas:</span>
                 <p>{data.client?.phone}</p>
+
               </div>
             )}
           </CardContent>
@@ -153,7 +164,7 @@ export default function CustomerPortal() {
               {data.agreements.map(agr => (
                 <div key={agr.id} className="border rounded-lg p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">{agr.agreementType}</span>
+                    <span className="font-medium text-sm">{AGREEMENT_TYPE_LABELS[agr.agreementType] || agr.agreementType}</span>
                     <Badge variant={agr.status === 'signed' ? 'default' : 'secondary'}>
                       {agr.status === 'signed' ? 'Pasirašyta' : 'Juodraštis'}
                     </Badge>
@@ -185,7 +196,7 @@ export default function CustomerPortal() {
                         {new Date(pay.paidAt).toLocaleDateString('lt-LT')}
                       </p>
                     </div>
-                    <Badge variant="outline">{pay.status}</Badge>
+                    <Badge variant="outline">{PAYMENT_STATUS_LABELS[pay.status] || pay.status}</Badge>
                   </div>
                 ))}
               </div>
