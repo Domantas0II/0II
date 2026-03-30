@@ -38,8 +38,12 @@ export default function CallModal({ open, onClose, onSave, interest, saving }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
+      <DialogContent
+        className="max-w-md"
+        onInteractOutside={e => e.preventDefault()}
+        onEscapeKeyDown={handleClose}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-primary" />
