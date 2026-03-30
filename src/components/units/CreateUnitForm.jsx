@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import FieldGroup from '@/components/projects/FieldGroup';
 import { UNIT_TYPE_LABELS, WINDOW_DIRECTION_LABELS } from '@/lib/unitConstants';
 import { INSTALLATION_STATUS_LABELS, ENERGY_CLASS_LABELS } from '@/lib/projectConstants';

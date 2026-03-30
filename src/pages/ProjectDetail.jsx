@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext, useParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Building2, Settings, CheckCircle2, AlertTriangle, XCircle, Pencil } from 'lucide-react';
+import { ArrowLeft, Building2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

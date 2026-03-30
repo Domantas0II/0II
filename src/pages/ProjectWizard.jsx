@@ -15,7 +15,7 @@ import StepProcess from '@/components/projects/steps/StepProcess';
 import StepReview from '@/components/projects/steps/StepReview';
 import { WIZARD_STEPS } from '@/lib/projectConstants';
 import { canCreateProjects } from '@/lib/constants';
-import { calcCompleteness, canSetInternalReady } from '@/lib/projectCompleteness';
+import { calcCompleteness } from '@/lib/projectCompleteness';
 
 
 
