@@ -12,10 +12,7 @@ export default function StageChangeModal({ open, onClose, onSave, interest, savi
   const [errors, setErrors] = useState({});
 
   const handleSave = () => {
-    const e = {};
-    if (!newStage) e.stage = 'Pasirinkite naują etapą';
-    if (!comment.trim()) e.comment = 'Komentaras yra privalomas';
-    if (Object.keys(e).length > 0) { setErrors(e); return; }
+    if (!newStage) { setErrors({ stage: 'Pasirinkite naują etapą' }); return; }
     setErrors({});
     onSave({ newStage, comment: comment.trim() });
   };
@@ -61,15 +58,15 @@ export default function StageChangeModal({ open, onClose, onSave, interest, savi
 
           <div>
             <label className="text-sm font-medium mb-1.5 block">
-              Komentaras <span className="text-destructive">*</span>
+              Komentaras
             </label>
             <Textarea
               placeholder="Priežastis arba pastaba..."
               value={comment}
               onChange={e => { setComment(e.target.value); setErrors(prev => ({...prev, comment: ''})); }}
-              className={`h-20 text-sm ${errors.comment ? 'border-destructive' : ''}`}
+              className="h-20 text-sm"
             />
-            {errors.comment && <p className="text-xs text-destructive mt-1">{errors.comment}</p>}
+
           </div>
         </div>
 
