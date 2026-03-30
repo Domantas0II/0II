@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import FieldGroup from '@/components/projects/FieldGroup';
-import { ADVANCE_TYPE_LABELS, COMMISSION_VAT_LABELS } from '@/lib/projectConstants';
+import { ADVANCE_TYPE_LABELS } from '@/lib/projectConstants';
 
 export default function StepFinancial({ data, onChange }) {
   const set = (key, val) => onChange({ ...data, [key]: val });

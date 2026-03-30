@@ -10,7 +10,7 @@ import UnitCard from '@/components/units/UnitCard';
 import UnitFilters from '@/components/units/UnitFilters';
 import CreateUnitForm from '@/components/units/CreateUnitForm';
 import { canManageUnits, normalizeRole } from '@/lib/constants';
-import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
+import { getAccessibleProjectIds } from '@/lib/queryAccess';
 
 export default function UnitsList() {
   const context = useOutletContext() || {};

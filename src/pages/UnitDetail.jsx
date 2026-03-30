@@ -20,7 +20,7 @@ import {
 } from '@/lib/unitConstants';
 import { canManageUnits } from '@/lib/constants';
 import {
-  INSTALLATION_STATUS_LABELS, ENERGY_CLASS_LABELS
+  INSTALLATION_STATUS_LABELS
 } from '@/lib/projectConstants';
 
 function InfoRow({ label, value }) {
