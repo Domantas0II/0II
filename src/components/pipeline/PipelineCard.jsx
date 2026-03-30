@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Phone, ArrowRight, Clock, Calendar, User } from 'lucide-react';
+import { Phone, ArrowRight, Calendar, User } from 'lucide-react';
 import { format, differenceInDays, isToday, isYesterday } from 'date-fns';
-import { ACTIVITY_TYPE_ICONS, STAGE_OVERDUE_THRESHOLD_DAYS, PIPELINE_STAGE_LABELS, CALL_TIME_VISIBLE_STAGES } from '@/lib/pipelineConstants';
+import { ACTIVITY_TYPE_ICONS, STAGE_OVERDUE_THRESHOLD_DAYS, CALL_TIME_VISIBLE_STAGES } from '@/lib/pipelineConstants';
 import CallModal from './CallModal';
 import StageChangeModal from './StageChangeModal';
 
@@ -42,25 +41,43 @@ export default function PipelineCard({ interest, project, unit, lastActivity, on
   const [callOpen, setCallOpen] = useState(false);
   const [callStartedAt, setCallStartedAt] = useState(null);
   const [stageOpen, setStageOpen] = useState(false);
+  const pendingCall = useRef(false);
 
   const priority = getPriorityIndicator(interest);
   const stageDays = getStageDays(interest);
 
-  // Show call time only in early stages
   const showCallTime = CALL_TIME_VISIBLE_STAGES.has(interest.pipelineStage);
   const lastCallTime = showCallTime && lastActivity?.type === 'call'
     ? formatCallTime(lastActivity.startedAt || lastActivity.completedAt || lastActivity.created_date)
     : null;
 
+  // Open modal when user returns to the app after the call
+  useEffect(() => {
+    const handleReturn = () => {
+      if (pendingCall.current) {
+        pendingCall.current = false;
+        setCallOpen(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleReturn);
+    window.addEventListener('focus', handleReturn);
+    return () => {
+      document.removeEventListener('visibilitychange', handleReturn);
+      window.removeEventListener('focus', handleReturn);
+    };
+  }, []);
+
   const handleCallClick = () => {
     const now = new Date().toISOString();
     setCallStartedAt(now);
-    // Open tel: link immediately
+    pendingCall.current = true;
     if (interest.phone) {
       window.location.href = `tel:${interest.phone}`;
+    } else {
+      // No phone — open modal immediately
+      pendingCall.current = false;
+      setCallOpen(true);
     }
-    // Open post-call modal
-    setCallOpen(true);
   };
 
   const handleCallSave = (data) => {

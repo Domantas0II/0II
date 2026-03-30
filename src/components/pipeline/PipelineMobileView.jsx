@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +47,7 @@ function MobileCard({ interest, project, unit, lastActivity, onCall, onStageChan
   const [callOpen, setCallOpen] = useState(false);
   const [callStartedAt, setCallStartedAt] = useState(null);
   const [stageOpen, setStageOpen] = useState(false);
+  const pendingCall = useRef(false);
 
   const priority = getPriority(interest);
   const stageDays = getStageDays(interest);
@@ -56,13 +57,31 @@ function MobileCard({ interest, project, unit, lastActivity, onCall, onStageChan
     ? formatCallTime(lastActivity.startedAt || lastActivity.completedAt || lastActivity.created_date)
     : null;
 
+  useEffect(() => {
+    const handleReturn = () => {
+      if (pendingCall.current) {
+        pendingCall.current = false;
+        setCallOpen(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleReturn);
+    window.addEventListener('focus', handleReturn);
+    return () => {
+      document.removeEventListener('visibilitychange', handleReturn);
+      window.removeEventListener('focus', handleReturn);
+    };
+  }, []);
+
   const handleCallClick = () => {
     const now = new Date().toISOString();
     setCallStartedAt(now);
+    pendingCall.current = true;
     if (interest.phone) {
       window.location.href = `tel:${interest.phone}`;
+    } else {
+      pendingCall.current = false;
+      setCallOpen(true);
     }
-    setCallOpen(true);
   };
 
   return (
@@ -220,9 +239,13 @@ export default function PipelineMobileView({ interests, projects, units, activit
 
       {/* Stage count */}
       <Badge variant="secondary" className="text-sm px-3 py-1">
-        {stageInterests.length === 0 ? 'Tuščia' :
-          stageInterests.length === 1 ? '1 klientas' :
-          `${stageInterests.length} klientai`}
+        {stageInterests.length === 0
+          ? 'Tuščia'
+          : stageInterests.length === 1
+            ? '1 klientas'
+            : stageInterests.length <= 9
+              ? `${stageInterests.length} klientai`
+              : `${stageInterests.length} klientų`}
       </Badge>
 
       {/* Cards */}
