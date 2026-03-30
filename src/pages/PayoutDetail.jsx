@@ -18,8 +18,16 @@ const PAYOUT_STATUS_STYLES = {
 const PAYOUT_STATUS_LABELS = { draft: 'Juodraštis', approved: 'Patvirtinta', paid: 'Išmokėta' };
 
 const COMM_STATUS_STYLES = {
+  pending:  'bg-yellow-100 text-yellow-800',
   approved: 'bg-blue-100 text-blue-800',
+  rejected: 'bg-red-100 text-red-800',
   paid:     'bg-green-100 text-green-800'
+};
+const COMM_STATUS_LABELS = {
+  pending:  'Laukiama',
+  approved: 'Patvirtinta',
+  rejected: 'Atmesta',
+  paid:     'Išmokėta'
 };
 
 function InfoRow({ label, value }) {
@@ -121,7 +129,7 @@ export default function PayoutDetail() {
             return (
               <div key={item.id} className="flex items-center justify-between py-2 border-b last:border-0">
                 <div className="flex items-center gap-3">
-                  {comm && <Badge className={COMM_STATUS_STYLES[comm.status] || ''}>{comm.status}</Badge>}
+                  {comm && <Badge className={COMM_STATUS_STYLES[comm.status] || ''}>{COMM_STATUS_LABELS[comm.status] || comm.status}</Badge>}
                   <div>
                     <p className="text-sm font-medium">Deal #{item.commissionId?.slice(-6)}</p>
                     {comm && <p className="text-xs text-muted-foreground">{new Date(comm.calculatedAt).toLocaleDateString('lt-LT')}</p>}

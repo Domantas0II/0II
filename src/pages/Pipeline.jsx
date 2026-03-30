@@ -153,7 +153,9 @@ export default function Pipeline() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Pardavimų kanalas</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{enrichedInterests.length} klientai</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {enrichedInterests.length === 1 ? '1 klientas' : enrichedInterests.length >= 2 && enrichedInterests.length <= 9 ? `${enrichedInterests.length} klientai` : `${enrichedInterests.length} klientų`}
+        </p>
       </div>
 
       {overdueCount > 0 && (

@@ -79,7 +79,7 @@ export default function ReservationsList() {
       base44.functions.invoke('releaseReservation', { reservationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      toast.success('Rezervacija atleista');
+      toast.success('Rezervacija atšaukta');
     },
     onError: (error) => {
       toast.error(error.message || 'Nepavyko atleisti');

@@ -122,7 +122,9 @@ export default function CommissionsList() {
             </SelectContent>
           </Select>
         )}
-        <span className="text-sm text-muted-foreground self-center">{filtered.length} įrašai</span>
+        <span className="text-sm text-muted-foreground self-center">
+          {filtered.length === 1 ? '1 įrašas' : filtered.length >= 2 && filtered.length <= 9 ? `${filtered.length} įrašai` : `${filtered.length} įrašų`}
+        </span>
       </div>
 
       {/* List */}
