@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,17 @@ import { normalizeRole } from '@/lib/constants';
 import { PIPELINE_STAGES, normalizePipelineStage, STAGE_OVERDUE_THRESHOLD_DAYS } from '@/lib/pipelineConstants';
 import { differenceInDays } from 'date-fns';
 import PipelineColumn from '@/components/pipeline/PipelineColumn';
+import PipelineMobileView from '@/components/pipeline/PipelineMobileView';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
 
 function isInterestOverdue(interest) {
   const now = new Date();
@@ -25,6 +36,7 @@ function isInterestOverdue(interest) {
 export default function Pipeline() {
   const { user } = useOutletContext() || {};
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const canAccess = canViewPipeline(normalizeRole(user?.role));
 
   const { data: accessibleIds = null } = useQuery({
@@ -272,22 +284,34 @@ export default function Pipeline() {
         </Alert>
       )}
 
-      {/* Kanban board — horizontal scroll */}
-      <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1">
-        {PIPELINE_STAGES.map(stage => (
-          <PipelineColumn
-            key={stage}
-            stage={stage}
-            interests={enrichedInterests}
-            projects={projects}
-            units={units}
-            activities={activities}
-            onCall={handleCall}
-            onStageChange={handleStageChange}
-            saving={isSaving}
-          />
-        ))}
-      </div>
+      {/* Kanban board — desktop columns / mobile stacked list */}
+      {isMobile ? (
+        <PipelineMobileView
+          interests={enrichedInterests}
+          projects={projects}
+          units={units}
+          activities={activities}
+          onCall={handleCall}
+          onStageChange={handleStageChange}
+          saving={isSaving}
+        />
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1">
+          {PIPELINE_STAGES.map(stage => (
+            <PipelineColumn
+              key={stage}
+              stage={stage}
+              interests={enrichedInterests}
+              projects={projects}
+              units={units}
+              activities={activities}
+              onCall={handleCall}
+              onStageChange={handleStageChange}
+              saving={isSaving}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
