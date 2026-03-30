@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { Phone, ArrowRight, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, isToday, isYesterday } from 'date-fns';
 import {
   PIPELINE_STAGES, PIPELINE_STAGE_LABELS,
-  STAGE_OVERDUE_THRESHOLD_DAYS, ACTIVITY_TYPE_ICONS
+  STAGE_OVERDUE_THRESHOLD_DAYS, ACTIVITY_TYPE_ICONS,
+  CALL_TIME_VISIBLE_STAGES
 } from '@/lib/pipelineConstants';
 import CallModal from './CallModal';
 import StageChangeModal from './StageChangeModal';
@@ -22,8 +23,8 @@ function getPriority(interest) {
     return { dot: 'bg-red-500', label: 'Vėluoja', textClass: 'text-red-600' };
   if (interest.nextFollowUpAt) {
     const fu = new Date(interest.nextFollowUpAt);
-    const sameDay = fu.toDateString() === now.toDateString();
-    if (sameDay) return { dot: 'bg-yellow-400', label: 'Šiandien', textClass: 'text-yellow-600' };
+    if (fu.toDateString() === now.toDateString())
+      return { dot: 'bg-yellow-400', label: 'Šiandien', textClass: 'text-yellow-600' };
   }
   return { dot: 'bg-green-400', label: 'Tvarkoje', textClass: 'text-green-600' };
 }
@@ -34,11 +35,35 @@ function getStageDays(interest) {
   return differenceInDays(new Date(), new Date(from));
 }
 
+function formatCallTime(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isToday(d)) return `Šiandien ${format(d, 'HH:mm')}`;
+  if (isYesterday(d)) return `Vakar ${format(d, 'HH:mm')}`;
+  return format(d, 'yyyy-MM-dd HH:mm');
+}
+
 function MobileCard({ interest, project, unit, lastActivity, onCall, onStageChange, saving }) {
   const [callOpen, setCallOpen] = useState(false);
+  const [callStartedAt, setCallStartedAt] = useState(null);
   const [stageOpen, setStageOpen] = useState(false);
+
   const priority = getPriority(interest);
   const stageDays = getStageDays(interest);
+
+  const showCallTime = CALL_TIME_VISIBLE_STAGES.has(interest.pipelineStage);
+  const lastCallTime = showCallTime && lastActivity?.type === 'call'
+    ? formatCallTime(lastActivity.startedAt || lastActivity.completedAt || lastActivity.created_date)
+    : null;
+
+  const handleCallClick = () => {
+    const now = new Date().toISOString();
+    setCallStartedAt(now);
+    if (interest.phone) {
+      window.location.href = `tel:${interest.phone}`;
+    }
+    setCallOpen(true);
+  };
 
   return (
     <>
@@ -68,13 +93,21 @@ function MobileCard({ interest, project, unit, lastActivity, onCall, onStageChan
               <User className="h-3 w-3" />{interest.managerName}
             </span>
           )}
-          {lastActivity && (
+          {lastActivity && !lastCallTime && (
             <span className="flex items-center gap-1">
               {ACTIVITY_TYPE_ICONS[lastActivity.type] || '📝'}
               {format(new Date(lastActivity.completedAt || lastActivity.scheduledAt || lastActivity.created_date), 'MM-dd')}
             </span>
           )}
         </div>
+
+        {/* Last call time — only early stages */}
+        {lastCallTime && (
+          <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 rounded-lg px-3 py-2">
+            <Phone className="h-4 w-4 flex-shrink-0" />
+            <span>{lastCallTime}</span>
+          </div>
+        )}
 
         {/* Follow-up */}
         {interest.nextFollowUpAt && (
@@ -90,10 +123,14 @@ function MobileCard({ interest, project, unit, lastActivity, onCall, onStageChan
 
         {/* CTA */}
         <div className="grid grid-cols-2 gap-2 pt-1">
-          <Button size="default" className="h-11 text-sm gap-2" onClick={() => setCallOpen(true)}>
+          <Button
+            size="default"
+            className="h-12 text-sm gap-2 bg-green-600 hover:bg-green-700"
+            onClick={handleCallClick}
+          >
             <Phone className="h-4 w-4" /> Skambinti
           </Button>
-          <Button size="default" variant="outline" className="h-11 text-sm gap-2" onClick={() => setStageOpen(true)}>
+          <Button size="default" variant="outline" className="h-12 text-sm gap-2" onClick={() => setStageOpen(true)}>
             <ArrowRight className="h-4 w-4" /> Etapas
           </Button>
           <Button size="default" variant="ghost" className="h-11 text-sm col-span-2" asChild>
@@ -102,8 +139,21 @@ function MobileCard({ interest, project, unit, lastActivity, onCall, onStageChan
         </div>
       </div>
 
-      <CallModal open={callOpen} onClose={() => setCallOpen(false)} onSave={(d) => { onCall(interest, d); setCallOpen(false); }} interest={interest} saving={saving} />
-      <StageChangeModal open={stageOpen} onClose={() => setStageOpen(false)} onSave={(d) => { onStageChange(interest, d); setStageOpen(false); }} interest={interest} saving={saving} />
+      <CallModal
+        open={callOpen}
+        onClose={() => setCallOpen(false)}
+        onSave={(d) => { onCall(interest, d); setCallOpen(false); }}
+        interest={interest}
+        saving={saving}
+        callStartedAt={callStartedAt}
+      />
+      <StageChangeModal
+        open={stageOpen}
+        onClose={() => setStageOpen(false)}
+        onSave={(d) => { onStageChange(interest, d); setStageOpen(false); }}
+        interest={interest}
+        saving={saving}
+      />
     </>
   );
 }
@@ -113,19 +163,19 @@ export default function PipelineMobileView({ interests, projects, units, activit
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const unitMap = Object.fromEntries(units.map(u => [u.id, u]));
-  const activityMap = Object.fromEntries(activities.map(a => [a.clientId, a]));
+  // Last activity per client (keep full list for call time detection)
+  const activityMap = {};
+  [...activities].sort((a, b) => new Date(a.created_date) - new Date(b.created_date)).forEach(a => {
+    activityMap[a.clientId] = a;
+  });
 
   const stageInterests = interests.filter(i => i.pipelineStage === selectedStage);
   const currentIdx = PIPELINE_STAGES.indexOf(selectedStage);
-
   const prevStage = currentIdx > 0 ? PIPELINE_STAGES[currentIdx - 1] : null;
   const nextStage = currentIdx < PIPELINE_STAGES.length - 1 ? PIPELINE_STAGES[currentIdx + 1] : null;
 
-  // Counts per stage for the dropdown
   const countByStage = {};
-  PIPELINE_STAGES.forEach(s => {
-    countByStage[s] = interests.filter(i => i.pipelineStage === s).length;
-  });
+  PIPELINE_STAGES.forEach(s => { countByStage[s] = interests.filter(i => i.pipelineStage === s).length; });
 
   return (
     <div className="space-y-4">
@@ -168,14 +218,12 @@ export default function PipelineMobileView({ interests, projects, units, activit
         </Button>
       </div>
 
-      {/* Stage count badge */}
-      <div className="flex items-center gap-2">
-        <Badge variant="secondary" className="text-sm px-3 py-1">
-          {stageInterests.length === 0 ? 'Tuščia' :
-            stageInterests.length === 1 ? '1 klientas' :
-            `${stageInterests.length} klientai`}
-        </Badge>
-      </div>
+      {/* Stage count */}
+      <Badge variant="secondary" className="text-sm px-3 py-1">
+        {stageInterests.length === 0 ? 'Tuščia' :
+          stageInterests.length === 1 ? '1 klientas' :
+          `${stageInterests.length} klientai`}
+      </Badge>
 
       {/* Cards */}
       <div className="space-y-3">

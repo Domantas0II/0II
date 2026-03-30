@@ -1,77 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Phone } from 'lucide-react';
 import { PIPELINE_STAGES, PIPELINE_STAGE_LABELS } from '@/lib/pipelineConstants';
 
-export default function CallModal({ open, onClose, onSave, interest, saving }) {
+/**
+ * Post-call modal — shown AFTER the call is initiated.
+ * callStartedAt is passed in from the parent (captured at tel: click time).
+ */
+export default function CallModal({ open, onClose, onSave, interest, saving, callStartedAt }) {
   const [comment, setComment] = useState('');
-  const [changeStage, setChangeStage] = useState(false);
   const [newStage, setNewStage] = useState('');
-  const [error, setError] = useState('');
+
+  // Reset on open
+  useEffect(() => {
+    if (open) {
+      setComment('');
+      setNewStage('');
+    }
+  }, [open]);
 
   const handleSave = () => {
-    if (changeStage && !newStage) {
-      setError('Pasirinkite naują etapą');
-      return;
-    }
-    setError('');
     onSave({
       comment: comment.trim(),
-      newStage: changeStage ? newStage : null,
+      newStage: newStage || null,
+      callStartedAt,
     });
   };
 
   const handleClose = () => {
     setComment('');
-    setChangeStage(false);
     setNewStage('');
-    setError('');
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent
-        className="max-w-md"
+        className="max-w-md w-[calc(100%-2rem)] sm:w-full rounded-xl"
         onInteractOutside={e => e.preventDefault()}
         onEscapeKeyDown={handleClose}
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-primary" />
-            Skambutis — {interest?.fullName}
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Phone className="h-4 w-4 text-green-600" />
+            Po skambučio — {interest?.fullName}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Comment — optional */}
+        <div className="space-y-4 py-1">
+          {/* Etapas — visada matomas, neprivalomas */}
           <div>
-            <label className="text-sm font-medium mb-1.5 block">
-              Komentaras <span className="text-muted-foreground font-normal">(neprivalomas)</span>
-            </label>
-            <Textarea
-              placeholder="Kas aptarta, kliento reakcija, kitas žingsnis..."
-              value={comment}
-              onChange={e => { setComment(e.target.value); setError(''); }}
-              className="h-24 text-sm"
-              autoFocus
-            />
-          </div>
-
-          {/* Stage change toggle */}
-          <div className="flex items-center justify-between py-2 border rounded-lg px-3">
-            <span className="text-sm font-medium">Keisti etapą po skambučio?</span>
-            <Switch checked={changeStage} onCheckedChange={setChangeStage} />
-          </div>
-
-          {changeStage && (
-            <Select value={newStage} onValueChange={v => { setNewStage(v); setError(''); }}>
-              <SelectTrigger className={error && changeStage && !newStage ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Pasirinkite naują etapą..." />
+            <label className="text-sm font-medium mb-1.5 block">Etapas</label>
+            <Select value={newStage} onValueChange={setNewStage}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Palikti tą patį etapą..." />
               </SelectTrigger>
               <SelectContent>
                 {PIPELINE_STAGES.map(s => (
@@ -79,14 +64,24 @@ export default function CallModal({ open, onClose, onSave, interest, saving }) {
                 ))}
               </SelectContent>
             </Select>
-          )}
+          </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {/* Komentaras — neprivalomas */}
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">
+              Komentaras <span className="text-muted-foreground font-normal text-xs">(neprivalomas)</span>
+            </label>
+            <Textarea
+              placeholder="Kas aptarta, kliento reakcija, kitas žingsnis..."
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              className="h-24 text-sm resize-none"
+              autoFocus
+            />
+          </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 flex-row justify-end">
           <Button variant="outline" onClick={handleClose} disabled={saving}>Atšaukti</Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             <Phone className="h-4 w-4" />

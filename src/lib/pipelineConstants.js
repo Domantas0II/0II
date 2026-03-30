@@ -107,6 +107,14 @@ export const ACTIVITY_TYPE_ICONS = {
   other:        '📝',
 };
 
+// Stages where last call time is shown on the pipeline card (early / no-answer stages only)
+export const CALL_TIME_VISIBLE_STAGES = new Set([
+  'new_contact',
+  'no_answer_1',
+  'no_answer_2',
+  'no_answer_3',
+]);
+
 // Normalize legacy stage keys to new ones
 export function normalizePipelineStage(stage) {
   const map = {

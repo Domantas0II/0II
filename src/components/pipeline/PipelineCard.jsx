@@ -2,34 +2,24 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Phone, ArrowRight, Clock, AlertCircle, Calendar, User } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
-import { ACTIVITY_TYPE_ICONS, STAGE_OVERDUE_THRESHOLD_DAYS, PIPELINE_STAGE_LABELS } from '@/lib/pipelineConstants';
+import { Phone, ArrowRight, Clock, Calendar, User } from 'lucide-react';
+import { format, differenceInDays, isToday, isYesterday } from 'date-fns';
+import { ACTIVITY_TYPE_ICONS, STAGE_OVERDUE_THRESHOLD_DAYS, PIPELINE_STAGE_LABELS, CALL_TIME_VISIBLE_STAGES } from '@/lib/pipelineConstants';
 import CallModal from './CallModal';
 import StageChangeModal from './StageChangeModal';
 
 function getPriorityIndicator(interest) {
   const now = new Date();
-  // Red: follow-up overdue
-  if (interest.nextFollowUpAt && new Date(interest.nextFollowUpAt) < now) {
+  if (interest.nextFollowUpAt && new Date(interest.nextFollowUpAt) < now)
     return { color: 'bg-red-500', label: 'Vėluoja' };
-  }
-  // Red: stage stuck too long
   const threshold = STAGE_OVERDUE_THRESHOLD_DAYS[interest.pipelineStage] || 7;
   const stageDate = interest.stageUpdatedAt ? new Date(interest.stageUpdatedAt) : new Date(interest.created_date || now);
-  if (differenceInDays(now, stageDate) > threshold) {
+  if (differenceInDays(now, stageDate) > threshold)
     return { color: 'bg-red-500', label: 'Vėluoja' };
-  }
-  // Yellow: follow-up today
   if (interest.nextFollowUpAt) {
     const fuDate = new Date(interest.nextFollowUpAt);
-    if (
-      fuDate.getFullYear() === now.getFullYear() &&
-      fuDate.getMonth() === now.getMonth() &&
-      fuDate.getDate() === now.getDate()
-    ) {
+    if (fuDate.toDateString() === now.toDateString())
       return { color: 'bg-yellow-400', label: 'Šiandien' };
-    }
   }
   return { color: 'bg-green-400', label: 'Tvarkoje' };
 }
@@ -40,14 +30,40 @@ function getStageDays(interest) {
   return differenceInDays(new Date(), new Date(from));
 }
 
+function formatCallTime(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isToday(d)) return `Šiandien ${format(d, 'HH:mm')}`;
+  if (isYesterday(d)) return `Vakar ${format(d, 'HH:mm')}`;
+  return format(d, 'yyyy-MM-dd HH:mm');
+}
+
 export default function PipelineCard({ interest, project, unit, lastActivity, onCall, onStageChange, saving }) {
   const [callOpen, setCallOpen] = useState(false);
+  const [callStartedAt, setCallStartedAt] = useState(null);
   const [stageOpen, setStageOpen] = useState(false);
 
   const priority = getPriorityIndicator(interest);
   const stageDays = getStageDays(interest);
 
-  const handleCall = (data) => {
+  // Show call time only in early stages
+  const showCallTime = CALL_TIME_VISIBLE_STAGES.has(interest.pipelineStage);
+  const lastCallTime = showCallTime && lastActivity?.type === 'call'
+    ? formatCallTime(lastActivity.startedAt || lastActivity.completedAt || lastActivity.created_date)
+    : null;
+
+  const handleCallClick = () => {
+    const now = new Date().toISOString();
+    setCallStartedAt(now);
+    // Open tel: link immediately
+    if (interest.phone) {
+      window.location.href = `tel:${interest.phone}`;
+    }
+    // Open post-call modal
+    setCallOpen(true);
+  };
+
+  const handleCallSave = (data) => {
     onCall(interest, data);
     setCallOpen(false);
   };
@@ -80,15 +96,23 @@ export default function PipelineCard({ interest, project, unit, lastActivity, on
         </div>
 
         {/* Manager */}
-        {interest.assignedManagerUserId && (
+        {interest.managerName && (
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-2">
             <User className="h-3 w-3" />
-            <span className="truncate">{interest.managerName || 'Priskirtas'}</span>
+            <span className="truncate">{interest.managerName}</span>
           </div>
         )}
 
-        {/* Last activity */}
-        {lastActivity && (
+        {/* Last call time — only for early stages */}
+        {lastCallTime && (
+          <div className="flex items-center gap-1 text-[10px] text-blue-700 bg-blue-50 rounded px-2 py-1 mb-2">
+            <Phone className="h-3 w-3 flex-shrink-0" />
+            <span>{lastCallTime}</span>
+          </div>
+        )}
+
+        {/* Last activity (non-call or if not early stage) */}
+        {lastActivity && !lastCallTime && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2 pb-2 border-t pt-2">
             <span>{ACTIVITY_TYPE_ICONS[lastActivity.type] || '📝'}</span>
             <span>{format(new Date(lastActivity.completedAt || lastActivity.scheduledAt || lastActivity.created_date), 'MM-dd')}</span>
@@ -114,8 +138,8 @@ export default function PipelineCard({ interest, project, unit, lastActivity, on
         <div className="grid grid-cols-2 gap-1.5 mt-2 pt-2 border-t">
           <Button
             size="sm"
-            className="h-8 text-xs gap-1 w-full"
-            onClick={() => setCallOpen(true)}
+            className="h-8 text-xs gap-1 w-full bg-green-600 hover:bg-green-700"
+            onClick={handleCallClick}
           >
             <Phone className="h-3.5 w-3.5" /> Skambinti
           </Button>
@@ -141,9 +165,10 @@ export default function PipelineCard({ interest, project, unit, lastActivity, on
       <CallModal
         open={callOpen}
         onClose={() => setCallOpen(false)}
-        onSave={handleCall}
+        onSave={handleCallSave}
         interest={interest}
         saving={saving}
+        callStartedAt={callStartedAt}
       />
       <StageChangeModal
         open={stageOpen}

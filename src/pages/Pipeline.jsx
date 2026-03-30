@@ -146,16 +146,18 @@ export default function Pipeline() {
 
   const isSaving = updateInterest.isPending || createActivity.isPending;
 
-  const handleCall = async (interest, { comment, newStage }) => {
-    // 1. Save activity (comment optional)
+  const handleCall = async (interest, { comment, newStage, callStartedAt }) => {
+    // 1. Save activity — startedAt = when call button was tapped, completedAt = now
+    const now = new Date().toISOString();
     const activityData = {
       clientId: interest.clientId,
       projectId: interest.projectId,
       interestId: interest.id,
       type: 'call',
       status: 'done',
-      completedAt: new Date().toISOString(),
-      scheduledAt: new Date().toISOString(),
+      startedAt: callStartedAt || now,
+      completedAt: now,
+      scheduledAt: callStartedAt || now,
       createdByUserId: user?.id,
     };
     if (comment) activityData.notes = comment;
