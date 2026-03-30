@@ -2,30 +2,54 @@
   "name": "CommissionRule",
   "type": "object",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Taisykl\u0117s pavadinimas"
+    },
     "projectId": {
       "type": "string",
-      "description": "Projekto ID (null = global rule)"
+      "description": "Projekto ID (null = globali taisykl\u0117)"
     },
-    "appliesTo": {
-      "type": "string",
-      "enum": [
-        "agent",
-        "partner",
-        "agency"
-      ],
-      "description": "Kam taikoma komisini\u0173 taisykl\u0117"
-    },
-    "calculationType": {
+    "commissionType": {
       "type": "string",
       "enum": [
         "percentage",
         "fixed"
       ],
-      "description": "Skai\u010diavimo tipas"
+      "description": "Komisinio skai\u010diavimo tipas"
     },
-    "value": {
+    "commissionValue": {
       "type": "number",
       "description": "Procentas arba fiksuota suma"
+    },
+    "commissionBase": {
+      "type": "string",
+      "enum": [
+        "without_vat",
+        "with_vat"
+      ],
+      "default": "without_vat",
+      "description": "Nuo ko skai\u010diuojamas komisinis"
+    },
+    "companyPercent": {
+      "type": "number",
+      "description": "\u012emon\u0117s dalis % (be partnerio)"
+    },
+    "managerPercent": {
+      "type": "number",
+      "description": "Vadybininko dalis % (be partnerio)"
+    },
+    "companyPercentWithPartner": {
+      "type": "number",
+      "description": "\u012emon\u0117s dalis % (su partneriu)"
+    },
+    "managerPercentWithPartner": {
+      "type": "number",
+      "description": "Vadybininko dalis % (su partneriu)"
+    },
+    "partnerPercent": {
+      "type": "number",
+      "description": "Partnerio dalis % (su partneriu)"
     },
     "vatMode": {
       "type": "string",
@@ -33,7 +57,8 @@
         "with_vat",
         "without_vat"
       ],
-      "description": "PVM re\u017eimas"
+      "default": "without_vat",
+      "description": "PVM re\u017eimas i\u0161mokant"
     },
     "isActive": {
       "type": "boolean",
@@ -46,9 +71,10 @@
     }
   },
   "required": [
-    "appliesTo",
-    "calculationType",
-    "value",
-    "vatMode"
+    "name",
+    "commissionType",
+    "commissionValue",
+    "companyPercent",
+    "managerPercent"
   ]
 }

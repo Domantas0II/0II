@@ -13,10 +13,17 @@ import { ArrowLeft, Save } from 'lucide-react';
 const normalizeRole = (r) => ({ admin: 'ADMINISTRATOR', user: 'SALES_AGENT' }[r] || r);
 
 const EMPTY_FORM = {
+  name: '',
   projectId: '',
-  appliesTo: 'agent',
-  calculationType: 'percentage',
-  value: '',
+  commissionType: 'percentage',
+  commissionValue: '',
+  commissionBase: 'without_vat',
+  companyPercent: '',
+  managerPercent: '',
+  hasPartnerSplit: false,
+  companyPercentWithPartner: '',
+  managerPercentWithPartner: '',
+  partnerPercent: '',
   vatMode: 'without_vat',
   isActive: true
 };
@@ -26,6 +33,30 @@ function FieldLabel({ children, required }) {
     <label className="text-sm font-medium mb-1 block">
       {children}{required && <span className="text-destructive ml-1">*</span>}
     </label>
+  );
+}
+
+function SplitPreview({ total, companyP, managerP, partnerP, label }) {
+  const commission = total || 0;
+  const company = Math.round(commission * (companyP || 0) / 100 * 100) / 100;
+  const manager = Math.round(commission * (managerP || 0) / 100 * 100) / 100;
+  const partner = partnerP ? Math.round(commission * partnerP / 100 * 100) / 100 : null;
+  return (
+    <div className="bg-secondary/50 rounded-lg p-3 text-sm space-y-1.5">
+      <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <span className="text-muted-foreground">Įmonė ({companyP || 0}%)</span>
+        <span className="font-medium">€{company.toLocaleString('lt-LT', { minimumFractionDigits: 2 })}</span>
+        <span className="text-muted-foreground">Vadybininkas ({managerP || 0}%)</span>
+        <span className="font-medium text-green-700">€{manager.toLocaleString('lt-LT', { minimumFractionDigits: 2 })}</span>
+        {partner !== null && (
+          <>
+            <span className="text-muted-foreground">Partneris ({partnerP}%)</span>
+            <span className="font-medium text-blue-700">€{partner.toLocaleString('lt-LT', { minimumFractionDigits: 2 })}</span>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -47,7 +78,6 @@ export default function CommissionRuleForm() {
     queryFn: () => base44.entities.Project.list('-created_date', 200)
   });
 
-  // Load existing rule for edit
   const { data: existingRules = [] } = useQuery({
     queryKey: ['commissionRule', id],
     queryFn: () => base44.entities.CommissionRule.filter({ id }),
@@ -58,24 +88,61 @@ export default function CommissionRuleForm() {
     if (isEdit && existingRules.length > 0) {
       const r = existingRules[0];
       setForm({
+        name: r.name || '',
         projectId: r.projectId || '',
-        appliesTo: r.appliesTo,
-        calculationType: r.calculationType,
-        value: r.value,
-        vatMode: r.vatMode,
-        isActive: r.isActive
+        commissionType: r.commissionType || 'percentage',
+        commissionValue: r.commissionValue ?? '',
+        commissionBase: r.commissionBase || 'without_vat',
+        companyPercent: r.companyPercent ?? '',
+        managerPercent: r.managerPercent ?? '',
+        hasPartnerSplit: !!(r.partnerPercent),
+        companyPercentWithPartner: r.companyPercentWithPartner ?? '',
+        managerPercentWithPartner: r.managerPercentWithPartner ?? '',
+        partnerPercent: r.partnerPercent ?? '',
+        vatMode: r.vatMode || 'without_vat',
+        isActive: r.isActive !== false
       });
     }
   }, [existingRules, isEdit]);
 
+  const f = (field) => (v) => setForm(prev => ({ ...prev, [field]: v }));
+  const fi = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
+
+  // Live preview: total commission on €100,000 deal
+  const previewBase = 100000;
+  const commissionVal = parseFloat(form.commissionValue) || 0;
+  const previewTotal = form.commissionType === 'percentage'
+    ? Math.round(previewBase * commissionVal / 100 * 100) / 100
+    : commissionVal;
+
+  const noPartnerSplitSum = (parseFloat(form.companyPercent) || 0) + (parseFloat(form.managerPercent) || 0);
+  const partnerSplitSum = (parseFloat(form.companyPercentWithPartner) || 0) +
+    (parseFloat(form.managerPercentWithPartner) || 0) +
+    (parseFloat(form.partnerPercent) || 0);
+
   const validate = () => {
     const e = {};
-    if (!form.appliesTo) e.appliesTo = 'Privalomas laukas';
-    if (!form.calculationType) e.calculationType = 'Privalomas laukas';
-    if (!form.vatMode) e.vatMode = 'Privalomas laukas';
-    const val = parseFloat(form.value);
-    if (!form.value || isNaN(val) || val <= 0) e.value = 'Turi būti > 0';
-    if (form.calculationType === 'percentage' && val > 100) e.value = 'Procentas negali viršyti 100';
+    if (!form.name.trim()) e.name = 'Privalomas laukas';
+    if (!form.commissionType) e.commissionType = 'Privalomas laukas';
+    const val = parseFloat(form.commissionValue);
+    if (!form.commissionValue || isNaN(val) || val <= 0) e.commissionValue = 'Turi būti > 0';
+    if (form.commissionType === 'percentage' && val > 100) e.commissionValue = 'Procentas negali viršyti 100';
+
+    const cP = parseFloat(form.companyPercent);
+    const mP = parseFloat(form.managerPercent);
+    if (isNaN(cP) || isNaN(mP)) { e.companyPercent = 'Privalomas laukas'; e.managerPercent = 'Privalomas laukas'; }
+    else if (Math.abs(cP + mP - 100) > 0.01) e.companyPercent = `Suma turi būti 100% (dabar ${cP + mP}%)`;
+
+    if (form.hasPartnerSplit) {
+      const cp = parseFloat(form.companyPercentWithPartner);
+      const mp = parseFloat(form.managerPercentWithPartner);
+      const pp = parseFloat(form.partnerPercent);
+      if (isNaN(cp) || isNaN(mp) || isNaN(pp)) {
+        e.partnerPercent = 'Visi 3 laukai privalomi';
+      } else if (Math.abs(cp + mp + pp - 100) > 0.01) {
+        e.partnerPercent = `Suma turi būti 100% (dabar ${cp + mp + pp}%)`;
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -83,10 +150,18 @@ export default function CommissionRuleForm() {
   const saveMutation = useMutation({
     mutationFn: () => base44.functions.invoke('upsertCommissionRule', {
       ...(isEdit ? { id } : {}),
+      name: form.name.trim(),
       projectId: form.projectId || null,
-      appliesTo: form.appliesTo,
-      calculationType: form.calculationType,
-      value: parseFloat(form.value),
+      commissionType: form.commissionType,
+      commissionValue: parseFloat(form.commissionValue),
+      commissionBase: form.commissionBase,
+      companyPercent: parseFloat(form.companyPercent),
+      managerPercent: parseFloat(form.managerPercent),
+      ...(form.hasPartnerSplit ? {
+        companyPercentWithPartner: parseFloat(form.companyPercentWithPartner),
+        managerPercentWithPartner: parseFloat(form.managerPercentWithPartner),
+        partnerPercent: parseFloat(form.partnerPercent)
+      } : {}),
       vatMode: form.vatMode,
       isActive: form.isActive
     }),
@@ -108,7 +183,7 @@ export default function CommissionRuleForm() {
   }
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-3">
         <Link to="/commission-rules">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
@@ -116,19 +191,29 @@ export default function CommissionRuleForm() {
         <h1 className="text-2xl font-bold">{isEdit ? 'Redaguoti taisyklę' : 'Nauja komisinių taisyklė'}</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Taisyklės duomenys</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* Project (optional) */}
+        {/* --- KOMISINIO GENERAVIMAS --- */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">1. Komisinio dydis</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+
+            <div>
+              <FieldLabel required>Pavadinimas</FieldLabel>
+              <Input
+                value={form.name}
+                onChange={fi('name')}
+                placeholder="pvz. Standartinė 3%"
+                className={errors.name ? 'border-destructive' : ''}
+              />
+              {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+            </div>
+
             <div>
               <FieldLabel>Projektas (tuščias = globali taisyklė)</FieldLabel>
-              <Select value={form.projectId || '__global__'} onValueChange={(v) => setForm(f => ({ ...f, projectId: v === '__global__' ? '' : v }))}>
+              <Select value={form.projectId || '__global__'} onValueChange={(v) => f('projectId')(v === '__global__' ? '' : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pasirinkti projektą..." />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__global__">🌐 Globali (visi projektai)</SelectItem>
@@ -137,117 +222,184 @@ export default function CommissionRuleForm() {
                   ))}
                 </SelectContent>
               </Select>
-              {form.projectId ? (
-                <p className="text-xs text-muted-foreground mt-1">Taisyklė taikoma tik šiam projektui</p>
-              ) : (
-                <p className="text-xs text-muted-foreground mt-1">Globali taisyklė — naudojama kai nėra projekto taisyklės</p>
-              )}
             </div>
 
-            {/* Applies to */}
-            <div>
-              <FieldLabel required>Taikoma kam</FieldLabel>
-              <Select value={form.appliesTo} onValueChange={(v) => setForm(f => ({ ...f, appliesTo: v }))}>
-                <SelectTrigger className={errors.appliesTo ? 'border-destructive' : ''}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="agent">Agentas</SelectItem>
-                  <SelectItem value="partner">Partneris</SelectItem>
-                  <SelectItem value="agency">Agentūra</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.appliesTo && <p className="text-xs text-destructive mt-1">{errors.appliesTo}</p>}
-            </div>
-
-            {/* Calculation type */}
-            <div>
-              <FieldLabel required>Skaičiavimo tipas</FieldLabel>
-              <Select value={form.calculationType} onValueChange={(v) => setForm(f => ({ ...f, calculationType: v }))}>
-                <SelectTrigger className={errors.calculationType ? 'border-destructive' : ''}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Procentas (%)</SelectItem>
-                  <SelectItem value="fixed">Fiksuota suma (€)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Value */}
-            <div>
-              <FieldLabel required>
-                Reikšmė {form.calculationType === 'percentage' ? '(%)' : '(€)'}
-              </FieldLabel>
-              <Input
-                type="number"
-                step="0.01"
-                min="0.01"
-                max={form.calculationType === 'percentage' ? '100' : undefined}
-                value={form.value}
-                onChange={(e) => setForm(f => ({ ...f, value: e.target.value }))}
-                placeholder={form.calculationType === 'percentage' ? 'pvz. 2.5' : 'pvz. 1500'}
-                className={errors.value ? 'border-destructive' : ''}
-              />
-              {errors.value && <p className="text-xs text-destructive mt-1">{errors.value}</p>}
-            </div>
-
-            {/* VAT mode */}
-            <div>
-              <FieldLabel required>PVM režimas</FieldLabel>
-              <Select value={form.vatMode} onValueChange={(v) => setForm(f => ({ ...f, vatMode: v }))}>
-                <SelectTrigger className={errors.vatMode ? 'border-destructive' : ''}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="without_vat">Be PVM (PVM pridedamas viršuje)</SelectItem>
-                  <SelectItem value="with_vat">Su PVM (kaina jau su PVM)</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.vatMode && <p className="text-xs text-destructive mt-1">{errors.vatMode}</p>}
-            </div>
-
-            {/* Active toggle */}
-            <div className="flex items-center justify-between py-2">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium">Aktyvi</p>
-                <p className="text-xs text-muted-foreground">Neaktyvi taisyklė nebus naudojama skaičiuojant</p>
+                <FieldLabel required>Tipas</FieldLabel>
+                <Select value={form.commissionType} onValueChange={f('commissionType')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">Procentas (%)</SelectItem>
+                    <SelectItem value="fixed">Fiksuota suma (€)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Switch
-                checked={form.isActive}
-                onCheckedChange={(v) => setForm(f => ({ ...f, isActive: v }))}
-              />
+              <div>
+                <FieldLabel required>Reikšmė {form.commissionType === 'percentage' ? '(%)' : '(€)'}</FieldLabel>
+                <Input
+                  type="number" step="0.01" min="0.01"
+                  max={form.commissionType === 'percentage' ? '100' : undefined}
+                  value={form.commissionValue}
+                  onChange={fi('commissionValue')}
+                  placeholder={form.commissionType === 'percentage' ? 'pvz. 3' : 'pvz. 3000'}
+                  className={errors.commissionValue ? 'border-destructive' : ''}
+                />
+                {errors.commissionValue && <p className="text-xs text-destructive mt-1">{errors.commissionValue}</p>}
+              </div>
             </div>
 
-            {/* Preview */}
-            {form.value && parseFloat(form.value) > 0 && (
-              <div className="bg-secondary/50 rounded-lg p-3 text-sm space-y-1">
-                <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Peržiūra</p>
-                <p>
-                  Nuo €100,000 sandorio →{' '}
-                  <strong>
-                    {form.calculationType === 'percentage'
-                      ? `€${(100000 * parseFloat(form.value) / 100).toLocaleString('lt-LT', { minimumFractionDigits: 2 })}`
-                      : `€${parseFloat(form.value).toLocaleString('lt-LT', { minimumFractionDigits: 2 })}`
-                    }
-                  </strong>
-                  {' '}komisiniai {form.vatMode === 'with_vat' ? '(su PVM)' : '(be PVM, +21% PVM)'}
-                </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FieldLabel>Skaičiavimo bazė</FieldLabel>
+                <Select value={form.commissionBase} onValueChange={f('commissionBase')}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="without_vat">Be PVM</SelectItem>
+                    <SelectItem value="with_vat">Su PVM</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+              <div>
+                <FieldLabel>PVM režimas (išmokant)</FieldLabel>
+                <Select value={form.vatMode} onValueChange={f('vatMode')}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="without_vat">Be PVM</SelectItem>
+                    <SelectItem value="with_vat">Su PVM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* --- SPLIT BE PARTNERIO --- */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">2. Padalijimas — be partnerio</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FieldLabel required>Įmonė (%)</FieldLabel>
+                <Input
+                  type="number" step="0.01" min="0" max="100"
+                  value={form.companyPercent}
+                  onChange={fi('companyPercent')}
+                  placeholder="pvz. 70"
+                  className={errors.companyPercent ? 'border-destructive' : ''}
+                />
+              </div>
+              <div>
+                <FieldLabel required>Vadybininkas (%)</FieldLabel>
+                <Input
+                  type="number" step="0.01" min="0" max="100"
+                  value={form.managerPercent}
+                  onChange={fi('managerPercent')}
+                  placeholder="pvz. 30"
+                  className={errors.managerPercent ? 'border-destructive' : ''}
+                />
+              </div>
+            </div>
+            {errors.companyPercent && <p className="text-xs text-destructive">{errors.companyPercent}</p>}
+            {noPartnerSplitSum > 0 && (
+              <p className={`text-xs ${Math.abs(noPartnerSplitSum - 100) < 0.01 ? 'text-green-600' : 'text-destructive'}`}>
+                Suma: {noPartnerSplitSum}% {Math.abs(noPartnerSplitSum - 100) < 0.01 ? '✓' : '(turi būti 100%)'}
+              </p>
             )}
 
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
-                <Save className="h-4 w-4" />
-                {isEdit ? 'Išsaugoti pakeitimus' : 'Sukurti taisyklę'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => navigate('/commission-rules')}>
-                Atšaukti
-              </Button>
+            {previewTotal > 0 && Math.abs(noPartnerSplitSum - 100) < 0.01 && (
+              <SplitPreview
+                total={previewTotal}
+                companyP={parseFloat(form.companyPercent)}
+                managerP={parseFloat(form.managerPercent)}
+                label={`Peržiūra — €${previewBase.toLocaleString()} sandoris → komisinis €${previewTotal.toLocaleString()}`}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* --- SPLIT SU PARTNERIU --- */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">3. Padalijimas — su partneriu</CardTitle>
+              <Switch checked={form.hasPartnerSplit} onCheckedChange={f('hasPartnerSplit')} />
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          {form.hasPartnerSplit && (
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <FieldLabel required>Įmonė (%)</FieldLabel>
+                  <Input
+                    type="number" step="0.01" min="0" max="100"
+                    value={form.companyPercentWithPartner}
+                    onChange={fi('companyPercentWithPartner')}
+                    placeholder="pvz. 60"
+                  />
+                </div>
+                <div>
+                  <FieldLabel required>Vadybininkas (%)</FieldLabel>
+                  <Input
+                    type="number" step="0.01" min="0" max="100"
+                    value={form.managerPercentWithPartner}
+                    onChange={fi('managerPercentWithPartner')}
+                    placeholder="pvz. 25"
+                  />
+                </div>
+                <div>
+                  <FieldLabel required>Partneris (%)</FieldLabel>
+                  <Input
+                    type="number" step="0.01" min="0" max="100"
+                    value={form.partnerPercent}
+                    onChange={fi('partnerPercent')}
+                    placeholder="pvz. 15"
+                  />
+                </div>
+              </div>
+              {errors.partnerPercent && <p className="text-xs text-destructive">{errors.partnerPercent}</p>}
+              {partnerSplitSum > 0 && (
+                <p className={`text-xs ${Math.abs(partnerSplitSum - 100) < 0.01 ? 'text-green-600' : 'text-destructive'}`}>
+                  Suma: {partnerSplitSum}% {Math.abs(partnerSplitSum - 100) < 0.01 ? '✓' : '(turi būti 100%)'}
+                </p>
+              )}
+              {previewTotal > 0 && Math.abs(partnerSplitSum - 100) < 0.01 && (
+                <SplitPreview
+                  total={previewTotal}
+                  companyP={parseFloat(form.companyPercentWithPartner)}
+                  managerP={parseFloat(form.managerPercentWithPartner)}
+                  partnerP={parseFloat(form.partnerPercent)}
+                  label={`Su partneriu — €${previewBase.toLocaleString()} → komisinis €${previewTotal.toLocaleString()}`}
+                />
+              )}
+            </CardContent>
+          )}
+        </Card>
+
+        {/* --- AKTYVUMAS --- */}
+        <Card>
+          <CardContent className="py-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Aktyvi taisyklė</p>
+              <p className="text-xs text-muted-foreground">Neaktyvi nebus naudojama skaičiuojant</p>
+            </div>
+            <Switch checked={form.isActive} onCheckedChange={f('isActive')} />
+          </CardContent>
+        </Card>
+
+        <div className="flex gap-3">
+          <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
+            <Save className="h-4 w-4" />
+            {isEdit ? 'Išsaugoti pakeitimus' : 'Sukurti taisyklę'}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/commission-rules')}>
+            Atšaukti
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -12,12 +12,9 @@ import { Plus, ChevronRight, Globe, Building2 } from 'lucide-react';
 
 const normalizeRole = (r) => ({ admin: 'ADMINISTRATOR', user: 'SALES_AGENT' }[r] || r);
 
-const APPLIES_TO_LABELS = { agent: 'Agentas', partner: 'Partneris', agency: 'Agentūra' };
-
 export default function CommissionRulesList() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [appliesToFilter, setAppliesToFilter] = useState('all');
   const [activeFilter, setActiveFilter] = useState('all');
 
   const { data: currentUser } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
@@ -38,10 +35,16 @@ export default function CommissionRulesList() {
   const toggleMutation = useMutation({
     mutationFn: (rule) => base44.functions.invoke('upsertCommissionRule', {
       id: rule.id,
+      name: rule.name,
       projectId: rule.projectId,
-      appliesTo: rule.appliesTo,
-      calculationType: rule.calculationType,
-      value: rule.value,
+      commissionType: rule.commissionType,
+      commissionValue: rule.commissionValue,
+      commissionBase: rule.commissionBase,
+      companyPercent: rule.companyPercent,
+      managerPercent: rule.managerPercent,
+      companyPercentWithPartner: rule.companyPercentWithPartner,
+      managerPercentWithPartner: rule.managerPercentWithPartner,
+      partnerPercent: rule.partnerPercent,
       vatMode: rule.vatMode,
       isActive: !rule.isActive
     }),
@@ -53,7 +56,6 @@ export default function CommissionRulesList() {
   });
 
   const filtered = rules.filter(r => {
-    if (appliesToFilter !== 'all' && r.appliesTo !== appliesToFilter) return false;
     if (activeFilter === 'active' && !r.isActive) return false;
     if (activeFilter === 'inactive' && r.isActive) return false;
     return true;
@@ -72,7 +74,7 @@ export default function CommissionRulesList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Komisinių taisyklės</h1>
-          <p className="text-sm text-muted-foreground mt-1">Apibrėžia kaip skaičiuojami komisiniai pagal projektą ar globaliai</p>
+          <p className="text-sm text-muted-foreground mt-1">2 sluoksnių modelis: komisinio dydis + padalijimas</p>
         </div>
         <Button onClick={() => navigate('/commission-rules/new')} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -80,25 +82,13 @@ export default function CommissionRulesList() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 flex-wrap">
-        <Select value={appliesToFilter} onValueChange={setAppliesToFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Visi tipai" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Visi</SelectItem>
-            <SelectItem value="agent">Agentas</SelectItem>
-            <SelectItem value="partner">Partneris</SelectItem>
-            <SelectItem value="agency">Agentūra</SelectItem>
-          </SelectContent>
-        </Select>
         <Select value={activeFilter} onValueChange={setActiveFilter}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="Visi statusai" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Visi</SelectItem>
+            <SelectItem value="all">Visos</SelectItem>
             <SelectItem value="active">Aktyvios</SelectItem>
             <SelectItem value="inactive">Neaktyvios</SelectItem>
           </SelectContent>
@@ -108,15 +98,14 @@ export default function CommissionRulesList() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-16 bg-secondary animate-pulse rounded-lg" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-secondary animate-pulse rounded-lg" />)}
         </div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="pt-12 pb-12 text-center text-muted-foreground">
             <p>Taisyklių nerasta.</p>
             <Button className="mt-4" onClick={() => navigate('/commission-rules/new')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Sukurti pirmą taisyklę
+              <Plus className="h-4 w-4 mr-2" />Sukurti pirmą taisyklę
             </Button>
           </CardContent>
         </Card>
@@ -124,30 +113,31 @@ export default function CommissionRulesList() {
         <div className="space-y-2">
           {filtered.map(rule => {
             const project = rule.projectId ? projectsMap[rule.projectId] : null;
+            const hasPartner = !!rule.partnerPercent;
             return (
               <Card key={rule.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                <CardContent className="py-4 flex items-center justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     {rule.projectId ? (
-                      <Building2 className="h-4 w-4 text-primary shrink-0" />
+                      <Building2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     ) : (
-                      <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <Globe className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                     )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                          {project ? project.projectName : 'Globali taisyklė'}
-                        </span>
-                        <Badge variant="outline">{APPLIES_TO_LABELS[rule.appliesTo] || rule.appliesTo}</Badge>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm">{rule.name || 'Be pavadinimo'}</span>
+                        {project && <Badge variant="outline" className="text-xs">{project.projectName}</Badge>}
+                        {!rule.isActive && <Badge variant="secondary" className="text-xs">Neaktyvi</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {rule.calculationType === 'percentage' ? `${rule.value}%` : `€${rule.value} fiksuota`}
+                        {rule.commissionType === 'percentage' ? `${rule.commissionValue}%` : `€${rule.commissionValue} fiksuota`}
                         {' · '}
-                        {rule.vatMode === 'with_vat' ? 'Kaina su PVM' : 'Kaina be PVM'}
+                        Be partnerio: įmonė {rule.companyPercent}% / vadybininkas {rule.managerPercent}%
+                        {hasPartner && ` · Su partneriu: +${rule.partnerPercent}%`}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 shrink-0">
                     <Switch
                       checked={rule.isActive}
                       onCheckedChange={() => toggleMutation.mutate(rule)}

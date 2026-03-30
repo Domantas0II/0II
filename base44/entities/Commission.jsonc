@@ -6,77 +6,69 @@
       "type": "string",
       "description": "Deal ID"
     },
-    "userId": {
-      "type": "string",
-      "description": "Vadybininko user ID"
-    },
     "role": {
       "type": "string",
       "enum": [
-        "agent",
+        "manager",
         "partner"
       ],
-      "description": "Vaidmuo"
+      "description": "Gav\u0117jo vaidmuo"
+    },
+    "userId": {
+      "type": "string",
+      "description": "Vadybininko user ID (role=manager)"
+    },
+    "partnerId": {
+      "type": "string",
+      "description": "Partnerio ID (role=partner)"
     },
     "projectId": {
       "type": "string",
       "description": "Projekto ID (denormalizuotas)"
     },
+    "commissionRuleId": {
+      "type": "string",
+      "description": "Taikytos taisykl\u0117s ID"
+    },
     "saleBaseAmount": {
       "type": "number",
-      "description": "Objekto + priklausini\u0173 pardavimo suma (baz\u0117)"
+      "description": "Pardavimo baz\u0117 (nuo ko skai\u010diuota)"
     },
-    "commissionPercentApplied": {
+    "totalCommission": {
       "type": "number",
-      "description": "Taikytas komisinio procentas %"
+      "description": "Bendras komisinis (visa suma prie\u0161 split)"
     },
-    "totalCommissionBaseAmount": {
+    "sharePercent": {
       "type": "number",
-      "description": "Bendras komisinis pagal pasirinkt\u0105 baz\u0119"
+      "description": "\u0160io gav\u0117jo dalis %"
     },
-    "companyCommissionSharePercent": {
+    "amount": {
       "type": "number",
-      "description": "\u012emon\u0117s dalis %"
+      "description": "\u0160io gav\u0117jo komisinio suma"
     },
-    "managerCommissionSharePercent": {
+    "companyAmount": {
       "type": "number",
-      "description": "Vadybininko dalis %"
+      "description": "\u012emon\u0117s dalis (tik manager \u012fra\u0161e)"
     },
-    "companyCommissionAmount": {
-      "type": "number",
-      "description": "\u012emon\u0117s komisinio suma"
-    },
-    "managerCommissionAmount": {
-      "type": "number",
-      "description": "Vadybininko komisinio suma"
-    },
-    "managerVatMode": {
+    "vatMode": {
       "type": "string",
       "enum": [
         "with_vat",
         "without_vat"
       ],
-      "description": "Vadybininko PVM re\u017eimas"
+      "description": "PVM re\u017eimas"
     },
-    "managerVatRate": {
+    "amountWithoutVat": {
       "type": "number",
-      "description": "Vadybininko PVM norma %"
+      "description": "Suma be PVM"
     },
-    "managerCommissionAmountWithoutVat": {
+    "vatAmount": {
       "type": "number",
-      "description": "Vadybininko suma be PVM"
+      "description": "PVM suma"
     },
-    "managerCommissionVatAmount": {
+    "amountWithVat": {
       "type": "number",
-      "description": "Vadybininko PVM suma"
-    },
-    "managerCommissionAmountWithVat": {
-      "type": "number",
-      "description": "Vadybininko suma su PVM"
-    },
-    "commissionRuleId": {
-      "type": "string",
-      "description": "Taikytos taisykl\u0117s ID"
+      "description": "Suma su PVM (i\u0161mokos pagrindas)"
     },
     "status": {
       "type": "string",
@@ -87,7 +79,7 @@
         "paid"
       ],
       "default": "pending",
-      "description": "Komisinio patvirtinimo statusas"
+      "description": "Komisinio statusas"
     },
     "calculatedAt": {
       "type": "string",
@@ -96,46 +88,26 @@
     },
     "approvedAt": {
       "type": "string",
-      "format": "date-time",
-      "description": "Kada patvirtinta"
+      "format": "date-time"
     },
     "approvedByUserId": {
-      "type": "string",
-      "description": "Kas patvirtino"
+      "type": "string"
     },
     "rejectedAt": {
       "type": "string",
-      "format": "date-time",
-      "description": "Kada atmesta"
+      "format": "date-time"
     },
     "rejectedByUserId": {
-      "type": "string",
-      "description": "Kas atmet\u0117"
+      "type": "string"
     },
     "rejectionReason": {
-      "type": "string",
-      "description": "Atmetimo prie\u017eastis"
+      "type": "string"
     },
-    "companyCommissionReceiptStatus": {
+    "payoutId": {
       "type": "string",
-      "enum": [
-        "not_received",
-        "partially_received",
-        "fully_received"
-      ],
-      "default": "not_received",
-      "description": "\u012emon\u0117s komisinio gavimo statusas"
+      "description": "Payout ID (jei priskirta)"
     },
-    "companyCommissionReceivedAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Kada \u012fmon\u0117 gavo komisin\u012f"
-    },
-    "companyCommissionReceivedMarkedByUserId": {
-      "type": "string",
-      "description": "Kas pa\u017eym\u0117jo gavim\u0105"
-    },
-    "managerPayoutStatus": {
+    "payoutStatus": {
       "type": "string",
       "enum": [
         "not_payable_yet",
@@ -143,56 +115,21 @@
         "paid"
       ],
       "default": "not_payable_yet",
-      "description": "Vadybininko i\u0161mokos statusas"
-    },
-    "managerPayoutAllowedAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Kada leista i\u0161mok\u0117ti"
-    },
-    "managerPayoutMarkedByUserId": {
-      "type": "string",
-      "description": "Kas leido i\u0161mok\u0117ti"
-    },
-    "managerPayoutPaidAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Kada vadybininkui i\u0161mok\u0117ta"
-    },
-    "managerPayoutPaidByUserId": {
-      "type": "string",
-      "description": "Kas pa\u017eym\u0117jo i\u0161mok\u0117jim\u0105"
-    },
-    "managerPayoutReceivedConfirmedAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Kada vadybininkas patvirtino gavim\u0105"
-    },
-    "managerPayoutReceivedConfirmedByUserId": {
-      "type": "string",
-      "description": "Kas patvirtino (vadybininkas)"
-    },
-    "payoutId": {
-      "type": "string",
-      "description": "Payout ID (jei priskirta)"
+      "description": "I\u0161mokos statusas"
     },
     "paidAt": {
       "type": "string",
-      "format": "date-time",
-      "description": "Kada statusas tapo paid"
+      "format": "date-time"
     }
   },
   "required": [
     "dealId",
-    "userId",
     "role",
+    "projectId",
     "saleBaseAmount",
-    "commissionPercentApplied",
-    "totalCommissionBaseAmount",
-    "companyCommissionSharePercent",
-    "managerCommissionSharePercent",
-    "companyCommissionAmount",
-    "managerCommissionAmount",
+    "totalCommission",
+    "sharePercent",
+    "amount",
     "status",
     "calculatedAt"
   ]

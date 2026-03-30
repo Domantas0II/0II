@@ -13,66 +13,74 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Manager or Admin required' }, { status: 403 });
     }
 
-    const { id, projectId, appliesTo, calculationType, value, vatMode, isActive } = await req.json();
+    const body = await req.json();
+    const {
+      id, name, projectId,
+      commissionType, commissionValue, commissionBase,
+      companyPercent, managerPercent,
+      companyPercentWithPartner, managerPercentWithPartner, partnerPercent,
+      vatMode, isActive
+    } = body;
 
     // Validation
-    if (!appliesTo || !calculationType || value === undefined || !vatMode) {
-      return Response.json({ error: 'appliesTo, calculationType, value, vatMode required' }, { status: 400 });
+    if (!name) return Response.json({ error: 'name required' }, { status: 400 });
+    if (!commissionType || !['percentage', 'fixed'].includes(commissionType)) {
+      return Response.json({ error: 'Invalid commissionType' }, { status: 400 });
     }
-    if (!['agent', 'partner', 'agency'].includes(appliesTo)) {
-      return Response.json({ error: 'Invalid appliesTo' }, { status: 400 });
+    if (!commissionValue || commissionValue <= 0) {
+      return Response.json({ error: 'commissionValue must be > 0' }, { status: 400 });
     }
-    if (!['percentage', 'fixed'].includes(calculationType)) {
-      return Response.json({ error: 'Invalid calculationType' }, { status: 400 });
+    if (commissionType === 'percentage' && commissionValue > 100) {
+      return Response.json({ error: 'Percentage cannot exceed 100' }, { status: 400 });
     }
-    if (!['with_vat', 'without_vat'].includes(vatMode)) {
-      return Response.json({ error: 'Invalid vatMode' }, { status: 400 });
-    }
-    if (value <= 0) {
-      return Response.json({ error: 'value must be > 0' }, { status: 400 });
-    }
-    if (calculationType === 'percentage' && value > 100) {
-      return Response.json({ error: 'Percentage value cannot exceed 100' }, { status: 400 });
+    if (companyPercent === undefined || managerPercent === undefined) {
+      return Response.json({ error: 'companyPercent and managerPercent required' }, { status: 400 });
     }
 
-    // Validate projectId if provided
-    if (projectId) {
-      const projects = await base44.asServiceRole.entities.Project.filter({ id: projectId });
-      if (!projects || projects.length === 0) {
-        return Response.json({ error: 'Project not found' }, { status: 404 });
+    // Validate no-partner split sums to 100
+    const splitSum = (companyPercent || 0) + (managerPercent || 0);
+    if (Math.abs(splitSum - 100) > 0.01) {
+      return Response.json({ error: `No-partner split must sum to 100% (got ${splitSum}%)` }, { status: 400 });
+    }
+
+    // Validate partner split if provided
+    if (partnerPercent !== undefined && partnerPercent > 0) {
+      const partnerSum = (companyPercentWithPartner || 0) + (managerPercentWithPartner || 0) + (partnerPercent || 0);
+      if (Math.abs(partnerSum - 100) > 0.01) {
+        return Response.json({ error: `Partner split must sum to 100% (got ${partnerSum}%)` }, { status: 400 });
       }
     }
+
+    if (projectId) {
+      const projects = await base44.asServiceRole.entities.Project.filter({ id: projectId });
+      if (!projects?.length) return Response.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    const ruleData = {
+      name,
+      projectId: projectId || null,
+      commissionType,
+      commissionValue,
+      commissionBase: commissionBase || 'without_vat',
+      companyPercent,
+      managerPercent,
+      companyPercentWithPartner: companyPercentWithPartner ?? null,
+      managerPercentWithPartner: managerPercentWithPartner ?? null,
+      partnerPercent: partnerPercent ?? null,
+      vatMode: vatMode || 'without_vat',
+      isActive: isActive !== undefined ? isActive : true
+    };
 
     let rule;
     let action;
 
     if (id) {
-      // Update existing
       const existing = await base44.asServiceRole.entities.CommissionRule.filter({ id });
-      if (!existing || existing.length === 0) {
-        return Response.json({ error: 'CommissionRule not found' }, { status: 404 });
-      }
-
-      rule = await base44.asServiceRole.entities.CommissionRule.update(id, {
-        projectId: projectId || null,
-        appliesTo,
-        calculationType,
-        value,
-        vatMode,
-        isActive: isActive !== undefined ? isActive : existing[0].isActive
-      });
+      if (!existing?.length) return Response.json({ error: 'CommissionRule not found' }, { status: 404 });
+      rule = await base44.asServiceRole.entities.CommissionRule.update(id, ruleData);
       action = 'COMMISSION_RULE_UPDATED';
     } else {
-      // Create new
-      rule = await base44.asServiceRole.entities.CommissionRule.create({
-        projectId: projectId || null,
-        appliesTo,
-        calculationType,
-        value,
-        vatMode,
-        isActive: isActive !== undefined ? isActive : true,
-        createdByUserId: user.id
-      });
+      rule = await base44.asServiceRole.entities.CommissionRule.create({ ...ruleData, createdByUserId: user.id });
       action = 'COMMISSION_RULE_CREATED';
     }
 
@@ -80,15 +88,7 @@ Deno.serve(async (req) => {
       action,
       performedByUserId: user.id,
       performedByName: user.full_name,
-      details: JSON.stringify({
-        ruleId: rule.id,
-        projectId: projectId || 'global',
-        appliesTo,
-        calculationType,
-        value,
-        vatMode,
-        isActive: rule.isActive
-      })
+      details: JSON.stringify({ ruleId: rule.id, name, projectId: projectId || 'global', commissionType, commissionValue })
     });
 
     return Response.json({ success: true, rule });
