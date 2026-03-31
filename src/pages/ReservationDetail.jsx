@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -90,12 +90,12 @@ export default function ReservationDetail() {
     enabled: !!reservationId,
   });
 
-  const [showCreateAgreement, setShowCreateAgreement] = React.useState(false);
-  const [showRegisterPayment, setShowRegisterPayment] = React.useState(false);
-  const [agreementType, setAgreementType] = React.useState('reservation');
-  const [paymentType, setPaymentType] = React.useState('advance');
-  const [paymentAmount, setPaymentAmount] = React.useState('');
-  const [paymentNotes, setPaymentNotes] = React.useState('');
+  const [showCreateAgreement, setShowCreateAgreement] = useState(false);
+  const [showRegisterPayment, setShowRegisterPayment] = useState(false);
+  const [agreementType, setAgreementType] = useState('reservation');
+  const [paymentType, setPaymentType] = useState('advance');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
 
   const releaseReservation = useMutation({
     mutationFn: (reservationId) =>
