@@ -195,6 +195,13 @@ export default function ReservationDetail() {
     },
   });
 
+  // Commission query — MUST be before any early return (Rules of Hooks)
+  const { data: commission = null } = useQuery({
+    queryKey: ['commission', deal?.id],
+    queryFn: () => base44.entities.Commission.filter({ dealId: deal.id }).then(r => r?.[0] || null),
+    enabled: !!deal?.id,
+  });
+
   if (!reservation || !bundle || !unit || !client || !project) {
     return (
       <div className="text-center py-20 text-muted-foreground">
@@ -209,14 +216,6 @@ export default function ReservationDetail() {
   const canExtend = canExtendReservations(normalizedRole);
   const signedAgreement = agreements.find(a => a.status === 'signed');
   const draftAgreement = agreements.find(a => a.status === 'draft');
-
-  // Fetch commission for flow tracker
-  const commissionQuery = useQuery({
-    queryKey: ['commission', deal?.id],
-    queryFn: () => base44.entities.Commission.filter({ dealId: deal.id }).then(r => r?.[0] || null),
-    enabled: !!deal?.id,
-  });
-  const commission = commissionQuery.data || null;
 
   // Flow tracker state — with timestamps
   const flowState = deriveSalesFlowState({

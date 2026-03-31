@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Info, CalendarDays, ChevronDown } from 'lucide-react';
+import { Trophy, Info, CalendarDays } from 'lucide-react';
 import ManagerRankingTable from './ManagerRankingTable';
 import MonthlyBreakdownView from './MonthlyBreakdownView';
 
@@ -23,6 +24,7 @@ function useIsMobile() {
   }, []);
   return isMobile;
 }
+
 
 export default function ManagerRankingBlock({ projectId }) {
   const now = new Date();

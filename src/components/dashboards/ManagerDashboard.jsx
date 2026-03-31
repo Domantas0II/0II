@@ -1,4 +1,5 @@
 import React from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -10,9 +11,8 @@ import FlowAlertBanner from '@/components/sales/FlowAlertBanner';
 import ControlPipelineBlocks from './ControlPipelineBlocks';
 import ControlRecentDeals from './ControlRecentDeals';
 import ControlInventoryBlock from './ControlInventoryBlock';
-import { Home, Bookmark, CheckSquare, AlertTriangle, DollarSign, TrendingUp, Calendar } from 'lucide-react';
+import { Home, Bookmark, CheckSquare, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
 
-const now = new Date();
 const MONTH_NAMES_LT = ['Sausis','Vasaris','Kovas','Balandis','Gegužė','Birželis',
   'Liepa','Rugpjūtis','Rugsėjis','Spalis','Lapkritis','Gruodis'];
 
