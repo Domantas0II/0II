@@ -1,6 +1,5 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Medal } from 'lucide-react';
 
 const MEDAL_COLORS = {
   1: { bg: 'bg-yellow-50 border-yellow-200', badge: 'bg-yellow-500', label: '🥇' },
