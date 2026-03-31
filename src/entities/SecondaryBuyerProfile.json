@@ -10,7 +10,7 @@
     },
     "clientId": {
       "type": "string",
-      "description": "Kliento ID"
+      "description": "Pirkėjo kliento ID"
     },
     "assignedAgentUserId": {
       "type": "string",
@@ -18,15 +18,15 @@
     },
     "profileStatus": {
       "type": "string",
-      "enum": ["active", "paused", "completed", "archived"],
-      "default": "active",
-      "description": "Profilio statusas"
+      "enum": ["new_buyer", "active_search", "negotiation", "financing_check", "valuation", "reservation", "preliminary_agreement", "documents_preparing", "waiting_closing", "purchased", "mortgage", "handover", "receipt", "not_relevant"],
+      "default": "new_buyer",
+      "description": "Pirkėjo profilio išsamus statusas (paieškos ciklas)"
     },
     "serviceType": {
       "type": "string",
       "enum": ["search", "rent"],
       "default": "search",
-      "description": "Paslaugos tipas"
+      "description": "Paslaugos tipas (search = būsto paieška)"
     },
     "city": {
       "type": "string",
@@ -90,7 +90,7 @@
       "type": "string",
       "enum": ["percentage", "fixed", "hybrid"],
       "default": "percentage",
-      "description": "Komisinio tipas"
+      "description": "Komisinio tipas (paieškos komisinis)"
     },
     "searchCommissionPercent": {
       "type": "number",
@@ -102,13 +102,13 @@
     },
     "commissionFixedAmount": {
       "type": "number",
-      "description": "Fiksuota komisinio suma"
+      "description": "Fiksuota komisinio suma €"
     },
     "vatMode": {
       "type": "string",
       "enum": ["with_vat", "without_vat"],
       "default": "without_vat",
-      "description": "PVM režimas"
+      "description": "PVM režimas komisiniui"
     },
     "internalNotes": {
       "type": "string",
@@ -118,6 +118,11 @@
       "type": "boolean",
       "default": true,
       "description": "Ar aktyvus profilis"
+    },
+    "statusChangedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio status pakeitimo data"
     },
     "createdByUserId": {
       "type": "string",

@@ -20,6 +20,11 @@
       "default": "primary",
       "description": "Rinkos tipas"
     },
+    "secondaryFlowType": {
+      "type": "string",
+      "enum": ["sale", "search"],
+      "description": "Secondary srauto tipas: sale=pardavimas (objektas), search=paieška (pirkėjas)"
+    },
     "agreementType": {
       "type": "string",
       "enum": ["reservation", "preliminary"],

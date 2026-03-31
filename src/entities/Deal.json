@@ -32,6 +32,11 @@
       "default": "primary",
       "description": "Rinkos tipas"
     },
+    "secondaryFlowType": {
+      "type": "string",
+      "enum": ["sale", "search"],
+      "description": "Secondary srauto tipas: sale=pardavimas (objektas), search=paieška (pirkėjas)"
+    },
     "soldAt": {
       "type": "string",
       "format": "date-time",

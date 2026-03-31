@@ -47,9 +47,9 @@
     },
     "objectStatus": {
       "type": "string",
-      "enum": ["available", "reserved", "sold", "paused"],
-      "default": "available",
-      "description": "Objekto statusas"
+      "enum": ["new_object", "preparing", "active", "not_advertised", "advertised", "negotiation", "documents_check", "reserved", "preliminary_agreement", "documents_preparing", "waiting_closing", "sold", "mortgage", "handover", "receipt", "inactive"],
+      "default": "new_object",
+      "description": "Objekto išsamus statusas (pardavimo ciklas)"
     },
     "assignedAgentUserId": {
       "type": "string",
@@ -68,7 +68,7 @@
     "isActive": {
       "type": "boolean",
       "default": true,
-      "description": "Ar aktyvus"
+      "description": "Ar aktyvus portale"
     },
     "isExclusive": {
       "type": "boolean",
@@ -77,7 +77,7 @@
     },
     "publicDescription": {
       "type": "string",
-      "description": "Vie šai rodomas aprašas"
+      "description": "Viešai rodomas aprašas"
     },
     "internalNotes": {
       "type": "string",
@@ -106,33 +106,38 @@
       "items": {
         "type": "string"
       },
-      "description": "Galerijos eilutė"
+      "description": "Galerijos eilutė (URL tvarka)"
     },
     "serviceType": {
       "type": "string",
       "enum": ["sale", "rent"],
       "default": "sale",
-      "description": "Paslaugos tipas"
+      "description": "Paslaugos tipas (sale = pardavimas)"
     },
     "commissionType": {
       "type": "string",
       "enum": ["percentage", "fixed"],
       "default": "percentage",
-      "description": "Komisinio tipas"
+      "description": "Komisinio tipas (pardavimo komisinis)"
     },
     "commissionPercent": {
       "type": "number",
-      "description": "Komisinio procentas"
+      "description": "Komisinio procentas nuo kainos"
     },
     "commissionFixedAmount": {
       "type": "number",
-      "description": "Fiksuota komisinio suma"
+      "description": "Fiksuota komisinio suma €"
     },
     "vatMode": {
       "type": "string",
       "enum": ["with_vat", "without_vat"],
       "default": "without_vat",
-      "description": "PVM režimas"
+      "description": "PVM režimas komisiniui"
+    },
+    "statusChangedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Paskutinio status pakeitimo data"
     },
     "createdByUserId": {
       "type": "string",
