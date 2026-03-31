@@ -54,7 +54,12 @@ Deno.serve(async (req) => {
     }
 
     // === SUKURTI AGREEMENT ===
-    
+
+    // SOURCE-OF-TRUTH: soldByUserId paimamas iš Reservation.reservedByUserId
+    // (tas, kuris pradėjo pardavimo procesą — tai yra oficialus reitingavimo pagrindas)
+    // createdByUserId paliekamas kaip techninis audito laukas (kas techiškai sukūrė įrašą)
+    const soldByUserId = reservation.reservedByUserId || user.id;
+
     const agreement = await base44.entities.Agreement.create({
       projectId,
       reservationId,
@@ -62,6 +67,7 @@ Deno.serve(async (req) => {
       agreementType,
       status: 'draft',
       notes,
+      soldByUserId,
       createdByUserId: user.id
     });
 

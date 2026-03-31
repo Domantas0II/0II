@@ -149,6 +149,9 @@ export default function Pipeline() {
   const handleCall = async (interest, { comment, newStage, callStartedAt }) => {
     // 1. Save activity — startedAt = when call button was tapped, completedAt = now
     const now = new Date().toISOString();
+    // SOURCE-OF-TRUTH: soldByUserId = atsakingas vadybininkas (reitingavimui)
+    // assignedManagerUserId — tai vadybininkas, kuriam priskirtas šis klientas
+    // Jei nėra assignedManagerUserId — naudojamas prisijungęs vartotojas
     const activityData = {
       clientId: interest.clientId,
       projectId: interest.projectId,
@@ -158,6 +161,7 @@ export default function Pipeline() {
       startedAt: callStartedAt || now,
       completedAt: now,
       scheduledAt: callStartedAt || now,
+      soldByUserId: interest.assignedManagerUserId || user?.id,
       createdByUserId: user?.id,
     };
     if (comment) activityData.notes = comment;
@@ -193,6 +197,7 @@ export default function Pipeline() {
       status: 'done',
       completedAt: new Date().toISOString(),
       scheduledAt: new Date().toISOString(),
+      soldByUserId: interest.assignedManagerUserId || user?.id,
       createdByUserId: user?.id,
     };
     if (comment) activityData.notes = `Etapas pakeistas → ${comment}`;

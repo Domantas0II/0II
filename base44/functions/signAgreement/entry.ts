@@ -40,12 +40,17 @@ Deno.serve(async (req) => {
     }
 
     // === PASIRAŠYTI AGREEMENT ===
-    
+
     const signedAt = new Date().toISOString();
-    await base44.entities.Agreement.update(agreementId, {
-      status: 'signed',
-      signedAt
-    });
+
+    // SOURCE-OF-TRUTH: užtikrinti, kad soldByUserId būtų užpildytas pasirašant.
+    // Jei jau yra (sukurtas createAgreement) — paliekame. Jei ne (legacy įrašas) — pildome iš reservation.
+    const updatePayload = { status: 'signed', signedAt };
+    if (!agreement.soldByUserId) {
+      updatePayload.soldByUserId = reservation.reservedByUserId || user.id;
+    }
+
+    await base44.entities.Agreement.update(agreementId, updatePayload);
 
     // === AUDIT LOG ===
     await base44.entities.AuditLog.create({

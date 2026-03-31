@@ -135,13 +135,20 @@ export default function ClientDetail() {
       if (!data.projectId) throw new Error('Projektai privalomas');
       if (!data.type) throw new Error('Veiklos tipas privalomas');
       if (!clientId) throw new Error('Kliento ID privalomas');
-      
+
+      // SOURCE-OF-TRUTH: soldByUserId = atsakingas vadybininkas reitingavimui.
+      // Naudojame assignedManagerUserId iš kliento-projekto interest (jei yra),
+      // kitaip — prisijungęs vartotojas.
+      const interest = projectInterests.find(i => i.projectId === data.projectId);
+      const soldByUserId = interest?.assignedManagerUserId || user?.id;
+
       return base44.entities.Activity.create({
         clientId,
         projectId: data.projectId,
         type: data.type,
         scheduledAt: data.scheduledAt,
         notes: data.notes,
+        soldByUserId,
         createdByUserId: user?.id,
         assignedToUserId: user?.id,
       });

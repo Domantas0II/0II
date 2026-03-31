@@ -3,44 +3,52 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 /**
  * getManagerRanking — Vadybininkų reitingavimo backend funkcija
  *
- * SOURCE-OF-TRUTH (manager):
- *   1. Agreement.soldByUserId (jei užpildytas)
- *   2. Fallback: Reservation.reservedByUserId (per reservationId ryšį)
- *   Niekada nenaudojamas createdByUserId — tai techninis laukas.
+ * ═══ SOURCE-OF-TRUTH (manager assignment) ═══
+ *   Pirmenybė: Agreement.soldByUserId (užpildomas createAgreement/signAgreement)
+ *   Fallback:  Reservation.reservedByUserId (backward compatibility su legacy įrašais)
+ *   DRAUDŽIAMA: createdByUserId — tai techninis audito laukas, ne reitingavimo pagrindas.
  *
- * REITINGUOJAMI VARTOTOJAI:
- *   Tik aktyvūs (nėra disabled/pending) vartotojai su rolėmis:
- *   SALES_AGENT arba SALES_MANAGER
+ *   Veikloms (call/consultation/visit):
+ *   Pirmenybė: Activity.soldByUserId (pildomas pipeline ir activity kūrimo flow)
+ *   Fallback:  Activity.createdByUserId (tik legacy įrašams — backward compatibility)
  *
- * DATŲ LOGIKA:
+ * ═══ REITINGUOJAMI VARTOTOJAI ═══
+ *   Rolės: SALES_AGENT, SALES_MANAGER, ADMINISTRATOR
+ *   (ADMINISTRATOR įtrauktas: mažose komandose adminas gali būti aktyvus pardavėjas)
+ *   Aktyvumas: User.accountStatus === 'active' (realus User entity laukas, schema: active | disabled)
+ *   Išfiltruojama: accountStatus !== 'active' (suspended, disabled, bet koks ne-active)
+ *
+ * ═══ DATŲ LOGIKA ═══
  *   - Sutartiniams vienetams: Agreement.signedAt (ISO 8601 UTC)
- *   - Veikloms: Activity.completedAt (ISO 8601 UTC), fallback scheduledAt, tada created_date
- *   - Metų riba: sausio 1 00:00:00 UTC — gruodžio 31 23:59:59 UTC
- *   - Mėnesio riba: mėnesio 1 00:00:00 UTC — paskutinė diena 23:59:59 UTC
+ *   - Veikloms: Activity.completedAt → scheduledAt → created_date (ISO 8601 UTC)
+ *   - Metų riba: sausio 1 00:00:00.000Z — gruodžio 31 23:59:59.999Z
+ *   - Mėnesio riba: mėnesio 1 00:00:00.000Z — paskutinė sekundo dalis
  *
- * DEDUP LOGIKA (sutartiniai vienetai):
+ * ═══ DEDUP LOGIKA (sutartiniai vienetai) ═══
  *   - Per metus kiekvienas unitId skaičiuojamas TIK VIENĄ KARTĄ
- *   - Taškas skiriamas tam vadybininkui, kuris pirmasis pasirašė sutartį šiam unitId metais
+ *   - Taškas: tam vadybininkui, kuris pirmasis pasirašė sutartį šiam unitId metais
  *   - Mėnesio reitingui: taškas įskaičiuojamas TIK TĄ MĖNESĮ, kai įvyko pirmasis metų įvykis
  *
- * RIKIAVIMAS:
+ * ═══ RIKIAVIMAS ═══
  *   1. uniqueAgreementUnits DESC
  *   2. meetingsCount DESC (consultation + visit)
  *   3. callsCount DESC
- *   4. agentName ASC (deterministinis tiebreak)
- *   Lygioms vietoms: rankPosition vienodas (dense rank)
+ *   4. agentName ASC (deterministinis tiebreak — jokio chaoso)
+ *   Lygioms vietoms: rankPosition vienodas (dense rank), isTie=true
  *
- * REŽIMAI:
- *   - mode: 'year'              → metų reitingas (vienas skaičiavimo ciklas)
+ * ═══ REŽIMAI ═══
+ *   - mode: 'year'              → metų reitingas (vienas DB sluoksnis)
  *   - mode: 'month'             → konkretaus mėnesio reitingas
- *   - mode: 'monthly_breakdown' → OPTIMIZUOTA: 1x fetch metų duomenų, grupavimas JS lygyje
+ *   - mode: 'monthly_breakdown' → OPTIMIZUOTA: 1x DB fetch, 12x JS grupavimas (ne 12x DB)
  */
 
 const normalizeRole = (r) => ({ admin: 'ADMINISTRATOR', user: 'SALES_AGENT' }[r] || r);
 
-// Rolės, kurios gali būti reitinguojamos.
-// ADMINISTRATOR įtrauktas: mažose komandose adminas gali tiesiogiai pardavinėti.
-// Išfiltruojami tik sisteminiai/techniniai vartotojai (is_service = true).
+/**
+ * RANKABLE_ROLES — vienintelis authoritative sąrašas.
+ * ADMINISTRATOR įtrauktas: mažose komandose adminas pardavinėja tiesiogiai.
+ * Keisti TIEK ČIA, TIEK dokumentacijoje — ne atskirai.
+ */
 const RANKABLE_ROLES = new Set(['SALES_AGENT', 'SALES_MANAGER', 'ADMINISTRATOR']);
 
 /**
@@ -55,8 +63,12 @@ async function fetchYearData(base44, yearStart, yearEnd, projectId) {
   (users || []).forEach(u => {
     userMap[u.id] = u;
     const role = normalizeRole(u.role);
-    // Filtras: leidžiamos rolės, nėra disabled, nėra sisteminių vartotojų
-    if (RANKABLE_ROLES.has(role) && !u.disabled && !u.is_service) {
+    // Filtras pagal realią User entity schemą:
+    //   - role ∈ RANKABLE_ROLES (SALES_AGENT | SALES_MANAGER | ADMINISTRATOR)
+    //   - accountStatus === 'active' (User.accountStatus: 'active' | 'disabled')
+    //   - Jei accountStatus nėra užpildytas (legacy) — laikomas aktyviu (null/undefined = active)
+    const isActive = !u.accountStatus || u.accountStatus === 'active';
+    if (RANKABLE_ROLES.has(role) && isActive) {
       rankableUserIds.add(u.id);
     }
   });
@@ -132,11 +144,14 @@ async function fetchYearData(base44, yearStart, yearEnd, projectId) {
   const allActivities = (allActivitiesRaw || []).filter(a => {
     const d = new Date(a.completedAt || a.scheduledAt || a.created_date);
     if (d < yearStart || d > yearEnd) return false;
-    // SOURCE-OF-TRUTH veikloms: soldByUserId → createdByUserId
+    // SOURCE-OF-TRUTH veikloms: Activity.soldByUserId (pildomas nuo hardening v2)
+    // Fallback → createdByUserId: TIKTAI backward compatibility su legacy įrašais.
+    // Nauji įrašai turi visada turėti soldByUserId užpildytą.
     const mid = a.soldByUserId || a.createdByUserId;
     return mid && rankableUserIds.has(mid);
   }).map(a => ({
     ...a,
+    // _managerId: authoritative manager field šiam activity įrašui
     _managerId: a.soldByUserId || a.createdByUserId,
     _date: new Date(a.completedAt || a.scheduledAt || a.created_date)
   }));
