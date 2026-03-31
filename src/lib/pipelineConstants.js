@@ -1,3 +1,20 @@
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * PIPELINE SOURCE-OF-TRUTH
+ * ═══════════════════════════════════════════════════════════════
+ * OFFICIAL STAGES (active logic):
+ *   new_contact | no_answer_1 | no_answer_2 | no_answer_3
+ *   proposal_sent | not_relevant | consultation_booked
+ *   viewing_booked | waiting_response | follow_up | negotiation | reservation
+ *
+ * LEGACY BRIDGE (display only, backward compat via normalizePipelineStage):
+ *   new → new_contact | contacted → no_answer_1
+ *   consultation → consultation_booked | visit → viewing_booked
+ *   reserved / won → reservation | lost → not_relevant
+ *
+ * DO NOT use legacy keys in active business logic.
+ * ═══════════════════════════════════════════════════════════════
+ */
 export const PIPELINE_STAGES = [
   'new_contact',
   'no_answer_1',
