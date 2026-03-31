@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Projekto ID"
     },
+    "interestId": {
+      "type": "string",
+      "description": "ClientProjectInterest ID (optional)"
+    },
     "type": {
       "type": "string",
       "enum": [
@@ -35,12 +39,21 @@
     "scheduledAt": {
       "type": "string",
       "format": "date-time",
-      "description": "Suplanuota data"
+      "description": "Suplanuota data (ISO 8601 UTC)"
     },
     "completedAt": {
       "type": "string",
       "format": "date-time",
-      "description": "Baigta data"
+      "description": "Baigta data (ISO 8601 UTC) \u2014 naudojama reitingavimui"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Prad\u0117ta data (ISO 8601 UTC)"
+    },
+    "soldByUserId": {
+      "type": "string",
+      "description": "Atsakingas vadybininkas (source-of-truth reitingavimui)"
     },
     "notes": {
       "type": "string",
@@ -48,7 +61,7 @@
     },
     "createdByUserId": {
       "type": "string",
-      "description": "Suk\u016br\u0119s vartotojas"
+      "description": "Suk\u016br\u0119s vartotojas (techninis laukas)"
     },
     "assignedToUserId": {
       "type": "string",

@@ -2,10 +2,23 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
 const MEDAL_COLORS = {
-  1: { bg: 'bg-yellow-50 border-yellow-200', badge: 'bg-yellow-500', label: '🥇' },
-  2: { bg: 'bg-slate-50 border-slate-200', badge: 'bg-slate-400', label: '🥈' },
-  3: { bg: 'bg-orange-50 border-orange-200', badge: 'bg-orange-400', label: '🥉' },
+  1: { bg: 'bg-yellow-50 border-yellow-200', label: '🥇' },
+  2: { bg: 'bg-slate-50 border-slate-200', label: '🥈' },
+  3: { bg: 'bg-orange-50 border-orange-200', label: '🥉' },
 };
+
+function RankLabel({ row }) {
+  const medal = MEDAL_COLORS[row.rankPosition];
+  const label = medal ? medal.label : `#${row.rankPosition}`;
+  return (
+    <span className="flex items-center gap-1">
+      <span className="text-base">{label}</span>
+      {row.isTie && (
+        <Badge variant="outline" className="text-xs px-1 py-0 h-4 leading-none">lygios</Badge>
+      )}
+    </span>
+  );
+}
 
 function RankRow({ row, isMobile }) {
   const medal = MEDAL_COLORS[row.rankPosition];
@@ -15,9 +28,7 @@ function RankRow({ row, isMobile }) {
       <div className={`rounded-xl border p-4 space-y-2 ${medal ? medal.bg : 'bg-white'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-muted-foreground w-6 text-center">
-              {medal ? medal.label : `#${row.rankPosition}`}
-            </span>
+            <RankLabel row={row} />
             <span className="font-semibold text-base">{row.agentName}</span>
           </div>
           <Badge variant="outline" className="text-xs font-bold">
@@ -33,9 +44,9 @@ function RankRow({ row, isMobile }) {
   }
 
   return (
-    <tr className={`border-b last:border-0 ${medal ? medal.bg.replace('border-', 'border-l-4 border-l-') : ''}`}>
+    <tr className={`border-b last:border-0 ${medal ? `${medal.bg} border-l-4` : ''}`}>
       <td className="py-3 px-4 text-center">
-        <span className="text-base">{medal ? medal.label : `#${row.rankPosition}`}</span>
+        <RankLabel row={row} />
       </td>
       <td className="py-3 px-4 font-medium">{row.agentName}</td>
       <td className="py-3 px-4 text-center">
