@@ -19,7 +19,6 @@ import {
   DollarSign, TrendingUp, Calendar, Users,
 } from 'lucide-react';
 
-const now = new Date();
 const MONTH_NAMES_LT = ['Sausis','Vasaris','Kovas','Balandis','Gegužė','Birželis',
   'Liepa','Rugpjūtis','Rugsėjis','Spalis','Lapkritis','Gruodis'];
 
@@ -96,6 +95,8 @@ export default function AdminDashboard({ projectIds, projects }) {
   });
 
   // ─── Computed: period-based agreement counts ─────────────────────────────────
+  // now computed inside render to avoid stale date on long sessions
+  const now = new Date();
   const thisYear = now.getFullYear();
   const thisMonth = now.getMonth(); // 0-based
 

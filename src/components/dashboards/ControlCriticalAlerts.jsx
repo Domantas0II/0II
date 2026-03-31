@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Clock, UserX, CalendarX, TrendingDown, CheckCircle2 } from 'lucide-react';
+import { STAGE_OVERDUE_THRESHOLD_DAYS } from '@/lib/pipelineConstants';
 
 function AlertItem({ icon: IconComp, label, count, color, to }) {
   const Icon = IconComp;
@@ -40,12 +41,7 @@ export default function ControlCriticalAlerts({ alerts, interests }) {
     (now - new Date(i.created_date)) > 24 * 60 * 60 * 1000
   ).length;
 
-  // Stuck > threshold
-  const { STAGE_OVERDUE_THRESHOLD_DAYS } = { STAGE_OVERDUE_THRESHOLD_DAYS: {
-    new_contact: 1, no_answer_1: 2, no_answer_2: 3, no_answer_3: 5,
-    proposal_sent: 5, not_relevant: 30, consultation_booked: 3,
-    viewing_booked: 3, waiting_response: 3, follow_up: 3, negotiation: 7, reservation: 14,
-  }};
+  // Stuck > threshold (uses canonical constants from pipelineConstants.js)
   const stuckLeads = (interests || []).filter(i => {
     const threshold = STAGE_OVERDUE_THRESHOLD_DAYS[i.pipelineStage] || 7;
     const from = i.stageUpdatedAt || i.created_date;

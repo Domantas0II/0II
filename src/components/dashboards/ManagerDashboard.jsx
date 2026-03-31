@@ -81,6 +81,8 @@ export default function ManagerDashboard({ projectIds, projects }) {
     enabled: hasProjectIds,
   });
 
+  // now computed inside render to avoid stale date on long sessions
+  const now = new Date();
   const thisYear = now.getFullYear();
   const thisMonth = now.getMonth();
   const monthStart = new Date(thisYear, thisMonth, 1);

@@ -274,7 +274,11 @@ export const getAgentPersonalStats = async (projectIds, userId) => {
       deals: myDeals.length,
       soldValue,
       overdueFollowUps,
-      activeInterests: myInterests.filter(i => ['new', 'contacted', 'consultation', 'visit', 'negotiation'].includes(i.pipelineStage)).length
+      activeInterests: myInterests.filter(i => [
+        'new_contact', 'no_answer_1', 'no_answer_2', 'no_answer_3',
+        'proposal_sent', 'consultation_booked', 'viewing_booked',
+        'waiting_response', 'follow_up', 'negotiation'
+      ].includes(i.pipelineStage)).length
     };
   } catch (error) {
     console.error('Failed to calculate agent personal stats:', error);
