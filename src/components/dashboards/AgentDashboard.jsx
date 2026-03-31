@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAgentPersonalStats, getOverdueAlerts } from '@/lib/analyticsHelpers';
 import { useOutletContext } from 'react-router-dom';

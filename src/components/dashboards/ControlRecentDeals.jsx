@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +12,7 @@ export default function ControlRecentDeals({ deals, clients, units, projects, us
 
   const recent = (deals || [])
     .slice()
-    .sort((a, b) => new Date(b.soldAt || b.created_date) - new Date(a.soldAt || a.created_date))
+    .sort((a, b) => new Date(b.soldAt || b.created_date).getTime() - new Date(a.soldAt || a.created_date).getTime())
     .slice(0, 8);
 
   return (

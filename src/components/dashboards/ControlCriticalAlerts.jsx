@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Clock, UserX, CalendarX, TrendingDown, CheckCircle2 } from 'lucide-react';
 import { STAGE_OVERDUE_THRESHOLD_DAYS } from '@/lib/pipelineConstants';
@@ -38,7 +37,7 @@ export default function ControlCriticalAlerts({ alerts, interests }) {
   const noContact24h = (interests || []).filter(i =>
     i.pipelineStage === 'new_contact' &&
     i.created_date &&
-    (now - new Date(i.created_date)) > 24 * 60 * 60 * 1000
+    now.getTime() - new Date(i.created_date).getTime() > 24 * 60 * 60 * 1000
   ).length;
 
   // Stuck > threshold (uses canonical constants from pipelineConstants.js)
@@ -46,7 +45,7 @@ export default function ControlCriticalAlerts({ alerts, interests }) {
     const threshold = STAGE_OVERDUE_THRESHOLD_DAYS[i.pipelineStage] || 7;
     const from = i.stageUpdatedAt || i.created_date;
     if (!from) return false;
-    return (now - new Date(from)) > threshold * 24 * 60 * 60 * 1000;
+    return now.getTime() - new Date(from).getTime() > threshold * 24 * 60 * 60 * 1000;
   }).length;
 
   const totalAlerts = overdueReservations + overdueFollowUps + noNextAction + noContact24h;
