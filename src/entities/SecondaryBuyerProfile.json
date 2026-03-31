@@ -1,0 +1,105 @@
+{
+  "name": "SecondaryBuyerProfile",
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "assignedAgentUserId": {
+      "type": "string",
+      "description": "Priskirtam agentui"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["secondary"],
+      "default": "secondary",
+      "description": "Visada secondary"
+    },
+    "city": {
+      "type": "string",
+      "description": "Pageidaujamas miestas"
+    },
+    "district": {
+      "type": "string",
+      "description": "Pageidaujamas rajonas"
+    },
+    "propertyType": {
+      "type": "string",
+      "enum": ["apartment", "house", "townhouse"],
+      "description": "Pageidaujamas turto tipas"
+    },
+    "rooms": {
+      "type": "number",
+      "description": "Pageidaujamas kambarių skaičius"
+    },
+    "area": {
+      "type": "number",
+      "description": "Pageidaujamas plotas m²"
+    },
+    "floor": {
+      "type": "number",
+      "description": "Pageidaujamas aukstas"
+    },
+    "budgetMin": {
+      "type": "number",
+      "description": "Biudžeto minimumas €"
+    },
+    "budgetMax": {
+      "type": "number",
+      "description": "Biudžeto maksimumas €"
+    },
+    "condition": {
+      "type": "string",
+      "enum": ["fully_finished", "partial_finish", "not_finished"],
+      "description": "Pageidaujama būklė"
+    },
+    "parking": {
+      "type": "boolean",
+      "description": "Reikalinga statymo vieta"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Vertinimo terminas"
+    },
+    "financingStatus": {
+      "type": "string",
+      "enum": ["self_funded", "mortgage", "credit", "other"],
+      "description": "Finansavimo statusas"
+    },
+    "serviceType": {
+      "type": "string",
+      "enum": ["search"],
+      "default": "search"
+    },
+    "commissionType": {
+      "type": "string",
+      "enum": ["percentage", "fixed"],
+      "description": "Komisinio tipas"
+    },
+    "commissionPercent": {
+      "type": "number",
+      "description": "Komisinis %"
+    },
+    "negotiationBonusPercent": {
+      "type": "number",
+      "description": "Derybų premija %"
+    },
+    "fixedFee": {
+      "type": "number",
+      "description": "Fiksuota suma €"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "paused", "completed"],
+      "default": "active",
+      "description": "Profilio statusas"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Sukūrimas vartotojo ID"
+    }
+  },
+  "required": ["clientId", "propertyType"]
+}

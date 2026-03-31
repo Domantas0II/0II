@@ -1,0 +1,125 @@
+{
+  "name": "SecondaryObject",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Objekto pavadinimas"
+    },
+    "address": {
+      "type": "string",
+      "description": "Pilnas adresas"
+    },
+    "city": {
+      "type": "string",
+      "description": "Miestas"
+    },
+    "district": {
+      "type": "string",
+      "description": "Rajonas"
+    },
+    "propertyType": {
+      "type": "string",
+      "enum": ["apartment", "house", "townhouse"],
+      "description": "Turto tipas"
+    },
+    "rooms": {
+      "type": "number",
+      "description": "Kambarių skaičius"
+    },
+    "area": {
+      "type": "number",
+      "description": "Plotas m²"
+    },
+    "floor": {
+      "type": "number",
+      "description": "Aukstas"
+    },
+    "price": {
+      "type": "number",
+      "description": "Kaina €"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["available", "reserved", "sold", "archived"],
+      "default": "available",
+      "description": "Statuso"
+    },
+    "assignedAgentUserId": {
+      "type": "string",
+      "description": "Priskirtam agentui"
+    },
+    "sellerClientId": {
+      "type": "string",
+      "description": "Pardavėjo kliento ID"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["secondary"],
+      "default": "secondary",
+      "description": "Visada secondary"
+    },
+    "serviceType": {
+      "type": "string",
+      "enum": ["sale"],
+      "default": "sale"
+    },
+    "commissionType": {
+      "type": "string",
+      "enum": ["percentage", "fixed"],
+      "description": "Komisinio tipas"
+    },
+    "commissionPercent": {
+      "type": "number",
+      "description": "Komisinis %"
+    },
+    "commissionFixedAmount": {
+      "type": "number",
+      "description": "Fiksuota komisinio suma €"
+    },
+    "vatMode": {
+      "type": "string",
+      "enum": ["with_vat", "without_vat"],
+      "default": "without_vat"
+    },
+    "mainImage": {
+      "type": "string",
+      "description": "Pagrindinė nuotrauka (URL)"
+    },
+    "images": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Galerijos nuotraukos (URL)"
+    },
+    "floorPlans": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Planai (URL)"
+    },
+    "galleryOrder": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Nuotraukų eilutė"
+    },
+    "isExclusive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar ekskluzyvi"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Ar aktyvi"
+    },
+    "sourceType": {
+      "type": "string",
+      "enum": ["direct", "portal", "other"],
+      "description": "Šaltinis"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Sukūrimas vartotojo ID"
+    }
+  },
+  "required": ["title", "address", "city", "propertyType", "rooms", "area", "price", "sellerClientId", "commissionType"]
+}
