@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { canManageBranding } from '@/lib/constants';
+import { canManageBranding } from '@/lib/permissions';
+import { logError } from '@/lib/logger';
 
 export default function BrandingSettings() {
   const { user: currentUser, branding: existingBranding } = useOutletContext() || {};
@@ -22,6 +23,8 @@ export default function BrandingSettings() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const canManage = currentUser ? canManageBranding(currentUser) : false;
+
   useEffect(() => {
     if (existingBranding) {
       setForm({
@@ -31,8 +34,6 @@ export default function BrandingSettings() {
       });
     }
   }, [existingBranding]);
-
-  const canManage = canManageBranding(currentUser?.role);
 
   if (!canManage) {
     return (
@@ -46,9 +47,15 @@ export default function BrandingSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(prev => ({ ...prev, logoUrl: file_url }));
-    setUploading(false);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm(prev => ({ ...prev, logoUrl: file_url }));
+    } catch (error) {
+      logError(error, { component: 'BrandingSettings', action: 'uploadFile' });
+      toast.error('Failo įkėlimas nepavyko');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -58,28 +65,34 @@ export default function BrandingSettings() {
     }
     setSaving(true);
 
-    const data = {
-      ...form,
-      updatedByUserId: currentUser?.id,
-      updatedByName: currentUser?.full_name,
-    };
+    try {
+      const data = {
+        ...form,
+        updatedByUserId: currentUser?.id,
+        updatedByName: currentUser?.full_name,
+      };
 
-    if (existingBranding?.id) {
-      await base44.entities.GlobalBranding.update(existingBranding.id, data);
-    } else {
-      await base44.entities.GlobalBranding.create(data);
+      if (existingBranding?.id) {
+        await base44.entities.GlobalBranding.update(existingBranding.id, data);
+      } else {
+        await base44.entities.GlobalBranding.create(data);
+      }
+
+      await base44.entities.AuditLog.create({
+        action: 'BRANDING_UPDATED',
+        performedByUserId: currentUser?.id,
+        performedByName: currentUser?.full_name,
+        details: JSON.stringify(data),
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['globalBranding'] });
+      toast.success('Branding nustatymai išsaugoti');
+    } catch (error) {
+      logError(error, { component: 'BrandingSettings', action: 'saveBranding' });
+      toast.error('Nustatymai nesaugomi');
+    } finally {
+      setSaving(false);
     }
-
-    await base44.entities.AuditLog.create({
-      action: 'BRANDING_UPDATED',
-      performedByUserId: currentUser?.id,
-      performedByName: currentUser?.full_name,
-      details: JSON.stringify(data),
-    });
-
-    queryClient.invalidateQueries({ queryKey: ['globalBranding'] });
-    toast.success('Branding nustatymai išsaugoti');
-    setSaving(false);
   };
 
   return (

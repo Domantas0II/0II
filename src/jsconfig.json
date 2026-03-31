@@ -8,9 +8,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ESNext",
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true,
     "noEmit": true,
     "allowJs": true,
@@ -18,5 +18,5 @@
     "maxNodeModuleJsDepth": 0
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist"]
 }

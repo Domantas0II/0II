@@ -13,7 +13,7 @@ import ComponentRow from '@/components/units/ComponentRow';
 import CreateComponentForm from '@/components/units/CreateComponentForm';
 import { COMPONENT_TYPE_LABELS, COMPONENT_STATUS_LABELS } from '@/lib/unitConstants';
 import { canManageUnits } from '@/lib/constants';
-import { getAccessibleProjectIds } from '@/lib/queryAccess';
+import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 
 export default function ComponentsPool() {
   const context = useOutletContext() || {};

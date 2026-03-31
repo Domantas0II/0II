@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, ChevronRight } from 'lucide-react';
-
-const normalizeRole = (r) => ({ admin: 'ADMINISTRATOR', user: 'SALES_AGENT' }[r] || r);
+import { canApprovePayout } from '@/lib/permissions';
+import { logError } from '@/lib/logger';
 
 const STATUS_STYLES = {
   draft:    'bg-secondary text-secondary-foreground',
@@ -26,8 +26,7 @@ export default function PayoutsList() {
   const [form, setForm] = useState({ userId: '', periodStart: '', periodEnd: '' });
 
   const { data: currentUser } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
-  const role = normalizeRole(currentUser?.role);
-  const canManage = ['ADMINISTRATOR', 'SALES_MANAGER'].includes(role);
+  const canManage = currentUser ? canApprovePayout(currentUser) : false;
 
   const { data: payouts = [], isLoading } = useQuery({
     queryKey: ['payouts'],
@@ -48,7 +47,10 @@ export default function PayoutsList() {
       setShowCreate(false);
       setForm({ userId: '', periodStart: '', periodEnd: '' });
     },
-    onError: (e) => toast.error(e?.response?.data?.error || 'Klaida')
+    onError: (error) => {
+      logError(error, { component: 'PayoutsList', action: 'createPayout' });
+      toast.error(error?.response?.data?.error || 'Payout kūrimo klaida');
+    }
   });
 
   return (

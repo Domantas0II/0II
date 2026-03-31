@@ -49,6 +49,14 @@ export default function DashboardHome() {
     );
   }
 
+  if (!user || !normalizedRole) {
+    return (
+      <div className="text-center py-20 text-muted-foreground">
+        Nepavyko nustatyti jūsų vaidmens
+      </div>
+    );
+  }
+
   // Route based on role
   if (normalizedRole === 'ADMINISTRATOR') {
     return <AdminDashboard projectIds={accessibleIds} projects={projects} />;
@@ -66,5 +74,9 @@ export default function DashboardHome() {
     return <DeveloperDashboard projectIds={accessibleIds} projects={projects} />;
   }
 
-  return <div className="text-center py-20 text-muted-foreground">Neturite prieigos prie dashboard</div>;
+  return (
+    <div className="text-center py-20 text-muted-foreground">
+      Jūsų vaidmuo ({normalizedRole}) neturi prieigos prie dashboard
+    </div>
+  );
 }
