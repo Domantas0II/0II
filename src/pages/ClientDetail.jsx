@@ -15,6 +15,7 @@ import { canAccessInbound, normalizeRole } from '@/lib/constants';
 import { getAccessibleProjectIds, filterByAccessibleProjects } from '@/lib/queryAccess';
 import ActivityRow from '@/components/pipeline/ActivityRow';
 import ActivityForm from '@/components/pipeline/ActivityForm';
+import SalesFlowTracker from '@/components/sales/SalesFlowTracker';
 
 const INTEREST_STATUS_LABELS = {
   new_interest: 'Naujas',
@@ -86,6 +87,18 @@ export default function ClientDetail() {
       return filterByAccessibleProjects(all, accessibleIds);
     },
     enabled: accessibleIds !== undefined,
+  });
+
+  const { data: reservations = [] } = useQuery({
+    queryKey: ['reservations', clientId],
+    queryFn: () => base44.entities.Reservation.filter({ clientId }),
+    enabled: !!clientId,
+  });
+
+  const { data: deals = [] } = useQuery({
+    queryKey: ['deals', clientId],
+    queryFn: () => base44.entities.Deal.filter({ clientId }),
+    enabled: !!clientId,
   });
 
   const { data: activities = [] } = useQuery({
@@ -235,40 +248,41 @@ export default function ClientDetail() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Projektų susidomėjimai</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
           {projectInterests.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nėra projektų</p>
           ) : (
-            projectInterests.filter(interest => accessibleIds?.includes(interest.projectId)).map(interest => (
-              <div key={interest.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
-                <div>
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <Folder className="h-4 w-4" /> {projectMap[interest.projectId]?.projectName}
-                  </p>
-                  <Select
-                    value={interest.status}
-                    onValueChange={(status) =>
-                      updateInterest.mutate({
-                        id: interest.id,
-                        data: { status, lastInteractionAt: new Date().toISOString() },
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-48 h-8 mt-1 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(INTEREST_STATUS_LABELS).map(([k, v]) => (
-                        <SelectItem key={k} value={k}>{v}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            projectInterests.filter(interest => accessibleIds === null || accessibleIds?.includes(interest.projectId)).map(interest => {
+              // Derive flow state for this interest
+              const interestReservation = reservations.find(r => r.clientProjectInterestId === interest.id);
+              const interestDeal = interestReservation ? deals.find(d => d.reservationId === interestReservation.id) : null;
+              const hasReservation = !!interestReservation;
+              const hasDeal = !!interestDeal;
+              const flowCompleted = [];
+              flowCompleted.push('inquiry', 'interest');
+              if (hasReservation) flowCompleted.push('reservation');
+              if (hasDeal) { flowCompleted.push('agreement', 'deal'); }
+
+              return (
+                <div key={interest.id} className="p-3 rounded-lg bg-muted/50 border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Folder className="h-4 w-4" /> {projectMap[interest.projectId]?.projectName}
+                    </p>
+                    <Badge variant="outline" className={`text-[11px] border ${INTEREST_STATUS_COLORS[interest.status] || ''}`}>
+                      {INTEREST_STATUS_LABELS[interest.status]}
+                    </Badge>
+                  </div>
+                  {/* Flow tracker */}
+                  <SalesFlowTracker
+                    completedSteps={flowCompleted}
+                    currentStep={hasDeal ? 'commission' : hasReservation ? 'agreement' : 'reservation'}
+                    lockedSteps={[]}
+                    compact
+                  />
                 </div>
-                <Badge variant="outline" className={`text-[11px] border ${INTEREST_STATUS_COLORS[interest.status] || ''}`}>
-                  {INTEREST_STATUS_LABELS[interest.status]}
-                </Badge>
-              </div>
-            ))
+              );
+            })
           )}
         </CardContent>
       </Card>

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, AlertCircle, FileText, CreditCard, DollarSign } from 'lucide-react';
+import { ArrowLeft, Clock, AlertCircle, FileText, CreditCard, DollarSign, CheckCircle2 } from 'lucide-react';
+import SalesFlowTracker, { deriveSalesFlowState } from '@/components/sales/SalesFlowTracker';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -91,7 +92,6 @@ export default function ReservationDetail() {
 
   const [showCreateAgreement, setShowCreateAgreement] = React.useState(false);
   const [showRegisterPayment, setShowRegisterPayment] = React.useState(false);
-  const [showCreateDeal, setShowCreateDeal] = React.useState(false);
   const [agreementType, setAgreementType] = React.useState('reservation');
   const [paymentType, setPaymentType] = React.useState('advance');
   const [paymentAmount, setPaymentAmount] = React.useState('');
@@ -143,12 +143,19 @@ export default function ReservationDetail() {
   const signAgreement = useMutation({
     mutationFn: (agreementId) =>
       base44.functions.invoke('signAgreement', { agreementId }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['agreements', reservationId] });
-      toast.success('Sutartis pasirašyta');
+      queryClient.invalidateQueries({ queryKey: ['deal', reservationId] });
+      queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] });
+      if (result?.data?.autoCreateDeal) {
+        toast.success('Sutartis pasirašyta ir pardavimas sukurtas automatiškai');
+      } else {
+        toast.success('Sutartis pasirašyta');
+        if (result?.data?.warning) toast.warning(result.data.warning);
+      }
     },
     onError: (error) => {
-      toast.error(error.response?.data?.error || 'Nepavyko pasirašyti');
+      toast.error(error.response?.data?.error || error.message || 'Nepavyko pasirašyti');
     },
   });
 
@@ -188,28 +195,6 @@ export default function ReservationDetail() {
     },
   });
 
-  const createDealMutation = useMutation({
-    mutationFn: () =>
-      base44.functions.invoke('createDeal', {
-        projectId: reservation.projectId,
-        unitId: bundle.unitId,
-        clientId: reservation.clientId,
-        reservationId,
-        agreementId: agreements.find(a => a.status === 'signed')?.id,
-        soldAt: new Date().toISOString(),
-        isDeveloperSale: false
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deal', reservationId] });
-      queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] });
-      setShowCreateDeal(false);
-      toast.success('Pardavimas sukurtas');
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.error || 'Nepavyko sukurti');
-    },
-  });
-
   if (!reservation || !bundle || !unit || !client || !project) {
     return (
       <div className="text-center py-20 text-muted-foreground">
@@ -222,15 +207,35 @@ export default function ReservationDetail() {
   const normalizedRole = normalizeRole(user?.role);
   const canRelease = canReleaseReservations(normalizedRole);
   const canExtend = canExtendReservations(normalizedRole);
-  const canCreateDeal = ['ADMINISTRATOR', 'SALES_MANAGER'].includes(normalizedRole);
   const signedAgreement = agreements.find(a => a.status === 'signed');
   const draftAgreement = agreements.find(a => a.status === 'draft');
+
+  // Flow tracker state
+  const flowState = deriveSalesFlowState({
+    inquiry: true, // reservation exists = inquiry happened
+    interest: true, // reservation exists = interest happened  
+    reservation: reservation,
+    agreement: signedAgreement || draftAgreement,
+    deal: deal,
+    commission: null,
+    payout: null
+  });
 
   return (
     <div className="space-y-6">
       <Button variant="ghost" asChild className="gap-2 -ml-3">
         <Link to="/reservations"><ArrowLeft className="h-4 w-4" /> Atgal</Link>
       </Button>
+
+      {/* Sales Flow Tracker */}
+      <div className="bg-card border rounded-xl p-4">
+        <p className="text-xs text-muted-foreground font-medium mb-3">Pardavimo eiga</p>
+        <SalesFlowTracker
+          currentStep={flowState.currentStep}
+          completedSteps={flowState.completedSteps}
+          lockedSteps={flowState.lockedSteps}
+        />
+      </div>
 
       {/* Alert for overdue */}
       {isOverdue && (
@@ -488,7 +493,7 @@ export default function ReservationDetail() {
             </Card>
           )}
 
-          {/* Deal */}
+          {/* Deal — auto-created on signAgreement */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -497,37 +502,22 @@ export default function ReservationDetail() {
             </CardHeader>
             <CardContent className="space-y-3">
               {deal ? (
-                <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-                  <p className="text-sm font-medium text-green-900">✓ Pardavimas sukurtas</p>
-                  <p className="text-xs text-green-700 mt-1">{format(new Date(deal.soldAt), 'yyyy-MM-dd')}</p>
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-700" />
+                    <p className="text-sm font-medium text-green-900">Pardavimas sukurtas automatiškai</p>
+                  </div>
+                  <p className="text-xs text-green-700">Data: {format(new Date(deal.soldAt), 'yyyy-MM-dd HH:mm')}</p>
+                  <p className="text-xs text-green-700">Suma: €{bundle?.finalTotalPrice?.toLocaleString()}</p>
                 </div>
-              ) : signedAgreement && ['active', 'overdue'].includes(reservation.status) && canCreateDeal ? (
-                <Dialog open={showCreateDeal} onOpenChange={setShowCreateDeal}>
-                  <DialogTrigger asChild>
-                    <Button variant="default" size="sm" className="w-full gap-2">
-                      <DollarSign className="h-4 w-4" /> Finalizuoti pardavimą
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Finalizuoti pardavimą</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-sm"><span className="text-muted-foreground">Suma:</span> €{bundle.finalTotalPrice}</p>
-                      </div>
-                      <Button onClick={() => createDealMutation.mutate()} disabled={createDealMutation.isPending} className="w-full">
-                        Patvirtinti pardavimą
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              ) : !signedAgreement ? (
-                <p className="text-sm text-muted-foreground">Pirmiausia pasirašykite sutartį</p>
-              ) : !canCreateDeal ? (
-                <p className="text-sm text-muted-foreground">Tik vadybininkai gali finalizuoti pardavimą</p>
+              ) : signedAgreement ? (
+                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-sm text-amber-800">Sutartis pasirašyta — pardavimas kuriamas automatiškai...</p>
+                </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Pardavimas negalimas</p>
+                <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
+                  <p className="text-sm text-muted-foreground">Pardavimas bus sukurtas automatiškai kai pasirašysite sutartį</p>
+                </div>
               )}
             </CardContent>
           </Card>

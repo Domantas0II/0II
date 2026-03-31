@@ -10,10 +10,12 @@ Deno.serve(async (req) => {
     }
 
     // === ROLE CHECK ===
+    // createDeal gali būti kviečiamas tik per signAgreement (service role) arba admin/manager tiesiogiai.
+    // FLOW LOCK: rankinis Deal kūrimas leidžiamas tik admin/manager — bet flow normali kelias eina per signAgreement.
     const normalizeRole = (r) => ({ admin: 'ADMINISTRATOR', user: 'SALES_AGENT' }[r] || r);
     const userRole = normalizeRole(user.role);
     if (!['ADMINISTRATOR', 'SALES_MANAGER'].includes(userRole)) {
-      return Response.json({ error: 'Tik administratoriai ir vadybininkai gali kurti pardavimus' }, { status: 403 });
+      return Response.json({ error: 'Pardavimas sukuriamas automatiškai pasirašant sutartį. Rankinis kūrimas neleistinas.' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -148,9 +150,10 @@ Deno.serve(async (req) => {
       // 4. ClientProjectInterest → won
       const interest = await base44.entities.ClientProjectInterest.filter({ id: reservation.clientProjectInterestId }).then(r => r?.[0]);
       if (interest) {
+        // SOURCE-OF-TRUTH: 'won' yra legacy — naudojame 'reservation' kaip galutinį pipelineStage
         await base44.entities.ClientProjectInterest.update(interest.id, {
           status: 'completed',
-          pipelineStage: 'won'
+          pipelineStage: 'reservation'
         });
       }
 
