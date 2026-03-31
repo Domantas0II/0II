@@ -108,16 +108,16 @@ export const getPipelineBreakdown = async (projectIds) => {
     const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
     const interests = await base44.entities.ClientProjectInterest.filter(query);
 
-    return {
-      new: interests.filter(i => i.pipelineStage === 'new').length,
-      contacted: interests.filter(i => i.pipelineStage === 'contacted').length,
-      consultation: interests.filter(i => i.pipelineStage === 'consultation').length,
-      visit: interests.filter(i => i.pipelineStage === 'visit').length,
-      negotiation: interests.filter(i => i.pipelineStage === 'negotiation').length,
-      reserved: interests.filter(i => i.pipelineStage === 'reserved').length,
-      won: interests.filter(i => i.pipelineStage === 'won').length,
-      lost: interests.filter(i => i.pipelineStage === 'lost').length
-    };
+    const stages = [
+      'new_contact', 'no_answer_1', 'no_answer_2', 'no_answer_3',
+      'proposal_sent', 'not_relevant', 'consultation_booked',
+      'viewing_booked', 'waiting_response', 'follow_up', 'negotiation', 'reservation'
+    ];
+    const result = {};
+    stages.forEach(s => {
+      result[s] = interests.filter(i => i.pipelineStage === s).length;
+    });
+    return result;
   } catch (error) {
     console.error('Failed to calculate pipeline breakdown:', error);
     return null;
@@ -160,11 +160,15 @@ export const getDealStats = async (projectIds) => {
     const soldValue = deals.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
     const avgDealValue = deals.length > 0 ? Math.round(soldValue / deals.length) : 0;
 
+    // Sort by soldAt desc, return all for dashboard use
+    const sortedDeals = deals.slice().sort((a, b) =>
+      new Date(b.soldAt || b.created_date) - new Date(a.soldAt || a.created_date)
+    );
     return {
       total: deals.length,
       soldValue,
       avgDealValue,
-      deals: deals.slice(0, 10) // Recent deals
+      deals: sortedDeals
     };
   } catch (error) {
     console.error('Failed to calculate deal stats:', error);
