@@ -1,5 +1,4 @@
 import React from 'react';
-import React from 'react';
 import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
