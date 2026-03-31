@@ -1,4 +1,5 @@
 import React from 'react';
+import React from 'react';
 import FieldGroup from '@/components/projects/FieldGroup';
 import MultiSelect from '@/components/projects/MultiSelect';
 import { UNIT_TYPE_LABELS, STRUCTURE_MODEL_LABELS } from '@/lib/projectConstants';
