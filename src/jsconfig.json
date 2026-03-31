@@ -13,8 +13,9 @@
     "noUnusedParameters": false,
     "skipLibCheck": true,
     "noEmit": true,
-    "allowJs": true,
-    "checkJs": false
+    "allowJs": false,
+    "checkJs": false,
+    "maxNodeModuleJsDepth": 0
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "build"]
