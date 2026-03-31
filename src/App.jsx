@@ -69,6 +69,8 @@ import SecurityAuditPage from '@/pages/SecurityAuditPage';
 import PerformanceAuditPage from '@/pages/PerformanceAuditPage';
 import SecondaryInquiries from '@/pages/SecondaryInquiries';
 import SecondaryPipeline from '@/pages/SecondaryPipeline';
+import SecondaryObjectsList from '@/pages/SecondaryObjectsList';
+import SecondaryBuyersList from '@/pages/SecondaryBuyersList';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -173,6 +175,8 @@ const AuthenticatedApp = () => {
         <Route path="/performance-audit" element={<PerformanceAuditPage />} />
         <Route path="/secondary-inquiries" element={<SecondaryInquiries />} />
         <Route path="/secondary-pipeline" element={<SecondaryPipeline />} />
+        <Route path="/secondary-objects" element={<SecondaryObjectsList />} />
+        <Route path="/secondary-buyers" element={<SecondaryBuyersList />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />

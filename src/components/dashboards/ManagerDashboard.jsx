@@ -9,6 +9,7 @@ import FlowAlertBanner from '@/components/sales/FlowAlertBanner';
 import ControlPipelineBlocks from './ControlPipelineBlocks';
 import ControlRecentDeals from './ControlRecentDeals';
 import ControlInventoryBlock from './ControlInventoryBlock';
+import SecondaryMarketControl from './SecondaryMarketControl';
 import { Home, Bookmark, CheckSquare, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
 
 const MONTH_NAMES_LT = ['Sausis','Vasaris','Kovas','Balandis','Gegužė','Birželis',
@@ -161,6 +162,7 @@ export default function ManagerDashboard({ projectIds, projects }) {
       ) : null}
 
       <ManagerRankingBlock />
+      <SecondaryMarketControl />
       <ControlPipelineBlocks interests={allInterests} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ControlInventoryBlock unitStats={unitStats} />

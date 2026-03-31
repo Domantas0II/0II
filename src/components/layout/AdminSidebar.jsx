@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug, ShieldCheck, Rocket, FileText, CreditCard, Handshake } from 'lucide-react';
+import { Users, FolderOpen, Building2, Package, Settings, LogOut, Mail, Kanban, Clock, Upload, LayoutDashboard, BadgeDollarSign, Wallet, ScrollText, BarChart2, Plug, ShieldCheck, Rocket, FileText, CreditCard, Handshake, Home, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canManageUsers, canManageProjects, canAccessInbound, normalizeRole } from '@/lib/constants';
 import { canViewPipeline } from '@/lib/pipelineAccess';
@@ -130,6 +130,33 @@ const menuItems = [
   },
 ];
 
+const secondaryItems = [
+  {
+    label: 'Užklausos',
+    icon: Mail,
+    href: '/secondary-inquiries',
+    requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER', 'SALES_AGENT'].includes(normalizeRole(role)),
+  },
+  {
+    label: 'Objektai',
+    icon: Home,
+    href: '/secondary-objects',
+    requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER', 'SALES_AGENT'].includes(normalizeRole(role)),
+  },
+  {
+    label: 'Pirkėjai',
+    icon: Users,
+    href: '/secondary-buyers',
+    requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER', 'SALES_AGENT'].includes(normalizeRole(role)),
+  },
+  {
+    label: 'Pipeline',
+    icon: Kanban,
+    href: '/secondary-pipeline',
+    requiredRole: (role) => ['ADMINISTRATOR', 'SALES_MANAGER', 'SALES_AGENT'].includes(normalizeRole(role)),
+  },
+];
+
 export default function AdminSidebar({ open, branding }) {
   const { user } = useAuth();
   const location = useLocation();
@@ -152,7 +179,7 @@ export default function AdminSidebar({ open, branding }) {
         <h1 className="text-lg font-bold text-sidebar-foreground">{appName}</h1>
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
         {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -172,6 +199,32 @@ export default function AdminSidebar({ open, branding }) {
             </Link>
           );
         })}
+
+        {/* Secondary Market Section */}
+        <div className="pt-4 mt-4 border-t border-sidebar-border">
+          <p className="px-4 py-2 text-xs uppercase tracking-wider font-semibold text-sidebar-foreground/60">Antrinė rinka</p>
+          <div className="space-y-1">
+            {secondaryItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              return item.requiredRole(user?.role) ? (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-purple-600/20 text-purple-600'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              ) : null;
+            })}
+          </div>
+        </div>
       </nav>
 
       <div className="p-4 border-t border-sidebar-border">
