@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { normalizeRole } from '@/lib/constants';
 import { TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import ManagerRankingBlock from '@/components/ranking/ManagerRankingBlock';
 
 export default function ManagerInsights() {
   const { user } = useOutletContext();
@@ -21,10 +22,7 @@ export default function ManagerInsights() {
       if (role === 'ADMINISTRATOR') {
         return await base44.entities.Project.list('-created_date', 50);
       } else {
-        const assignments = await base44.entities.UserProjectAssignment.filter({
-          userId: user.id,
-          removedAt: null
-        });
+        const assignments = await base44.entities.UserProjectAssignment.filter({ userId: user.id, removedAt: null });
         if (!assignments?.length) return [];
         const projectIds = assignments.map(a => a.projectId);
         const projects = [];
@@ -42,31 +40,13 @@ export default function ManagerInsights() {
     queryKey: ['managerInsights', selectedProject],
     queryFn: async () => {
       if (!selectedProject) return {};
-
-      const projectIds = [selectedProject];
-
-      // Fetch high-score critical items
-      const criticalScores = await base44.entities.LeadScore.filter({
-        projectId: selectedProject,
-        band: 'critical'
-      });
-
-      // Fetch recent deals
-      const deals = await base44.entities.Deal.filter({
-        projectId: selectedProject
-      });
-
-      // Fetch reservations at risk (expiring soon)
-      const reservations = await base44.entities.Reservation.filter({
-        projectId: selectedProject,
-        status: 'active'
-      });
-
+      const criticalScores = await base44.entities.LeadScore.filter({ projectId: selectedProject, band: 'critical' });
+      const deals = await base44.entities.Deal.filter({ projectId: selectedProject });
+      const reservations = await base44.entities.Reservation.filter({ projectId: selectedProject, status: 'active' });
       const atRisk = reservations?.filter(r => {
         const daysLeft = (new Date(r.expiresAt) - new Date()) / (1000 * 60 * 60 * 24);
         return daysLeft < 7;
       }) || [];
-
       return {
         criticalLeads: criticalScores?.slice(0, 5) || [],
         recentDeals: deals?.slice(0, 5) || [],
@@ -87,17 +67,27 @@ export default function ManagerInsights() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Vadybininko Insights</h1>
-        <p className="text-sm text-muted-foreground mt-1">Aukšto lygio komandos ir projekto metrikos</p>
+        <h1 className="text-3xl font-bold">Vadovybės kontrolė</h1>
+        <p className="text-sm text-muted-foreground mt-1">Komandos reitingas ir projekto metrikos</p>
       </div>
 
-      {/* Project selector */}
+      {/* ===== MANAGER RANKING ===== */}
+      <ManagerRankingBlock projectId={selectedProject || null} />
+
+      {/* ===== PROJECT SELECTOR ===== */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pasirinkite projektą</CardTitle>
+          <CardTitle className="text-base">Pasirinkite projektą (detalesnei analizei)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              variant={selectedProject === '' ? 'default' : 'outline'}
+              onClick={() => setSelectedProject('')}
+              className="justify-start text-left"
+            >
+              <span className="font-medium text-sm">Visi projektai</span>
+            </Button>
             {projectsList.map(proj => (
               <Button
                 key={proj.id}
@@ -177,12 +167,12 @@ export default function ManagerInsights() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-green-600" /> Pastaruose Dealai
+                <TrendingUp className="h-4 w-4 text-green-600" /> Paskutiniai Sandoriai
               </CardTitle>
             </CardHeader>
             <CardContent>
               {insights.recentDeals?.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nėra dealų</p>
+                <p className="text-sm text-muted-foreground">Nėra sandorių</p>
               ) : (
                 <div className="space-y-2">
                   {insights.recentDeals?.map(deal => (
