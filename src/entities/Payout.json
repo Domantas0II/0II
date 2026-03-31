@@ -1,0 +1,71 @@
+{
+  "name": "Payout",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "Gavėjo user ID"
+    },
+    "userName": {
+      "type": "string",
+      "description": "Gavėjo vardas (denormalizuotas)"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["primary", "secondary"],
+      "default": "primary",
+      "description": "Rinkos tipas"
+    },
+    "totalAmount": {
+      "type": "number",
+      "description": "Bendra suma su PVM"
+    },
+    "totalVat": {
+      "type": "number",
+      "description": "Bendra PVM suma"
+    },
+    "totalWithoutVat": {
+      "type": "number",
+      "description": "Bendra suma be PVM"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "approved", "paid"],
+      "default": "draft",
+      "description": "Payout statusas"
+    },
+    "periodStart": {
+      "type": "string",
+      "format": "date",
+      "description": "Periodo pradžia"
+    },
+    "periodEnd": {
+      "type": "string",
+      "format": "date",
+      "description": "Periodo pabaiga"
+    },
+    "itemCount": {
+      "type": "number",
+      "description": "Komisinių skaičius"
+    },
+    "approvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada patvirtinta"
+    },
+    "approvedByUserId": {
+      "type": "string",
+      "description": "Kas patvirtino"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada išmokėta"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Kas sukūrė"
+    }
+  },
+  "required": ["userId", "totalAmount", "totalVat", "totalWithoutVat", "status", "periodStart", "periodEnd"]
+}

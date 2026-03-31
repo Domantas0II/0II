@@ -1,72 +1,66 @@
 /**
  * Secondary Market Access Control
- * Manages permissions for secondary market entities
+ * Determines who can view sensitive secondary market data
  */
 
-export const canViewSecondaryObject = (user, secondaryObject) => {
+export function canViewSensitiveSecondaryData(user, entity) {
   if (!user) return false;
-  // Admins, managers, and assigned agents can view
-  if (['admin', 'manager'].includes(user.role)) return true;
-  if (secondaryObject.assignedAgentUserId === user.id) return true;
-  return false;
-};
+  if (!entity) return false;
 
-export const canEditSecondaryObject = (user, secondaryObject) => {
+  const normalizedRole = user.role?.toUpperCase() || '';
+  const isAdmin = normalizedRole === 'ADMINISTRATOR';
+  const isSalesManager = normalizedRole.includes('SALES_MANAGER');
+  const isAssignedAgent = entity.assignedAgentUserId === user.id;
+
+  // Seller data (object details, pricing, commission)
+  if (entity.sellerClientId || entity.objectStatus !== undefined) {
+    return isAdmin || isSalesManager || isAssignedAgent;
+  }
+
+  // Buyer profile data (requirements, budget, financing)
+  if (entity.budgetMin !== undefined || entity.budgetMax !== undefined) {
+    return isAdmin || isSalesManager || isAssignedAgent;
+  }
+
+  // Media/gallery - all agents can view
+  if (entity.imageUrls || entity.mainImageUrl) {
+    return true;
+  }
+
+  // Default deny
+  return false;
+}
+
+export function canEditSecondaryObject(user, object) {
   if (!user) return false;
-  // Only admin, manager, or assigned agent can edit
-  if (user.role === 'admin') return true;
-  if (user.role === 'manager') return true;
-  if (secondaryObject.assignedAgentUserId === user.id) return true;
-  return false;
-};
+  const normalizedRole = user.role?.toUpperCase() || '';
+  return (
+    normalizedRole === 'ADMINISTRATOR' ||
+    normalizedRole.includes('SALES_MANAGER') ||
+    object.assignedAgentUserId === user.id
+  );
+}
 
-export const canViewSellerData = (user, secondaryObject) => {
+export function canEditBuyerProfile(user, profile) {
   if (!user) return false;
-  // Only owner (assigned agent), admin, manager can view seller data
-  if (secondaryObject.assignedAgentUserId === user.id) return true;
-  if (['admin', 'manager'].includes(user.role)) return true;
-  return false;
-};
+  const normalizedRole = user.role?.toUpperCase() || '';
+  return (
+    normalizedRole === 'ADMINISTRATOR' ||
+    normalizedRole.includes('SALES_MANAGER') ||
+    profile.assignedAgentUserId === user.id
+  );
+}
 
-export const canViewCommissionData = (user, secondaryObject) => {
-  if (!user) return false;
-  // Only owner (assigned agent), admin, manager can view commission data
-  if (secondaryObject.assignedAgentUserId === user.id) return true;
-  if (['admin', 'manager'].includes(user.role)) return true;
-  return false;
-};
+export function filterSecondaryDataByRole(entities, user) {
+  if (!user) return [];
+  const normalizedRole = user.role?.toUpperCase() || '';
+  const isAdmin = normalizedRole === 'ADMINISTRATOR';
+  const isSalesManager = normalizedRole.includes('SALES_MANAGER');
 
-export const canViewMediaGallery = (user) => {
-  if (!user) return false;
-  // All managers can view media
-  if (['admin', 'manager', 'user'].includes(user.role)) return true;
-  return false;
-};
-
-export const canViewBuyerProfile = (user, buyerProfile) => {
-  if (!user) return false;
-  // Assigned agent, admin, manager can view
-  if (buyerProfile.assignedAgentUserId === user.id) return true;
-  if (['admin', 'manager'].includes(user.role)) return true;
-  return false;
-};
-
-export const canEditBuyerProfile = (user, buyerProfile) => {
-  if (!user) return false;
-  // Only assigned agent, admin, manager
-  if (buyerProfile.assignedAgentUserId === user.id) return true;
-  if (['admin', 'manager'].includes(user.role)) return true;
-  return false;
-};
-
-export const canViewBuyerCommission = (user, buyerProfile) => {
-  if (!user) return false;
-  // Only owner, admin, manager
-  if (buyerProfile.assignedAgentUserId === user.id) return true;
-  if (['admin', 'manager'].includes(user.role)) return true;
-  return false;
-};
-
-export const isSecondaryMarketEntity = (entity) => {
-  return entity?.marketType === 'secondary';
-};
+  return entities.filter(entity => {
+    // Admins and sales managers see all
+    if (isAdmin || isSalesManager) return true;
+    // Regular agents see only their assigned objects
+    return entity.assignedAgentUserId === user.id;
+  });
+}

@@ -1,0 +1,54 @@
+{
+  "name": "ProjectInquiry",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (null jei secondary)"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "Vieneto ID (tik primary)"
+    },
+    "inquiryStatus": {
+      "type": "string",
+      "enum": ["new", "contacted", "qualified", "converted", "rejected"],
+      "default": "new",
+      "description": "Užklausos statusas"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["primary", "secondary"],
+      "default": "primary",
+      "description": "Rinkos tipas"
+    },
+    "secondaryLeadType": {
+      "type": "string",
+      "enum": ["seller", "buyer", null],
+      "default": null,
+      "description": "Secondary lead tipas"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["website", "phone", "email", "walk_in", "referral", "partner", "other"],
+      "description": "Šaltinis"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    },
+    "assignedToUserId": {
+      "type": "string",
+      "description": "Priskirtam vartotojui"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Sukūręs vartotojas"
+    }
+  },
+  "required": ["clientId", "createdByUserId"]
+}

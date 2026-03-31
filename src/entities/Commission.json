@@ -1,0 +1,153 @@
+{
+  "name": "Commission",
+  "type": "object",
+  "properties": {
+    "dealId": {
+      "type": "string",
+      "description": "Deal ID"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["primary", "secondary"],
+      "default": "primary",
+      "description": "Rinkos tipas"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["manager", "partner"],
+      "description": "Gavėjo vaidmuo"
+    },
+    "userId": {
+      "type": "string",
+      "description": "Vadybininko user ID (role=manager)"
+    },
+    "partnerId": {
+      "type": "string",
+      "description": "Partnerio ID (role=partner)"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (null jei secondary)"
+    },
+    "commissionRuleId": {
+      "type": "string",
+      "description": "Taikytos taisyklės ID"
+    },
+    "saleBaseAmount": {
+      "type": "number",
+      "description": "Pardavimo bazė (nuo ko skaičiuota)"
+    },
+    "totalCommission": {
+      "type": "number",
+      "description": "Bendras komisinis (TOTAL — priešš split)"
+    },
+    "sharePercent": {
+      "type": "number",
+      "description": "Šio gavėjo dalis %"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Šio gavėjo komisinio suma (po split)"
+    },
+    "companyAmount": {
+      "type": "number",
+      "description": "Įmonės dalis (tik manager įraše)"
+    },
+    "companyCommissionReceiptStatus": {
+      "type": "string",
+      "enum": ["not_received", "partially_received", "fully_received"],
+      "default": "not_received",
+      "description": "Ar įmonė gavo savo komisinį iš kliento"
+    },
+    "companyCommissionReceivedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada įmonė gavo komisinį"
+    },
+    "companyCommissionReceivedMarkedByUserId": {
+      "type": "string",
+      "description": "Kas pažymėjo kaip gautą"
+    },
+    "managerPayoutStatus": {
+      "type": "string",
+      "enum": ["not_payable_yet", "payable", "paid"],
+      "default": "not_payable_yet",
+      "description": "Vadybininko išmokos statusas"
+    },
+    "managerPayoutAllowedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada payout tapo leistinas"
+    },
+    "managerPayoutPaidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada vadybininkui išmokėta"
+    },
+    "managerPayoutReceivedConfirmedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada vadybininkas patvirtino gavimą"
+    },
+    "vatMode": {
+      "type": "string",
+      "enum": ["with_vat", "without_vat"],
+      "description": "PVM režimas"
+    },
+    "amountWithoutVat": {
+      "type": "number",
+      "description": "Suma be PVM"
+    },
+    "vatAmount": {
+      "type": "number",
+      "description": "PVM suma"
+    },
+    "amountWithVat": {
+      "type": "number",
+      "description": "Suma su PVM (išmokos pagrindas)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "paid"],
+      "default": "pending",
+      "description": "Komisinio patvirtinimo statusas"
+    },
+    "calculatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada paskaičiuota"
+    },
+    "approvedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approvedByUserId": {
+      "type": "string"
+    },
+    "rejectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rejectedByUserId": {
+      "type": "string"
+    },
+    "rejectionReason": {
+      "type": "string"
+    },
+    "payoutId": {
+      "type": "string",
+      "description": "Payout ID (jei priskirta)"
+    },
+    "payoutStatus": {
+      "type": "string",
+      "enum": ["not_payable_yet", "payable", "paid"],
+      "default": "not_payable_yet",
+      "description": "Išmokos statusas"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["dealId", "role", "marketType", "saleBaseAmount", "totalCommission", "sharePercent", "amount", "status", "calculatedAt"]
+}

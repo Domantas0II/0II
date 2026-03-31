@@ -1,0 +1,68 @@
+{
+  "name": "Deal",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (null jei secondary)"
+    },
+    "unitId": {
+      "type": "string",
+      "description": "Objekto ID (tik primary)"
+    },
+    "secondaryObjectId": {
+      "type": "string",
+      "description": "Secondary objekto ID (tik secondary)"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "reservationId": {
+      "type": "string",
+      "description": "Rezervacijos ID"
+    },
+    "agreementId": {
+      "type": "string",
+      "description": "Sutarties ID"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["primary", "secondary"],
+      "default": "primary",
+      "description": "Rinkos tipas"
+    },
+    "soldAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada parduota"
+    },
+    "soldByUserId": {
+      "type": "string",
+      "description": "Pardavęs vartotojas (manager)"
+    },
+    "totalAmount": {
+      "type": "number",
+      "description": "Bendra pardavimo suma"
+    },
+    "hasPartner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar sandoryje dalyvauja partneris"
+    },
+    "partnerId": {
+      "type": "string",
+      "description": "Partnerio ID (jei hasPartner = true)"
+    },
+    "commissionRuleId": {
+      "type": "string",
+      "description": "Taikytos komisinio taisyklės ID"
+    },
+    "isDeveloperSale": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar tai svilintojo pardavimas"
+    }
+  },
+  "required": ["clientId", "reservationId", "agreementId", "soldAt", "soldByUserId", "totalAmount"]
+}

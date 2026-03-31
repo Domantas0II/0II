@@ -1,0 +1,53 @@
+{
+  "name": "Agreement",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (null jei secondary)"
+    },
+    "reservationId": {
+      "type": "string",
+      "description": "Rezervacijos ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["primary", "secondary"],
+      "default": "primary",
+      "description": "Rinkos tipas"
+    },
+    "agreementType": {
+      "type": "string",
+      "enum": ["reservation", "preliminary"],
+      "description": "Sutarties tipas"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "signed", "cancelled"],
+      "default": "draft",
+      "description": "Sutarties statusas"
+    },
+    "signedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada pasirašyta (ISO 8601 UTC)"
+    },
+    "soldByUserId": {
+      "type": "string",
+      "description": "Atsakingas vadybininkas"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Sukūręs vartotojas (techninis laukas)"
+    }
+  },
+  "required": ["reservationId", "clientId", "agreementType", "createdByUserId"]
+}

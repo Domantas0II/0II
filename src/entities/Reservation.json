@@ -1,0 +1,80 @@
+{
+  "name": "Reservation",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID (null jei secondary)"
+    },
+    "bundleId": {
+      "type": "string",
+      "description": "Rezervacijos pluošto ID (tik primary)"
+    },
+    "secondaryObjectId": {
+      "type": "string",
+      "description": "Secondary objekto ID (tik secondary)"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "clientProjectInterestId": {
+      "type": "string",
+      "description": "Kliento projekto susidomėjimo ID"
+    },
+    "reservedByUserId": {
+      "type": "string",
+      "description": "Vartotojas, kuris rezervavo"
+    },
+    "marketType": {
+      "type": "string",
+      "enum": ["primary", "secondary"],
+      "default": "primary",
+      "description": "Rinkos tipas"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "overdue", "released", "converted"],
+      "default": "active",
+      "description": "Rezervacijos statusas"
+    },
+    "reservedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada rezervuota"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada baigiasi"
+    },
+    "releasedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada atleista"
+    },
+    "convertedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada konvertuota"
+    },
+    "advanceType": {
+      "type": "string",
+      "enum": ["percent", "fixed_amount"],
+      "description": "Avanso tipas"
+    },
+    "advanceValue": {
+      "type": "number",
+      "description": "Avanso dydis"
+    },
+    "advanceAmountCalculated": {
+      "type": "number",
+      "description": "Apskaičiuotas avanso dydis"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    }
+  },
+  "required": ["clientId", "clientProjectInterestId", "reservedByUserId", "reservedAt", "expiresAt"]
+}

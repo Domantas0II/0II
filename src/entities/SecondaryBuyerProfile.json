@@ -2,6 +2,12 @@
   "name": "SecondaryBuyerProfile",
   "type": "object",
   "properties": {
+    "marketType": {
+      "type": "string",
+      "enum": ["secondary"],
+      "default": "secondary",
+      "description": "Market type identifier"
+    },
     "clientId": {
       "type": "string",
       "description": "Kliento ID"
@@ -10,11 +16,17 @@
       "type": "string",
       "description": "Priskirtam agentui"
     },
-    "marketType": {
+    "profileStatus": {
       "type": "string",
-      "enum": ["secondary"],
-      "default": "secondary",
-      "description": "Visada secondary"
+      "enum": ["active", "paused", "completed", "archived"],
+      "default": "active",
+      "description": "Profilio statusas"
+    },
+    "serviceType": {
+      "type": "string",
+      "enum": ["search", "rent"],
+      "default": "search",
+      "description": "Paslaugos tipas"
     },
     "city": {
       "type": "string",
@@ -26,80 +38,99 @@
     },
     "propertyType": {
       "type": "string",
-      "enum": ["apartment", "house", "townhouse"],
-      "description": "Pageidaujamas turto tipas"
+      "enum": ["apartment", "house", "townhouse", "land", "office", "other"],
+      "description": "Pageidaujama nuosavybės tipas"
     },
     "rooms": {
       "type": "number",
-      "description": "Pageidaujamas kambarių skaičius"
+      "description": "Norimas kambarių skaičius"
     },
-    "area": {
+    "areaMin": {
       "type": "number",
-      "description": "Pageidaujamas plotas m²"
+      "description": "Minimalus plotas m²"
     },
-    "floor": {
+    "areaMax": {
       "type": "number",
-      "description": "Pageidaujamas aukstas"
+      "description": "Maksimalus plotas m²"
     },
     "budgetMin": {
       "type": "number",
-      "description": "Biudžeto minimumas €"
+      "description": "Minimalus biudžetas €"
     },
     "budgetMax": {
       "type": "number",
-      "description": "Biudžeto maksimumas €"
+      "description": "Maksimalus biudžetas €"
     },
-    "condition": {
+    "floorPreference": {
+      "type": "string",
+      "description": "Aukšto pageidavimas"
+    },
+    "conditionPreference": {
       "type": "string",
       "enum": ["fully_finished", "partial_finish", "not_finished"],
-      "description": "Pageidaujama būklė"
+      "description": "Stūkos būsena"
     },
-    "parking": {
+    "parkingNeed": {
       "type": "boolean",
-      "description": "Reikalinga statymo vieta"
+      "default": false,
+      "description": "Reikalingas parkavimas"
     },
     "deadline": {
       "type": "string",
       "format": "date",
-      "description": "Vertinimo terminas"
+      "description": "Pirkinimo terminas"
     },
     "financingStatus": {
       "type": "string",
-      "enum": ["self_funded", "mortgage", "credit", "other"],
+      "enum": ["ready", "pre_approved", "needs_approval", "no_financing"],
+      "default": "ready",
       "description": "Finansavimo statusas"
-    },
-    "serviceType": {
-      "type": "string",
-      "enum": ["search"],
-      "default": "search"
     },
     "commissionType": {
       "type": "string",
-      "enum": ["percentage", "fixed"],
+      "enum": ["percentage", "fixed", "hybrid"],
+      "default": "percentage",
       "description": "Komisinio tipas"
     },
-    "commissionPercent": {
+    "searchCommissionPercent": {
       "type": "number",
-      "description": "Komisinis %"
+      "description": "Paieškos komisinio procentas"
     },
     "negotiationBonusPercent": {
       "type": "number",
-      "description": "Derybų premija %"
+      "description": "Derybų bonus procentas"
     },
-    "fixedFee": {
+    "commissionFixedAmount": {
       "type": "number",
-      "description": "Fiksuota suma €"
+      "description": "Fiksuota komisinio suma"
     },
-    "status": {
+    "vatMode": {
       "type": "string",
-      "enum": ["active", "paused", "completed"],
-      "default": "active",
-      "description": "Profilio statusas"
+      "enum": ["with_vat", "without_vat"],
+      "default": "without_vat",
+      "description": "PVM režimas"
+    },
+    "internalNotes": {
+      "type": "string",
+      "description": "Vidinės pastabos"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Ar aktyvus profilis"
     },
     "createdByUserId": {
       "type": "string",
-      "description": "Sukūrimas vartotojo ID"
+      "description": "Sukūręs vartotojas"
     }
   },
-  "required": ["clientId", "propertyType"]
+  "required": [
+    "clientId",
+    "assignedAgentUserId",
+    "city",
+    "propertyType",
+    "budgetMin",
+    "budgetMax",
+    "createdByUserId"
+  ]
 }

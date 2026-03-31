@@ -2,6 +2,12 @@
   "name": "SecondaryObject",
   "type": "object",
   "properties": {
+    "marketType": {
+      "type": "string",
+      "enum": ["secondary"],
+      "default": "secondary",
+      "description": "Market type identifier"
+    },
     "title": {
       "type": "string",
       "description": "Objekto pavadinimas"
@@ -20,8 +26,8 @@
     },
     "propertyType": {
       "type": "string",
-      "enum": ["apartment", "house", "townhouse"],
-      "description": "Turto tipas"
+      "enum": ["apartment", "house", "townhouse", "land", "office", "other"],
+      "description": "Nuosavybės tipas"
     },
     "rooms": {
       "type": "number",
@@ -33,17 +39,17 @@
     },
     "floor": {
       "type": "number",
-      "description": "Aukstas"
+      "description": "Aukštas"
     },
     "price": {
       "type": "number",
       "description": "Kaina €"
     },
-    "status": {
+    "objectStatus": {
       "type": "string",
-      "enum": ["available", "reserved", "sold", "archived"],
+      "enum": ["available", "reserved", "sold", "paused"],
       "default": "available",
-      "description": "Statuso"
+      "description": "Objekto statusas"
     },
     "assignedAgentUserId": {
       "type": "string",
@@ -53,73 +59,96 @@
       "type": "string",
       "description": "Pardavėjo kliento ID"
     },
-    "marketType": {
+    "sourceType": {
       "type": "string",
-      "enum": ["secondary"],
-      "default": "secondary",
-      "description": "Visada secondary"
-    },
-    "serviceType": {
-      "type": "string",
-      "enum": ["sale"],
-      "default": "sale"
-    },
-    "commissionType": {
-      "type": "string",
-      "enum": ["percentage", "fixed"],
-      "description": "Komisinio tipas"
-    },
-    "commissionPercent": {
-      "type": "number",
-      "description": "Komisinis %"
-    },
-    "commissionFixedAmount": {
-      "type": "number",
-      "description": "Fiksuota komisinio suma €"
-    },
-    "vatMode": {
-      "type": "string",
-      "enum": ["with_vat", "without_vat"],
-      "default": "without_vat"
-    },
-    "mainImage": {
-      "type": "string",
-      "description": "Pagrindinė nuotrauka (URL)"
-    },
-    "images": {
-      "type": "array",
-      "items": {"type": "string"},
-      "description": "Galerijos nuotraukos (URL)"
-    },
-    "floorPlans": {
-      "type": "array",
-      "items": {"type": "string"},
-      "description": "Planai (URL)"
-    },
-    "galleryOrder": {
-      "type": "array",
-      "items": {"type": "string"},
-      "description": "Nuotraukų eilutė"
-    },
-    "isExclusive": {
-      "type": "boolean",
-      "default": false,
-      "description": "Ar ekskluzyvi"
+      "enum": ["owner", "partner", "manual", "internal"],
+      "default": "manual",
+      "description": "Šaltinis"
     },
     "isActive": {
       "type": "boolean",
       "default": true,
-      "description": "Ar aktyvi"
+      "description": "Ar aktyvus"
     },
-    "sourceType": {
+    "isExclusive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ar ekskluzyvi agentuotė"
+    },
+    "publicDescription": {
       "type": "string",
-      "enum": ["direct", "portal", "other"],
-      "description": "Šaltinis"
+      "description": "Vie šai rodomas aprašas"
+    },
+    "internalNotes": {
+      "type": "string",
+      "description": "Vidinės pastabos"
+    },
+    "mainImageUrl": {
+      "type": "string",
+      "description": "Pagrindinė nuotrauka"
+    },
+    "imageUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Nuotraukų sąrašas"
+    },
+    "floorPlanUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Planų nuotraukos"
+    },
+    "galleryOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Galerijos eilutė"
+    },
+    "serviceType": {
+      "type": "string",
+      "enum": ["sale", "rent"],
+      "default": "sale",
+      "description": "Paslaugos tipas"
+    },
+    "commissionType": {
+      "type": "string",
+      "enum": ["percentage", "fixed"],
+      "default": "percentage",
+      "description": "Komisinio tipas"
+    },
+    "commissionPercent": {
+      "type": "number",
+      "description": "Komisinio procentas"
+    },
+    "commissionFixedAmount": {
+      "type": "number",
+      "description": "Fiksuota komisinio suma"
+    },
+    "vatMode": {
+      "type": "string",
+      "enum": ["with_vat", "without_vat"],
+      "default": "without_vat",
+      "description": "PVM režimas"
     },
     "createdByUserId": {
       "type": "string",
-      "description": "Sukūrimas vartotojo ID"
+      "description": "Sukūręs vartotojas"
     }
   },
-  "required": ["title", "address", "city", "propertyType", "rooms", "area", "price", "sellerClientId", "commissionType"]
+  "required": [
+    "title",
+    "address",
+    "city",
+    "propertyType",
+    "rooms",
+    "area",
+    "price",
+    "assignedAgentUserId",
+    "sellerClientId",
+    "createdByUserId"
+  ]
 }
