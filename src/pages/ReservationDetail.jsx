@@ -210,14 +210,22 @@ export default function ReservationDetail() {
   const signedAgreement = agreements.find(a => a.status === 'signed');
   const draftAgreement = agreements.find(a => a.status === 'draft');
 
-  // Flow tracker state
+  // Fetch commission for flow tracker
+  const commissionQuery = useQuery({
+    queryKey: ['commission', deal?.id],
+    queryFn: () => base44.entities.Commission.filter({ dealId: deal.id }).then(r => r?.[0] || null),
+    enabled: !!deal?.id,
+  });
+  const commission = commissionQuery.data || null;
+
+  // Flow tracker state — with timestamps
   const flowState = deriveSalesFlowState({
-    inquiry: true, // reservation exists = inquiry happened
-    interest: true, // reservation exists = interest happened  
+    inquiry: { created_date: reservation?.reservedAt },
+    interest: { created_date: reservation?.reservedAt },
     reservation: reservation,
     agreement: signedAgreement || draftAgreement,
     deal: deal,
-    commission: null,
+    commission: commission,
     payout: null
   });
 
@@ -234,6 +242,7 @@ export default function ReservationDetail() {
           currentStep={flowState.currentStep}
           completedSteps={flowState.completedSteps}
           lockedSteps={flowState.lockedSteps}
+          timestamps={flowState.timestamps}
         />
       </div>
 

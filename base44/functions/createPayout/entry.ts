@@ -24,17 +24,36 @@ Deno.serve(async (req) => {
       status: 'approved'
     });
 
-    // Filter: approved + managerPayoutStatus=payable + not yet in payout + within period
+    // HARD LOCK: payout leidžiamas tik jei companyCommissionReceiptStatus = fully_received
+    // Filter: approved + managerPayoutStatus=payable + companyCommissionReceiptStatus=fully_received + not yet in payout + within period
     const eligible = (allApproved || []).filter(c => {
       if (c.payoutId) return false;
       if (c.managerPayoutStatus !== 'payable') return false;
+      // HARD LOCK: negalima išmokėti kol įmonė negavo komisinio iš kliento
+      if (c.companyCommissionReceiptStatus !== 'fully_received') return false;
       const calcDate = new Date(c.calculatedAt);
       return calcDate >= new Date(periodStart) && calcDate <= new Date(periodEnd);
     });
 
+    // Papildoma: patikrinti ar yra komisinių kurie užblokuoti dėl payout lock
+    const locked = (allApproved || []).filter(c => {
+      if (c.payoutId) return false;
+      if (c.companyCommissionReceiptStatus !== 'fully_received') return true;
+      return false;
+    });
+
     if (eligible.length === 0) {
+      if (locked.length > 0) {
+        return Response.json({
+          error: `Nėra tinkamų komisinių. ${locked.length} komisin(ių) laukia kol įmonė gaus komisinį iš kliento (companyCommissionReceiptStatus != fully_received).`,
+          lockedCount: locked.length,
+          code: 'PAYOUT_LOCKED_COMPANY_NOT_RECEIVED'
+        }, { status: 400 });
+      }
       return Response.json({ error: 'No eligible approved commissions found for this period' }, { status: 400 });
     }
+
+
 
     // Calculate totals using correct Commission field names
     const totalAmount = eligible.reduce((sum, c) => sum + (c.managerCommissionAmountWithVat ?? c.managerCommissionAmount ?? 0), 0);

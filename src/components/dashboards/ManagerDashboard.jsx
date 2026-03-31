@@ -6,6 +6,7 @@ import { getProjectKpis, getReservationStats, getDealStats, getOverdueAlerts } f
 import KPICard from '@/components/analytics/KPICard';
 import ManagerRankingBlock from '@/components/ranking/ManagerRankingBlock';
 import ControlCriticalAlerts from './ControlCriticalAlerts';
+import FlowAlertBanner from '@/components/sales/FlowAlertBanner';
 import ControlPipelineBlocks from './ControlPipelineBlocks';
 import ControlRecentDeals from './ControlRecentDeals';
 import ControlInventoryBlock from './ControlInventoryBlock';
@@ -75,8 +76,35 @@ export default function ManagerDashboard({ projectIds, projects }) {
   const { data: agreements = [] } = useQuery({
     queryKey: ['agreements', projectIds],
     queryFn: async () => {
-      const q = projectIds === null ? { status: 'signed' } : { projectId: { $in: projectIds }, status: 'signed' };
+      const q = projectIds === null ? {} : { projectId: { $in: projectIds } };
       return base44.entities.Agreement.filter(q);
+    },
+    enabled: hasProjectIds,
+  });
+
+  const { data: allDeals = [] } = useQuery({
+    queryKey: ['allDeals', projectIds],
+    queryFn: async () => {
+      const q = projectIds === null ? {} : { projectId: { $in: projectIds } };
+      return base44.entities.Deal.filter(q);
+    },
+    enabled: hasProjectIds,
+  });
+
+  const { data: allCommissions = [] } = useQuery({
+    queryKey: ['allCommissions', projectIds],
+    queryFn: async () => {
+      const q = projectIds === null ? {} : { projectId: { $in: projectIds } };
+      return base44.entities.Commission.filter(q);
+    },
+    enabled: hasProjectIds,
+  });
+
+  const { data: allReservations = [] } = useQuery({
+    queryKey: ['allReservations', projectIds],
+    queryFn: async () => {
+      const q = projectIds === null ? {} : { projectId: { $in: projectIds } };
+      return base44.entities.Reservation.filter(q);
     },
     enabled: hasProjectIds,
   });
@@ -87,8 +115,9 @@ export default function ManagerDashboard({ projectIds, projects }) {
   const thisMonth = now.getMonth();
   const monthStart = new Date(thisYear, thisMonth, 1);
   const yearStart = new Date(`${thisYear}-01-01T00:00:00.000Z`);
-  const monthAgreements = agreements.filter(a => a.signedAt && new Date(a.signedAt) >= monthStart).length;
-  const yearAgreements = agreements.filter(a => a.signedAt && new Date(a.signedAt) >= yearStart).length;
+  const signedAgreements = agreements.filter(a => a.status === 'signed');
+  const monthAgreements = signedAgreements.filter(a => a.signedAt && new Date(a.signedAt) >= monthStart).length;
+  const yearAgreements = signedAgreements.filter(a => a.signedAt && new Date(a.signedAt) >= yearStart).length;
 
   const withheldCount = allUnits.filter(u => u.internalStatus === 'withheld' || u.internalStatus === 'developer_reserved').length;
   const unitStats = kpis ? { ...kpis.unitStats, withheld: withheldCount } : null;
@@ -108,6 +137,13 @@ export default function ManagerDashboard({ projectIds, projects }) {
       </div>
 
       <ControlCriticalAlerts alerts={alerts} interests={allInterests} />
+
+      <FlowAlertBanner
+        deals={allDeals}
+        commissions={allCommissions}
+        agreements={agreements}
+        reservations={allReservations}
+      />
 
       {kpisLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
