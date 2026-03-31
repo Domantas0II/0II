@@ -67,6 +67,8 @@ import SystemAuditDashboard from '@/pages/SystemAuditDashboard';
 import ReleaseChecklistPage from '@/pages/ReleaseChecklistPage';
 import SecurityAuditPage from '@/pages/SecurityAuditPage';
 import PerformanceAuditPage from '@/pages/PerformanceAuditPage';
+import SecondaryInquiries from '@/pages/SecondaryInquiries';
+import SecondaryPipeline from '@/pages/SecondaryPipeline';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -169,6 +171,8 @@ const AuthenticatedApp = () => {
         <Route path="/release-checklist" element={<ReleaseChecklistPage />} />
         <Route path="/security-audit" element={<SecurityAuditPage />} />
         <Route path="/performance-audit" element={<PerformanceAuditPage />} />
+        <Route path="/secondary-inquiries" element={<SecondaryInquiries />} />
+        <Route path="/secondary-pipeline" element={<SecondaryPipeline />} />
       </Route>
       {/* External Portal Routes (no layout) */}
       <Route path="/customer-portal" element={<CustomerPortal />} />
