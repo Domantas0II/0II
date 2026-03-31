@@ -50,8 +50,6 @@ export default function UnitsList() {
     enabled: accessibleIds !== undefined,
   });
 
-  const units = allUnits;
-
   // Load technical defaults for accessible projects
   const { data: allTechnical = [] } = useQuery({
     queryKey: ['projectTechnicalAll', accessibleIds],
@@ -86,7 +84,7 @@ export default function UnitsList() {
 
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
 
-  const filtered = units.filter(u => {
+  const filtered = allUnits.filter(u => {
     if (filters.search && !u.label.toLowerCase().includes(filters.search.toLowerCase())) return false;
     if (filters.project !== 'all' && u.projectId !== filters.project) return false;
     if (filters.type !== 'all' && u.type !== filters.type) return false;
@@ -136,6 +134,7 @@ export default function UnitsList() {
               currentUser={user}
               onStatusChange={handleStatusChange}
             />
+
           ))}
         </div>
       )}

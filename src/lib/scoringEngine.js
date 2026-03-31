@@ -36,19 +36,19 @@ export async function scoreInquiryPriority(inquiry, base44) {
   }
 
   // Factor 2: Status (new > claimed)
+  // SOURCE-OF-TRUTH: active inquiry statuses are: new | claimed | converted | rejected | duplicate
   if (inquiry.status === 'new') {
     score += 20;
     reasons.push({
       factor: 'unclaimed_inquiry',
       weight: 20,
-      explanation: 'Inquiry dar nepriskirtai (new status)'
+      explanation: 'Inquiry dar neperimta (new statusas)'
     });
   } else if (inquiry.status === 'claimed') {
-    score += 0;
     reasons.push({
       factor: 'claimed_inquiry',
       weight: 0,
-      explanation: 'Inquiry jau priskirtai'
+      explanation: 'Inquiry jau perimta'
     });
   }
 
@@ -88,8 +88,11 @@ export async function scoreClientPriority(client, interests, tasks, activities, 
   const reasons = [];
 
   // Factor 1: Active interests count
-  const activeInterests = (interests || []).filter(i => 
-    ['contacted', 'considering', 'follow_up', 'reserved'].includes(i.status)
+  // SOURCE-OF-TRUTH: pipeline stages (new_contact → reservation). Old statuses removed.
+  const activeInterests = (interests || []).filter(i =>
+    ['new_contact', 'no_answer_1', 'no_answer_2', 'no_answer_3',
+     'proposal_sent', 'consultation_booked', 'viewing_booked',
+     'waiting_response', 'follow_up', 'negotiation'].includes(i.pipelineStage)
   );
   score += activeInterests.length * 10;
   if (activeInterests.length > 0) {
@@ -141,14 +144,15 @@ export async function scoreClientPriority(client, interests, tasks, activities, 
     });
   }
 
-  // Factor 4: Won interest
-  const wonInterests = (interests || []).filter(i => i.status === 'won');
-  if (wonInterests.length > 0) {
+  // Factor 4: Reservation stage (previously "won")
+  // SOURCE-OF-TRUTH: reservation stage replaces legacy "won" status
+  const reservationInterests = (interests || []).filter(i => i.pipelineStage === 'reservation');
+  if (reservationInterests.length > 0) {
     score += 25;
     reasons.push({
-      factor: 'interest_won',
+      factor: 'interest_reservation',
       weight: 25,
-      explanation: 'Vienas susidomėjimas jau won'
+      explanation: 'Vienas susidomėjimas rezervacijos stadijoje'
     });
   }
 
@@ -168,14 +172,20 @@ export async function scoreReservationProbability(interest, activities, units, b
   const reasons = [];
 
   // Factor 1: Interest stage
+  // SOURCE-OF-TRUTH: only new pipeline stages. Legacy keys (new/contacted/visit/won/reserved) removed.
   const stageWeights = {
-    new: 5,
-    contacted: 10,
-    consultation: 15,
-    visit: 25,
-    negotiation: 40,
-    reserved: 80,
-    won: 95
+    new_contact:          5,
+    no_answer_1:          5,
+    no_answer_2:          5,
+    no_answer_3:          5,
+    proposal_sent:        10,
+    not_relevant:         0,
+    consultation_booked:  20,
+    viewing_booked:       30,
+    waiting_response:     15,
+    follow_up:            15,
+    negotiation:          45,
+    reservation:          85,
   };
   const stageWeight = stageWeights[interest.pipelineStage] || 5;
   score += stageWeight;

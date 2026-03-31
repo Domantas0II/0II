@@ -78,20 +78,21 @@ export const getProjectKpis = async (projectIds) => {
 
 // ============================================
 // 2. INQUIRY FUNNEL
+// SOURCE-OF-TRUTH: ProjectInquiry.status uses:
+//   new | claimed | converted | rejected | duplicate
+// Legacy statuses (contacted) removed — no longer active.
 // ============================================
 export const getInquiryFunnel = async (projectIds) => {
   try {
-    // All-time inquiry funnel (not filtered by date)
     const query = projectIds === null ? {} : { projectId: { $in: projectIds } };
     const inquiries = await base44.entities.ProjectInquiry.filter(query);
 
     return {
-      new: inquiries.filter(i => i.status === 'new').length,
-      claimed: inquiries.filter(i => i.status === 'claimed').length,
-      contacted: inquiries.filter(i => i.status === 'contacted').length,
+      new:       inquiries.filter(i => i.status === 'new').length,
+      claimed:   inquiries.filter(i => i.status === 'claimed').length,
       converted: inquiries.filter(i => i.status === 'converted').length,
-      rejected: inquiries.filter(i => i.status === 'rejected').length,
-      duplicate: inquiries.filter(i => i.status === 'duplicate').length
+      rejected:  inquiries.filter(i => i.status === 'rejected').length,
+      duplicate: inquiries.filter(i => i.status === 'duplicate').length,
     };
   } catch (error) {
     console.error('Failed to calculate inquiry funnel:', error);

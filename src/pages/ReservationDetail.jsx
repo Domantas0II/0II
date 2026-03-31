@@ -339,7 +339,7 @@ export default function ReservationDetail() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Rezervavo:</span>
-            <span className="font-medium">{reservation.reservedByUserId}</span>
+            <span className="font-medium text-xs text-muted-foreground">#{reservation.reservedByUserId?.slice(-6)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Rezervuota:</span>

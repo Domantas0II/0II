@@ -52,10 +52,15 @@ export default function CommissionsList() {
     return true;
   });
 
+  // SOURCE-OF-TRUTH: Commission.amount = šio gavėjo komisinio suma po split
+  // Commission.amountWithVat = suma su PVM (jei vatMode = 'with_vat')
   const totals = {
-    pending:  commissions.filter(c => c.status === 'pending').reduce((s, c) => s + (c.managerCommissionAmount || 0), 0),
-    payable:  commissions.filter(c => c.managerPayoutStatus === 'payable').reduce((s, c) => s + (c.managerCommissionAmountWithVat || c.managerCommissionAmount || 0), 0),
-    paid:     commissions.filter(c => c.managerPayoutStatus === 'paid').reduce((s, c) => s + (c.managerCommissionAmountWithVat || c.managerCommissionAmount || 0), 0)
+    pending: commissions.filter(c => c.status === 'pending')
+      .reduce((s, c) => s + (c.amount || 0), 0),
+    payable: commissions.filter(c => c.managerPayoutStatus === 'payable')
+      .reduce((s, c) => s + (c.amountWithVat || c.amount || 0), 0),
+    paid:    commissions.filter(c => c.managerPayoutStatus === 'paid')
+      .reduce((s, c) => s + (c.amountWithVat || c.amount || 0), 0),
   };
 
   const fmt = (n) => `€${Number(n || 0).toLocaleString('lt-LT', { minimumFractionDigits: 2 })}`;
@@ -136,9 +141,10 @@ export default function CommissionsList() {
         <div className="space-y-2">
           {filtered.map(c => {
             const proj = projectsMap[c.projectId];
-            const managerFmt = c.managerVatMode === 'with_vat'
-              ? fmt(c.managerCommissionAmountWithVat)
-              : fmt(c.managerCommissionAmount);
+            // Commission.vatMode drives display; amount / amountWithVat are the canonical fields
+            const managerFmt = c.vatMode === 'with_vat'
+              ? fmt(c.amountWithVat)
+              : fmt(c.amount);
             return (
               <Link key={c.id} to={`/commissions/${c.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -154,9 +160,9 @@ export default function CommissionsList() {
                           <span className="text-xs text-muted-foreground">·</span>
                           <span className="text-xs text-muted-foreground">Bazė: {fmt(c.saleBaseAmount)}</span>
                           <span className="text-xs text-muted-foreground">·</span>
-                          <span className="text-xs text-muted-foreground">Bendras: {fmt(c.totalCommissionBaseAmount)}</span>
-                          {c.managerVatMode && (
-                            <Badge variant="outline" className="text-xs py-0">{c.managerVatMode === 'with_vat' ? 'PVM' : 'be PVM'}</Badge>
+                          <span className="text-xs text-muted-foreground">Bendras: {fmt(c.totalCommission)}</span>
+                          {c.vatMode && (
+                            <Badge variant="outline" className="text-xs py-0">{c.vatMode === 'with_vat' ? 'PVM' : 'be PVM'}</Badge>
                           )}
                         </div>
                       </div>

@@ -3,10 +3,9 @@ import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Clock, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { normalizeRole } from '@/lib/constants';
@@ -73,7 +72,7 @@ function TaskCard({ task, onStatusChange }) {
       <div className="flex gap-1">
         {task.status === 'pending' && (
           <Button
-            size="xs"
+            size="sm"
             variant="outline"
             className="flex-1 h-6 text-xs"
             onClick={() => onStatusChange(task.id, 'in_progress')}
@@ -83,7 +82,7 @@ function TaskCard({ task, onStatusChange }) {
         )}
         {task.status === 'in_progress' && (
           <Button
-            size="xs"
+            size="sm"
             variant="outline"
             className="flex-1 h-6 text-xs text-green-600"
             onClick={() => onStatusChange(task.id, 'completed')}

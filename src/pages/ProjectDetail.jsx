@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useOutletContext, useParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -35,8 +35,6 @@ export default function ProjectDetail() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const [hasAccess, setHasAccess] = useState(false);
-
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
@@ -44,7 +42,6 @@ export default function ProjectDetail() {
       if (proj && user?.id) {
         const { canAccessProject } = await import('@/lib/queryAccess');
         const access = await canAccessProject(user, proj.id, base44);
-        setHasAccess(access);
         if (!access) throw new Error('Access denied');
       }
       return proj;

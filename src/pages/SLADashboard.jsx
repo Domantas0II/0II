@@ -223,7 +223,7 @@ export default function SLADashboard() {
                     Termin: {new Date(task.dueAt).toLocaleString('lt-LT')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Priskirtam: {task.assignedToUserId}
+                    ID: #{task.id?.slice(-6)}
                   </p>
                 </div>
               ))}
