@@ -36,7 +36,7 @@
     },
     "totalCommission": {
       "type": "number",
-      "description": "Bendras komisinis (visa suma prie\u0161 split)"
+      "description": "Bendras komisinis (TOTAL \u2014 prie\u0161 split)"
     },
     "sharePercent": {
       "type": "number",
@@ -44,11 +44,55 @@
     },
     "amount": {
       "type": "number",
-      "description": "\u0160io gav\u0117jo komisinio suma"
+      "description": "\u0160io gav\u0117jo komisinio suma (po split)"
     },
     "companyAmount": {
       "type": "number",
       "description": "\u012emon\u0117s dalis (tik manager \u012fra\u0161e)"
+    },
+    "companyCommissionReceiptStatus": {
+      "type": "string",
+      "enum": [
+        "not_received",
+        "partially_received",
+        "fully_received"
+      ],
+      "default": "not_received",
+      "description": "Ar \u012fmon\u0117 gavo savo komisin\u012f i\u0161 kliento"
+    },
+    "companyCommissionReceivedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada \u012fmon\u0117 gavo komisin\u012f"
+    },
+    "companyCommissionReceivedMarkedByUserId": {
+      "type": "string",
+      "description": "Kas pa\u017eym\u0117jo kaip gaut\u0105"
+    },
+    "managerPayoutStatus": {
+      "type": "string",
+      "enum": [
+        "not_payable_yet",
+        "payable",
+        "paid"
+      ],
+      "default": "not_payable_yet",
+      "description": "Vadybininko i\u0161mokos statusas. 'payable' \u2014 tik kai companyCommissionReceiptStatus = fully_received"
+    },
+    "managerPayoutAllowedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada payout tapo leistinas"
+    },
+    "managerPayoutPaidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada vadybininkui i\u0161mok\u0117ta"
+    },
+    "managerPayoutReceivedConfirmedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada vadybininkas patvirtino gavim\u0105"
     },
     "vatMode": {
       "type": "string",
@@ -79,7 +123,7 @@
         "paid"
       ],
       "default": "pending",
-      "description": "Komisinio statusas"
+      "description": "Komisinio patvirtinimo statusas"
     },
     "calculatedAt": {
       "type": "string",
@@ -115,7 +159,7 @@
         "paid"
       ],
       "default": "not_payable_yet",
-      "description": "I\u0161mokos statusas"
+      "description": "I\u0161mokos statusas (sinchronizuotas su managerPayoutStatus)"
     },
     "paidAt": {
       "type": "string",

@@ -16,11 +16,11 @@
         "percentage",
         "fixed"
       ],
-      "description": "Komisinio skai\u010diavimo tipas"
+      "description": "1 sluoksnis: komisinio skai\u010diavimo tipas (nuo pardavimo sumos)"
     },
     "commissionValue": {
       "type": "number",
-      "description": "Procentas arba fiksuota suma"
+      "description": "1 sluoksnis: procentas (pvz. 3) arba fiksuota suma (pvz. 3000)"
     },
     "commissionBase": {
       "type": "string",
@@ -33,23 +33,23 @@
     },
     "companyPercent": {
       "type": "number",
-      "description": "\u012emon\u0117s dalis % (be partnerio)"
+      "description": "2 sluoksnis (be partnerio): \u012fmon\u0117s dalis %"
     },
     "managerPercent": {
       "type": "number",
-      "description": "Vadybininko dalis % (be partnerio)"
+      "description": "2 sluoksnis (be partnerio): vadybininko dalis %. companyPercent + managerPercent = 100"
     },
     "companyPercentWithPartner": {
       "type": "number",
-      "description": "\u012emon\u0117s dalis % (su partneriu)"
+      "description": "2 sluoksnis (su partneriu): \u012fmon\u0117s dalis %"
     },
     "managerPercentWithPartner": {
       "type": "number",
-      "description": "Vadybininko dalis % (su partneriu)"
+      "description": "2 sluoksnis (su partneriu): vadybininko dalis %"
     },
     "partnerPercent": {
       "type": "number",
-      "description": "Partnerio dalis % (su partneriu)"
+      "description": "2 sluoksnis (su partneriu): partnerio dalis %. company + manager + partner = 100"
     },
     "vatMode": {
       "type": "string",
@@ -58,7 +58,7 @@
         "without_vat"
       ],
       "default": "without_vat",
-      "description": "PVM re\u017eimas i\u0161mokant"
+      "description": "PVM re\u017eimas i\u0161mokant vadybininkui"
     },
     "isActive": {
       "type": "boolean",

@@ -155,6 +155,9 @@ Deno.serve(async (req) => {
       sharePercent: managerSharePercent,
       amount: managerAmount,
       companyAmount,
+      // Company tracking fields (used for payout lock logic)
+      companyCommissionReceiptStatus: 'not_received',
+      managerPayoutStatus: 'not_payable_yet',
       vatMode,
       ...managerVat,
       status: 'pending',
