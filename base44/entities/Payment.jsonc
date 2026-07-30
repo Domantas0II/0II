@@ -1,0 +1,76 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Projekto ID"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Kliento ID"
+    },
+    "reservationId": {
+      "type": "string",
+      "description": "Rezervacijos ID (optional)"
+    },
+    "agreementId": {
+      "type": "string",
+      "description": "Sutarties ID (optional)"
+    },
+    "paymentType": {
+      "type": "string",
+      "enum": [
+        "advance",
+        "other"
+      ],
+      "description": "Mok\u0117jimo tipas"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Suma"
+    },
+    "vatRate": {
+      "type": "number",
+      "description": "PVM norma %"
+    },
+    "amountWithVat": {
+      "type": "number",
+      "description": "Suma su PVM"
+    },
+    "amountWithoutVat": {
+      "type": "number",
+      "description": "Suma be PVM"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kada sumok\u0117ta"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "recorded",
+        "cancelled"
+      ],
+      "default": "recorded",
+      "description": "Mok\u0117jimo statusas"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Pastabos"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Suk\u016br\u0119s vartotojas"
+    }
+  },
+  "required": [
+    "projectId",
+    "clientId",
+    "paymentType",
+    "amount",
+    "paidAt",
+    "createdByUserId"
+  ]
+}
