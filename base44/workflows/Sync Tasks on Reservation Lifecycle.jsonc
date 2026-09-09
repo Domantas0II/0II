@@ -1,0 +1,37 @@
+{
+  "name": "Sync Tasks on Reservation Lifecycle",
+  "description": "",
+  "trigger": {
+    "condition": "${ ((.trigger.data.status == \"released\") or (.trigger.data.status == \"converted\")) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Reservation"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "sync_tasks_on_reservation_lifecycle",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncTaskLifecycle",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "syncTaskLifecycle"
+  }
+}

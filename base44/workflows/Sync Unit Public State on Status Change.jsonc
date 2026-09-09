@@ -1,0 +1,37 @@
+{
+  "name": "Sync Unit Public State on Status Change",
+  "description": "",
+  "trigger": {
+    "condition": "${ (.trigger.changed_fields | index(\"internalStatus\") != null) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "SaleUnit"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "sync_unit_public_state_on_status_change",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncUnitPublicState",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "syncUnitPublicState"
+  }
+}
